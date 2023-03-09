@@ -1,0 +1,88 @@
+name: Build RTK Firmware
+on: 
+  workflow_dispatch:
+    branches: 
+
+env:
+  #FILENAME_PREFIX: RTK_Surveyor_Firmware
+  #FIRMWARE_VERSION_MAJOR: 3
+  #FIRMWARE_VERSION_MINOR: 3
+  #POINTPERFECT_TOKEN: ${{ secrets.POINTPERFECT_TOKEN }}
+
+jobs:
+  build:
+    
+    name: Build DataLogger IoT
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%b_%d_%Y')" >> $GITHUB_OUTPUT
+
+      - name: Get current date
+        id: dateNoScores
+        run: echo "dateNoScores=$(date +'%b %d %Y')" >> $GITHUB_OUTPUT
+
+      - name: Extract branch name
+        run: echo "BRANCH=${{github.ref_name}}" >> $GITHUB_ENV
+
+      #File_Name_v3_1.bin
+      #File_Name_RC-Jan_26_2023.bin
+      # - name: Create file ending and compiler flags based on branch
+      #   run: |
+      #     if [[ $BRANCH == 'main' ]]; then
+      #         echo "FILE_ENDING_UNDERSCORE=_v${{ env.FIRMWARE_VERSION_MAJOR }}_${{ env.FIRMWARE_VERSION_MINOR }}" >> "$GITHUB_ENV"
+      #         echo "FILE_ENDING_NOUNDERSCORE=_v${{ env.FIRMWARE_VERSION_MAJOR }}.${{ env.FIRMWARE_VERSION_MINOR }}" >> "$GITHUB_ENV"
+      #         echo "JSON_ENDING=" >> "$GITHUB_ENV"
+      #         echo "JSON_FILE_NAME=RTK-Firmware.json" >> "$GITHUB_ENV"
+      #         echo "ENABLE_DEVELOPER=false" >> "$GITHUB_ENV"
+      #     else
+      #         echo "FILE_ENDING_UNDERSCORE=_RC-${{ steps.date.outputs.date }}" >> "$GITHUB_ENV"
+      #         echo "FILE_ENDING_NOUNDERSCORE=_RC-${{ steps.dateNoScores.outputs.dateNoScores }}" >> "$GITHUB_ENV"
+      #         echo "JSON_ENDING=-${{ steps.dateNoScores.outputs.dateNoScores }}" >> "$GITHUB_ENV"
+      #         echo "JSON_FILE_NAME=RTK-RC-Firmware.json" >> "$GITHUB_ENV"
+      #         echo "ENABLE_DEVELOPER=true" >> "$GITHUB_ENV"
+      #     fi
+
+      - name: Arduino - Install and setup the Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+
+      - name: Arduino - Start config file
+        run: arduino-cli config init --additional-urls "https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json"
+
+      - name: Arduino - Update index
+        run: arduino-cli core update-index
+
+      # Install ESP32 
+      - name: Arduino - Install ESP32 platform
+        run: arduino-cli core install esp32:esp32
+
+      - name: Arduino - Enable external libs
+        run: arduino-cli config set library.enable_unsafe_install true
+
+      - name: Arduino - Install *private libraries* - 
+        run: |
+          arduino-cli lib install --git-url https://github.com/sparkfun/SparkFun_Flux.git
+          ls -la
+          
+      #Incorporate ESP-Now patch into core: https://github.com/espressif/arduino-esp32/pull/7044/files
+      #- name: Patch ESP32 Core
+      #  run: |
+      #    cd Firmware/RTK_Surveyor/Patch/
+      #    cp WiFiGeneric.cpp /home/runner/.arduino15/packages/esp32/hardware/esp32/2.0.2/libraries/WiFi/src/WiFiGeneric.cpp
+
+      # - name: Compile Sketch
+      #   run: arduino-cli compile --fqbn esp32:esp32:esp32 ./Firmware/RTK_Surveyor/RTK_Surveyor.ino
+      #     --build-property build.partitions=partitions
+      #     --build-property upload.maximum_size=3145728 
+      #     --build-property "compiler.cpp.extra_flags=\"-DPOINTPERFECT_TOKEN=$POINTPERFECT_TOKEN\" \"-DFIRMWARE_VERSION_MAJOR=$FIRMWARE_VERSION_MAJOR\" \"-DFIRMWARE_VERSION_MINOR=$FIRMWARE_VERSION_MINOR\" \"-DENABLE_DEVELOPER=${{ env.ENABLE_DEVELOPER }}\""
+      #     --export-binaries
+
+      # - name: Rename binary
+      #   run: |
+      #     cd Firmware/RTK_Surveyor/build/esp32.esp32.esp32/
+      #     mv RTK_Surveyor.ino.bin ${{ env.FILENAME_PREFIX }}${{ env.FILE_ENDING_UNDERSCORE }}.bin
