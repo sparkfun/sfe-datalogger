@@ -36,7 +36,9 @@ jobs:
         run: arduino-cli core install esp32:esp32
 
       - name: Install Flux needed libraries.
-        run: ./SparkFun_Flux/install_libs.sh
+        run: |
+            ls SparkFun_Flux
+            ./SparkFun_Flux/install_libs.sh
 
      
           
