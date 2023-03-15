@@ -1,0 +1,3 @@
+[submodule "SparkFun_Flux"]
+	path = SparkFun_Flux
+	url = git@github.com:sparkfun/SparkFun_Flux.git
