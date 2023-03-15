@@ -19,7 +19,6 @@ jobs:
           ssh-private-key: |
             ${{ secrets.FLUX_PULL_KEY_2 }}
       - run: |
-            cd SparkFun_DataLogger
             git submodule update --init --recursive
             ls -l
 
