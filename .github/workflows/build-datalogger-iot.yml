@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Repo and submodules
         uses: actions/checkout@v2
         with:
-          ssh-key: ${{ secrets.SUBMODULE_FLUX_PULL_KEY }}
+          ssh-key: ${{ secrets.FLUX_PULL_KEY_2 }}
           submodules: recursive
 
       - name: Arduino - Install and setup the Arduino CLI
