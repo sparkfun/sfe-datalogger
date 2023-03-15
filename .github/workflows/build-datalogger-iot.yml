@@ -18,7 +18,9 @@ jobs:
         with:
           ssh-private-key: |
             ${{ secrets.FLUX_PULL_KEY_2 }}
-      - run: |
+      
+      - name: Checkout sub module
+        run: |
             git submodule update --init --recursive
             ls -l
 
@@ -37,7 +39,8 @@ jobs:
 
       - name: Install Flux needed libraries.
         run: |
-            ls SparkFun_Flux
+            ls 
+            ls ./SparkFun_Flux
             ./SparkFun_Flux/install_libs.sh
 
      
