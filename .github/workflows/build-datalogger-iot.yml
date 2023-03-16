@@ -34,14 +34,12 @@ jobs:
         run: arduino-cli core update-index
 
       # Install ESP32 
-#       - name: Arduino - Install ESP32 platform
-#         run: arduino-cli core install esp32:esp32
+      - name: Arduino - Install ESP32 platform
+        run: arduino-cli core install esp32:esp32
 
       - name: Install Flux needed libraries.
         run: |
-            ls -la
-            ls -la SparkFun_Flux
-            ./SparkFun_Flux/install_libs.sh
+            ./SparkFun_Flux/install-libs.sh
 
      
           
