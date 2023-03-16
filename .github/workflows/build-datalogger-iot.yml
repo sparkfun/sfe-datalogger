@@ -39,9 +39,8 @@ jobs:
 
       - name: Install Flux needed libraries.
         run: |
-            ls 
-            ls ./SparkFun_Flux
-            find $(PWD) -name '*.sh'
+            ls -la
+            find . -name '*.sh'
             ./SparkFun_Flux/install_libs.sh
 
      
