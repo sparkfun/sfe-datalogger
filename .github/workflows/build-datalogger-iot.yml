@@ -44,7 +44,7 @@ jobs:
       - name: Compile Library
         run: arduino-cli compile --fqbn esp32:esp32:esp32 ./sfeDataLoggerIoT/sfeDataLoggerIoT.ino 
             --build-property build.partitions=partitions --build-property upload.maximum_size=3145728 
-            --export-binaries --clean --library /home/kirk/development/sparkfun/SparkFun_DataLogger/SparkFun_Flux 
+            --export-binaries --clean --library `pwd`/SparkFun_Flux 
           
       #Incorporate ESP-Now patch into core: https://github.com/espressif/arduino-esp32/pull/7044/files
       #- name: Patch ESP32 Core
