@@ -53,7 +53,7 @@ jobs:
             --build-property build.partitions=partitions --build-property upload.maximum_size=3145728 
             --export-binaries --clean --library `pwd`/SparkFun_Flux 
 
-      - name: Rname Library
+      - name: Rename Library
         run: |
           cd sfeDataLoggerIoT/build/esp32.esp32.esp32/
           mv sfeDataLoggerIot.ino.bin SparkFun_DataLoggerIoT.bin
