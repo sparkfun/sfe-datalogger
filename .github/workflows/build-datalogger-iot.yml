@@ -53,6 +53,16 @@ jobs:
             --build-property build.partitions=partitions --build-property upload.maximum_size=3145728 
             --export-binaries --clean --library `pwd`/SparkFun_Flux 
 
+      - name: Rname Library
+        run: |
+          cd sfeDataLoggerIoT/build/esp32.esp32.esp32/
+          mv sfeDataLoggerIot.ino.bin SparkFun_DataLoggerIoT.bin
+          
+      - uses: actions/upload-artifact@v3
+        with:
+          name: SparkFun_DataLoggerIoT.bin
+          path: sfeDataLoggerIoT/build/esp32.esp32.esp32/SparkFun_DataLoggerIoT.bin
+          
       # - name: Compile Sketch
       #   run: arduino-cli compile --fqbn esp32:esp32:esp32 ./Firmware/RTK_Surveyor/RTK_Surveyor.ino
       #     --build-property build.partitions=partitions
