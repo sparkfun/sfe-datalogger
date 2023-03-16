@@ -56,7 +56,8 @@ jobs:
       - name: Rename Library
         run: |
           cd sfeDataLoggerIoT/build/esp32.esp32.esp32/
-          mv sfeDataLoggerIot.ino.bin SparkFun_DataLoggerIoT.bin
+          ls -la
+          mv sfeDataLoggerIoT.ino.bin SparkFun_DataLoggerIoT.bin
           
       - uses: actions/upload-artifact@v3
         with:
