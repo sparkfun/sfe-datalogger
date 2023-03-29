@@ -50,18 +50,22 @@ jobs:
       
       - name: Compile DataLogger firmware binary
         run: arduino-cli compile --fqbn esp32:esp32:esp32 ./sfeDataLoggerIoT/sfeDataLoggerIoT.ino 
-            --build-property build.partitions=partitions --build-property upload.maximum_size=3145728 
+            --build-property upload.maximum_size=3145728 --build-property build.flash_size=16MB --build-property build.partitions=partitions 
+            --build-property build.flash_mode=dio --build-property build.flash_freq=80m
             --export-binaries --clean --library `pwd`/SparkFun_Flux 
 
-      - name: Rename Library
-        run: |
-          cd sfeDataLoggerIoT/build/esp32.esp32.esp32/
-          mv sfeDataLoggerIoT.ino.bin SparkFun_DataLoggerIoT.bin
-          
+      # - name: Rename Library
+      #   run: |
+      #     cd sfeDataLoggerIoT/build/esp32.esp32.esp32/
+      #     mv sfeDataLoggerIoT.ino.bin SparkFun_DataLoggerIoT.bin
+      
+      # Upload the build files - bootloader, paritions, firmware  
       - uses: actions/upload-artifact@v3
         with:
-          name: SparkFun_DataLoggerIoT.bin
-          path: sfeDataLoggerIoT/build/esp32.esp32.esp32/SparkFun_DataLoggerIoT.bin
+          name: sfeDataLoggerIoT-build
+          path: sfeDataLoggerIoT/build/esp32.esp32.esp32/sfeDataLoggerIoT.ino*.bin
+
+
           
       # - name: Compile Sketch
       #   run: arduino-cli compile --fqbn esp32:esp32:esp32 ./Firmware/RTK_Surveyor/RTK_Surveyor.ino
