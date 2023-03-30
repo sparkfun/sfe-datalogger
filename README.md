@@ -86,7 +86,6 @@ esptool.py --chip esp32 --port "<PORT>" --baud  460800 \
     --flash_mode dio --flash_freq 80m --flash_size 16MB \
     0x1000 "./sfeDataLoggerIoT/build/esp32.esp32.esp32/sfeDataLoggerIoT.ino.bootloader.bin" \
     0x8000 "./sfeDataLoggerIoT/build/esp32.esp32.esp32/sfeDataLoggerIoT.ino.partitions.bin" \
-    0x13000 "./resource/boot_app0.bin" \
     0x20000 "./sfeDataLoggerIoT/build/esp32.esp32.esp32/sfeDataLoggerIoT.ino.bin"
 ```
 
