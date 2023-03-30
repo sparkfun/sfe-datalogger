@@ -1,4 +1,6 @@
 # SparkFun DataLogger IoT
+![DataLogger Builds](https://github.com/sparkfun/SparkFun_DataLogger/actions/workflows/build-datalogger-iot.yml/badge.svg)
+
 
 The repository contains the various firmware applications for the SparkFun DataLogger IoT incarnations.
 
