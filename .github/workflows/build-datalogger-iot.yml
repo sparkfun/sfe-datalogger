@@ -8,7 +8,7 @@ on:
     branches: 
 
 env:
-  DATALOGGER_IOT_APP_KEY = ${{ secrets.DATALOGGER_IOT_APP_KEY }}
+  DATALOGGER_IOT_APP_KEY: ${{ secrets.DATALOGGER_IOT_APP_KEY }}
 
 jobs:
   build:
