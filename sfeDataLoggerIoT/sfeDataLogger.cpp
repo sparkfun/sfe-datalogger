@@ -331,11 +331,6 @@ bool sfeDataLogger::start()
     // Connect logger to the timer event
     _logger.listen(_timer.on_interval);
 
-    // We want to output JSON and CSV to the serial consol.
-    //  - Add Serial to our  formatters
-    //_fmtJSON.add(flxSerial());
-    //_fmtCSV.add(flxSerial());
-
     //  - Add the JSON and CVS format to the logger
     _logger.add(_fmtJSON);
     _logger.add(_fmtCSV);
@@ -374,12 +369,6 @@ bool sfeDataLogger::start()
     setupBioHub();
 
     flxLog_N("");
-
-    // KDB Testing of secrets
-    Serial.printf("APP KEY: {");
-    for(int i =0; i < sizeof(_app_jump)/sizeof(uint8_t); i++)
-        Serial.printf("%d, ", _app_jump[i]);
-    Serial.println("}");
 
     // set our system start time im millis
     _startTime = millis();
