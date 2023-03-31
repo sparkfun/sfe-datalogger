@@ -22,12 +22,19 @@
 RTC_DATA_ATTR int boot_count = 0;
 
 
-// Application keys
+// Application keys - used to encrypt runtime secrets for the app. 
+//
 // NOTE: Gen a base 64 key  % openssl rand -base64 32
 //       Convert into ascii ints in python %    data = [ord(c) for c in ss]
 //       Jam into the below array
+
+// If a key array is passed in via a #define, use that, otherwise use a default, dev key
+#ifdef DATALOGGER_IOT_APP_KEY
+static uint8_t _app_jump[] = DATALOGGER_IOT_APP_KEY;
+#else
 static uint8_t _app_jump[] = {104,72,67,51,74,67,108,99,104,112,77,100,55,106,56,78,68,69,108,98,118,
                                 51,65,90,48,51,82,111,120,56,52,49,70,76,103,77,84,49,85,99,117,66,111,61};
+#endif
 //---------------------------------------------------------------------------
 // Constructor
 //
