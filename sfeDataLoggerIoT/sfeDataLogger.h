@@ -164,7 +164,7 @@ private:
     // System sleep properties
     flxPropertyInt<sfeDataLogger>   sleepInterval = {5, 86400};
     flxPropertyInt<sfeDataLogger>   wakeInterval = {60, 86400};    
-    flxPropertyBool<sfeDataLogger>  sleepEnabled = {true};
+    flxPropertyBool<sfeDataLogger>  sleepEnabled = {false};
 
   private:
 
