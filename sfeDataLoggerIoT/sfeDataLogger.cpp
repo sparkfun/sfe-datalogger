@@ -378,7 +378,7 @@ bool sfeDataLogger::start()
     // KDB Testing of secrets
     Serial.printf("APP KEY: {");
     for(int i =0; i < sizeof(_app_jump)/sizeof(uint8_t); i++)
-        Serial.printf("%d, ", _app_jump[i])
+        Serial.printf("%d, ", _app_jump[i]);
     Serial.println("}");
 
     // set our system start time im millis
