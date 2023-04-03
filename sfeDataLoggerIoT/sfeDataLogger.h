@@ -62,6 +62,8 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 #include <Flux/flxIoTThingSpeak.h>
 #include <Flux/flxIoTHTTP.h>
 
+// System Firmware update/reset
+#include <Flux/flxSysFirmware.h>
 //------------------------------------------
 // Default log interval in milli secs
 #define kDefaultLogInterval 15000
@@ -220,6 +222,10 @@ private:
 
     // HTTP/URL Post
     flxIoTHTTP _iotHTTP;
+
+    // Our firmware Update/Reset system
+    flxSysFirmware _sysUpdate;
+    
 
     // For the sleep timer
     unsigned long _startTime = 0;
