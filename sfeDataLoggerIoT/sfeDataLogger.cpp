@@ -172,8 +172,16 @@ bool sfeDataLogger::setup()
     if (!setupIoTClients())
         flxLog_W(F("Error initializing IoT Clients"));
 
-    // setup and add our system update/firmware settings last 
+    //----------
+    // setup firmware update/reset system
+
+    // Filesystem to read firmware from
+    _sysUpdate.setFileSystem(&_theSDCard);
+
+    // Serial UX - used to list files to select off the fileystem
     _sysUpdate.setSerialSettings(_serialSettings);
+
+    // Add to the system - manual add so it appears last in the ops list
     flux.add(_sysUpdate);
 
     return true;
