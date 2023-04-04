@@ -172,6 +172,10 @@ bool sfeDataLogger::setup()
     if (!setupIoTClients())
         flxLog_W(F("Error initializing IoT Clients"));
 
+    // setup and add our system update/firmware settings last 
+    _sysUpdate.setSerialSettings(_serialSettings);
+    flux.add(_sysUpdate);
+
     return true;
 }
 
