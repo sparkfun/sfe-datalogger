@@ -144,7 +144,7 @@ bool sfeDataLogger::setup()
 {
     // Lets set the application name?!
     setName("SparkFun DataLogger IoT - 9DOF", "(c) 2023 SparkFun Electronics");
-    setVersion("0.9.2 Beta", 10009002);
+    setVersion("0.9.5 Beta", 10009005);
 
     // set the settings storage system for spark
     flxSettings.setStorage(&_sysStorage);
