@@ -21,6 +21,8 @@
 
 RTC_DATA_ATTR int boot_count = 0;
 
+// For finding the firmware files on SD card
+#define kDataLoggerFirmwareFilePrefix "SparkFunDataLoggerIoT"
 
 // Application keys - used to encrypt runtime secrets for the app. 
 //
@@ -180,6 +182,8 @@ bool sfeDataLogger::setup()
 
     // Serial UX - used to list files to select off the fileystem
     _sysUpdate.setSerialSettings(_serialSettings);
+
+    _sysUpdate.setFirmwareFilePrefix(kDataLoggerFirmwareFilePrefix);
 
     // Add to the system - manual add so it appears last in the ops list
     flux.add(_sysUpdate);
