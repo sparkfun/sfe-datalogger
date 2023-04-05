@@ -174,6 +174,8 @@ private:
   private:
 
     void enterSleepMode(void);
+    void outputVMessage(void);
+    void checkOpMode(void);
 
     // Class members -- that make up the apllication structure
 
@@ -231,4 +233,9 @@ private:
 
     // For the sleep timer
     unsigned long _startTime = 0;
+
+    bool _isValidMode; 
+
+    unsigned long _lastLCheck;
+    uint16_t  _modeFlags;
 };

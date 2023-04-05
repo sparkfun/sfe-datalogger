@@ -40,11 +40,34 @@ static uint8_t _app_jump[] = DATALOGGER_IOT_APP_KEY;
 static uint8_t _app_jump[] = {104,72,67,51,74,67,108,99,104,112,77,100,55,106,56,78,68,69,108,98,118,
                                 51,65,90,48,51,82,111,120,56,52,49,70,76,103,77,84,49,85,99,117,66,111,61};
 #endif
+
+
+// Valid platform check interface
+
+#ifdef DATALOGGER_IOT_NAG_TIME
+#define kLNagTimeMins   DATALOGGER_IOT_NAG_TIME
+#else
+#define kLNagTimeMins   30
+#endif
+
+#define kLNagTimeSecs  (kLNagTimeMins * 60)
+
+#define kLNagTimesMSecs (kLNagTimeSecs * 1000)
+
+static char *kLNagMessage = "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
+
+// devices - on board - flags 
+#define DL_MODE_FLAG_IMU    (1<<0)
+#define DL_MODE_FLAG_MAG    (1<<1)
+
+
+
 //---------------------------------------------------------------------------
 // Constructor
 //
 
-sfeDataLogger::sfeDataLogger() : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}
+sfeDataLogger::sfeDataLogger() : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, 
+    _timer{kDefaultLogInterval}, _isValidMode{false}, _lastLCheck{0}, _modeFlags{0}
 {
     
     flxRegister(ledEnabled, "LED Enabled", "Enable/Disable the on-board LED activity");
@@ -239,6 +262,7 @@ void sfeDataLogger::setupSPIDevices()
     {
         flxLog_I(F("Onboard %s is enabled"), _onboardIMU.name());
         _logger.add(_onboardIMU);
+        _modeFlags |= DL_MODE_FLAG_IMU;
     }
     else
         flxLog_E(F("Onboard %s failed to start"), _onboardIMU.name());
@@ -248,9 +272,11 @@ void sfeDataLogger::setupSPIDevices()
     {
         flxLog_I(F("Onboard %s is enabled"), _onboardMag.name());
         _logger.add(_onboardMag);
+        _modeFlags |= DL_MODE_FLAG_MAG;
     }
     else
         flxLog_E(F("Onboard %s failed to start"), _onboardMag.name());
+
 }
 //---------------------------------------------------------------------
 void sfeDataLogger::setupBioHub()
@@ -310,8 +336,18 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
         _fmtJSON.add(flxSerial());
 }
 
+//---------------------------------------------------------------------------
+// Check our platform status
+void sfeDataLogger::checkOpMode()
+{
 
-// }
+    _isValidMode = false;
+    // Is this is a Data Logger 9DOF (2023)
+
+    if ( (_modeFlags & (DL_MODE_FLAG_MAG|DL_MODE_FLAG_IMU)) == (DL_MODE_FLAG_MAG|DL_MODE_FLAG_IMU) )
+        _isValidMode = true;
+
+}
 //---------------------------------------------------------------------------
 // start()
 //
@@ -398,6 +434,11 @@ bool sfeDataLogger::start()
 
     // set our system start time im millis
     _startTime = millis();
+
+    checkOpMode();
+    if (!_isValidMode)
+        outputVMessage();
+
     return true;
 }
 
@@ -429,6 +470,16 @@ void sfeDataLogger::enterSleepMode()
 
 }
 //---------------------------------------------------------------------------
+void sfeDataLogger::outputVMessage()
+{
+    _logger.logMessage("INVALID PLATFORM", kLNagMessage);
+
+    // if not logging to the serial console, dump out a message
+
+    if ( _logTypeSer == kAppLogTypeNone )
+        flxLog_W(kLNagMessage);
+}
+//---------------------------------------------------------------------------
 // loop()
 //
 // Called during the operational loop of the system.
@@ -439,6 +490,13 @@ bool sfeDataLogger::loop()
     if (sleepEnabled() && millis() - _startTime > wakeInterval()*1000)
     {
         enterSleepMode();
+    }
+
+    // If this isn't a valid hardware platform, output a nag string
+    if ( !_isValidMode && millis() - _lastLCheck > kLNagTimesMSecs )
+    {
+        outputVMessage();
+        _lastLCheck = millis();
     }
 
     return false;
