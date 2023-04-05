@@ -168,6 +168,9 @@ private:
     flxPropertyInt<sfeDataLogger>   wakeInterval = {60, 86400};    
     flxPropertyBool<sfeDataLogger>  sleepEnabled = {false};
 
+    // Display LED Enabled?
+    flxPropertyBool<sfeDataLogger>  ledEnabled = {true};
+
   private:
 
     void enterSleepMode(void);

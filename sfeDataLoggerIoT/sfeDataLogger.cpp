@@ -46,6 +46,9 @@ static uint8_t _app_jump[] = {104,72,67,51,74,67,108,99,104,112,77,100,55,106,56
 
 sfeDataLogger::sfeDataLogger() : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}
 {
+    
+    flxRegister(ledEnabled, "LED Enabled", "Enable/Disable the on-board LED activity");
+
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
 
