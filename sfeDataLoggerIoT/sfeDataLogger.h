@@ -225,7 +225,6 @@ private:
 
     // Our firmware Update/Reset system
     flxSysFirmware _sysUpdate;
-    
 
     // For the sleep timer
     unsigned long _startTime = 0;
