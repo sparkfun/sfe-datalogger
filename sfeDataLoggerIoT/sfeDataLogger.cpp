@@ -16,6 +16,9 @@
  */
 
 #include "sfeDataLogger.h"
+#include "dl_version.h"
+
+
 #include "esp_sleep.h"
 
 
@@ -144,7 +147,11 @@ bool sfeDataLogger::setup()
 {
     // Lets set the application name?!
     setName("SparkFun DataLogger IoT - 9DOF", "(c) 2023 SparkFun Electronics");
-    setVersion("0.9.5 Beta", 10009005);
+
+    // Version info
+    setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, 
+               kDLVersionDescriptor, BUILD_NUMBER);
+
 
     // set the settings storage system for spark
     flxSettings.setStorage(&_sysStorage);
