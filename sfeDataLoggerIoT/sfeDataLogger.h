@@ -93,6 +93,10 @@ private:
     // Setup the IOT clients
     bool setupIoTClients(void);
 
+    //---------------------------------------------------------------------
+    // Setup time ...
+    bool setupTime(void);
+
   public:
     //---------------------------------------------------------------------------
     // Constructor

@@ -21,6 +21,11 @@
 
 #include "esp_sleep.h"
 
+// for our time setup
+#include <Flux/flxClock.h>
+#include <Flux/flxDevGNSS.h>
+#include <Flux/flxDevRV8803.h>
+
 
 RTC_DATA_ATTR int boot_count = 0;
 
@@ -165,6 +170,27 @@ bool sfeDataLogger::setupIoTClients()
     return true;
 }
 
+//---------------------------------------------------------------------------
+// setupTime()
+//
+// Setup any time sources/sinks. Called after devices are loaded
+
+bool sfeDataLogger::setupTime()
+{
+
+    // Any GNSS devices attached?
+
+    auto allGNSS = flux.get<flxDevGNSS>();
+    for ( auto gnss : *allGNSS)
+        flxClock.addReferenceClock(gnss);
+
+    auto allRTC8803 = flux.get<flxDevRV8803>();
+    for ( auto rtc8803 : *allRTC8803 )
+        flxClock.addReferenceClock(rtc8803);
+
+
+    return true;
+}
 //---------------------------------------------------------------------------
 // setup()
 //
@@ -429,6 +455,10 @@ bool sfeDataLogger::start()
 
     // Setup the Bio Hub
     setupBioHub();
+
+    // Check time devices
+    if (!setupTime())
+        flxLog_W("Time reference setup failed.");
 
     flxLog_N("");
 
