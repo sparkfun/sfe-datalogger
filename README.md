@@ -14,6 +14,8 @@ To build and upload the SparkFun DataLogger firmware, refer to the [Build and Up
 
 The following sections provide details for the main features exposed by the DataLogger IoT
 
+The devices supported by the DataLogger are listed in the [Device List](docs/supported_devices.md)
+
 ### IoT Service Connections
 
 * [Connecting to ThingSpeak](https://github.com/sparkfun/SparkFun_Flux/blob/main/docs/iot_thingspeak.md)
