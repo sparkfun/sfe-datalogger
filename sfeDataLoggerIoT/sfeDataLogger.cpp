@@ -179,14 +179,17 @@ bool sfeDataLogger::setupTime()
 {
 
     // Any GNSS devices attached?
-
     auto allGNSS = flux.get<flxDevGNSS>();
     for ( auto gnss : *allGNSS)
         flxClock.addReferenceClock(gnss);
 
+    // RTC clock?
     auto allRTC8803 = flux.get<flxDevRV8803>();
     for ( auto rtc8803 : *allRTC8803 )
+    {
         flxClock.addReferenceClock(rtc8803);
+        flxClock.addSyncClock(rtc8803);
+    }
 
 
     return true;
