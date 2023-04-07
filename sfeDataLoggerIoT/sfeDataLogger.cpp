@@ -179,10 +179,9 @@ bool sfeDataLogger::setupTime()
 {
 
     // Add NTP and set as Prime! 
-    int iClock = flxClock.addReferenceClock(&_ntpClient);
+    if ( !flxClock.setReferenceClock(&_ntpClient) )
+        flxLog_W(F("Unable to set %s to the reference clock during seutp"), _ntpClient.name());
 
-    flxClock.referenceClock = iClock;
-    
     // Any GNSS devices attached?
     auto allGNSS = flux.get<flxDevGNSS>();
     for ( auto gnss : *allGNSS)
@@ -193,9 +192,14 @@ bool sfeDataLogger::setupTime()
     for ( auto rtc8803 : *allRTC8803 )
     {
         flxClock.addReferenceClock(rtc8803);
-        flxClock.addSyncClock(rtc8803);
+        flxClock.addConnectedClock(rtc8803);
     }
 
+    // update connected clocks on a clock update
+    flxClock.updateConnectedOnUpdate = true;
+
+    // update the system clock to the refernce clock
+    flxClock.updateClock();
 
     return true;
 }
