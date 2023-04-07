@@ -178,6 +178,11 @@ bool sfeDataLogger::setupIoTClients()
 bool sfeDataLogger::setupTime()
 {
 
+    // Add NTP and set as Prime! 
+    int iClock = flxClock.addReferenceClock(&_ntpClient);
+
+    flxClock.referenceClock = iClock;
+    
     // Any GNSS devices attached?
     auto allGNSS = flux.get<flxDevGNSS>();
     for ( auto gnss : *allGNSS)
