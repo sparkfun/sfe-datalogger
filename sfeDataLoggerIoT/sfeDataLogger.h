@@ -6,10 +6,10 @@
  * trade secret of SparkFun Electronics Inc.  It is not to be disclosed
  * to anyone outside of this organization. Reproduction by any means
  * whatsoever is  prohibited without express written permission.
- * 
+ *
  *---------------------------------------------------------------------------------
  */
- 
+
 /*
  * Spark Framework demo - logging
  *
@@ -35,8 +35,8 @@
 #include <Flux/flxFileRotate.h>
 
 // WiFi and NTP
-#include <Flux/flxWiFiESP32.h>
 #include <Flux/flxNTPESP32.h>
+#include <Flux/flxWiFiESP32.h>
 
 // NFC device
 #include <Flux/flxDevST25DV.h>
@@ -55,12 +55,12 @@ static const uint8_t kAppOnBoardMAGCS = 27;
 static const uint8_t kAppBioHubReset = 17; // Use the TXD pin as the bio hub reset pin
 static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfio pin
 
-// IoT Client Icludes
+// IoT Client Includes
 #include <Flux/flxIoTAWS.h>
 #include <Flux/flxIoTAzure.h>
-#include <Flux/flxMQTTESP32.h>
-#include <Flux/flxIoTThingSpeak.h>
 #include <Flux/flxIoTHTTP.h>
+#include <Flux/flxIoTThingSpeak.h>
+#include <Flux/flxMQTTESP32.h>
 
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
@@ -69,20 +69,18 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 #define kDefaultLogInterval 15000
 
 // Buffersize of our JSON document output
-#define kAppJSONDocSize 1400
+#define kAppJSONDocSize 1600
 
 // NTP Startup delay in secs
 
 #define kAppNTPStartupDelaySecs 5
-
-
 
 /////////////////////////////////////////////////////////////////////////
 // Define our application class for the data logger
 /////////////////////////////////////////////////////////////////////////
 class sfeDataLogger : public flxApplication
 {
-private:
+  private:
     //---------------------------------------------------------------------------
     // setupSDCard()
     //
@@ -119,32 +117,31 @@ private:
 
     //---------------------------------------------------------------------
     void setupSPIDevices(void);
-    
+
     //---------------------------------------------------------------------
     void setupBioHub(void);
-   
+
     //------------------------------------------
     // For controlling the log output types
 
-    static constexpr uint8_t kAppLogTypeNone  =   0x0;
-    static constexpr uint8_t kAppLogTypeCSV   =   0x1;
-    static constexpr uint8_t kAppLogTypeJSON  =   0x2;
-
+    static constexpr uint8_t kAppLogTypeNone = 0x0;
+    static constexpr uint8_t kAppLogTypeCSV = 0x1;
+    static constexpr uint8_t kAppLogTypeJSON = 0x2;
 
     //---------------------------------------------------------------------------
     uint8_t get_logTypeSD(void);
-    
+
     //---------------------------------------------------------------------------
     void set_logTypeSD(uint8_t logType);
-    
+
     //---------------------------------------------------------------------------
     uint8_t get_logTypeSer(void);
-    
+
     //---------------------------------------------------------------------------
     void set_logTypeSer(uint8_t logType);
-    
-    uint8_t    _logTypeSD;
-    uint8_t    _logTypeSer;    
+
+    uint8_t _logTypeSD;
+    uint8_t _logTypeSer;
 
   public:
     //---------------------------------------------------------------------------
@@ -157,31 +154,28 @@ private:
 
     // Define our log type properties
 
-    flxPropertyRWUint8<sfeDataLogger, &sfeDataLogger::get_logTypeSD, &sfeDataLogger::set_logTypeSD>   
-                sdCardLogType = { kAppLogTypeCSV, { {"Disabled", kAppLogTypeNone},
-                                                    {"CSV Format", kAppLogTypeCSV},
-                                                    {"JSON Format", kAppLogTypeJSON} } };
+    flxPropertyRWUint8<sfeDataLogger, &sfeDataLogger::get_logTypeSD, &sfeDataLogger::set_logTypeSD> sdCardLogType = {
+        kAppLogTypeCSV,
+        {{"Disabled", kAppLogTypeNone}, {"CSV Format", kAppLogTypeCSV}, {"JSON Format", kAppLogTypeJSON}}};
 
-    flxPropertyRWUint8<sfeDataLogger, &sfeDataLogger::get_logTypeSer, &sfeDataLogger::set_logTypeSer> 
-                serialLogType = { kAppLogTypeCSV, { {"Disabled", kAppLogTypeNone},
-                                                    {"CSV Format", kAppLogTypeCSV},
-                                                    {"JSON Format", kAppLogTypeJSON} } };
+    flxPropertyRWUint8<sfeDataLogger, &sfeDataLogger::get_logTypeSer, &sfeDataLogger::set_logTypeSer> serialLogType = {
+        kAppLogTypeCSV,
+        {{"Disabled", kAppLogTypeNone}, {"CSV Format", kAppLogTypeCSV}, {"JSON Format", kAppLogTypeJSON}}};
 
     // System sleep properties
-    flxPropertyInt<sfeDataLogger>   sleepInterval = {5, 86400};
-    flxPropertyInt<sfeDataLogger>   wakeInterval = {60, 86400};    
-    flxPropertyBool<sfeDataLogger>  sleepEnabled = {false};
+    flxPropertyInt<sfeDataLogger> sleepInterval = {5, 86400};
+    flxPropertyInt<sfeDataLogger> wakeInterval = {60, 86400};
+    flxPropertyBool<sfeDataLogger> sleepEnabled = {false};
 
     // Display LED Enabled?
-    flxPropertyBool<sfeDataLogger>  ledEnabled = {true};
+    flxPropertyBool<sfeDataLogger> ledEnabled = {true};
 
   private:
-
     void enterSleepMode(void);
     void outputVMessage(void);
     void checkOpMode(void);
 
-    // Class members -- that make up the apllication structure
+    // Class members -- that make up the application structure
 
     // Create a JSON and CSV output formatters.
     // Note: setting internal buffer sizes using template to minimize alloc calls.
@@ -238,8 +232,8 @@ private:
     // For the sleep timer
     unsigned long _startTime = 0;
 
-    bool _isValidMode; 
+    bool _isValidMode;
 
     unsigned long _lastLCheck;
-    uint16_t  _modeFlags;
+    uint16_t _modeFlags;
 };

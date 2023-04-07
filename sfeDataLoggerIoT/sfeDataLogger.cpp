@@ -6,10 +6,10 @@
  * trade secret of SparkFun Electronics Inc.  It is not to be disclosed
  * to anyone outside of this organization. Reproduction by any means
  * whatsoever is  prohibited without express written permission.
- * 
+ *
  *---------------------------------------------------------------------------------
  */
- 
+
 /*
  * SparkFun Data Logger
  *
@@ -18,7 +18,6 @@
 #include "sfeDataLogger.h"
 #include "dl_version.h"
 
-
 #include "esp_sleep.h"
 
 // for our time setup
@@ -26,13 +25,12 @@
 #include <Flux/flxDevGNSS.h>
 #include <Flux/flxDevRV8803.h>
 
-
 RTC_DATA_ATTR int boot_count = 0;
 
 // For finding the firmware files on SD card
 #define kDataLoggerFirmwareFilePrefix "SparkFunDataLoggerIoT"
 
-// Application keys - used to encrypt runtime secrets for the app. 
+// Application keys - used to encrypt runtime secrets for the app.
 //
 // NOTE: Gen a base 64 key  % openssl rand -base64 32
 //       Convert into ascii ints in python %    data = [ord(c) for c in ss]
@@ -42,52 +40,52 @@ RTC_DATA_ATTR int boot_count = 0;
 #ifdef DATALOGGER_IOT_APP_KEY
 static uint8_t _app_jump[] = DATALOGGER_IOT_APP_KEY;
 #else
-static uint8_t _app_jump[] = {104,72,67,51,74,67,108,99,104,112,77,100,55,106,56,78,68,69,108,98,118,
-                                51,65,90,48,51,82,111,120,56,52,49,70,76,103,77,84,49,85,99,117,66,111,61};
+static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,  100, 55,  106, 56,
+                              78,  68, 69, 108, 98,  118, 51,  65, 90,  48,  51,  82,  111, 120, 56,
+                              52,  49, 70, 76,  103, 77,  84,  49, 85,  99,  117, 66,  111, 61};
 #endif
-
 
 // Valid platform check interface
 
 #ifdef DATALOGGER_IOT_NAG_TIME
-#define kLNagTimeMins   DATALOGGER_IOT_NAG_TIME
+#define kLNagTimeMins DATALOGGER_IOT_NAG_TIME
 #else
-#define kLNagTimeMins   30
+#define kLNagTimeMins 30
 #endif
 
-#define kLNagTimeSecs  (kLNagTimeMins * 60)
+#define kLNagTimeSecs (kLNagTimeMins * 60)
 
 #define kLNagTimesMSecs (kLNagTimeSecs * 1000)
 
-static char *kLNagMessage = "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
+static char *kLNagMessage =
+    "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
 
-// devices - on board - flags 
-#define DL_MODE_FLAG_IMU    (1<<0)
-#define DL_MODE_FLAG_MAG    (1<<1)
-
-
+// devices - on board - flags
+#define DL_MODE_FLAG_IMU (1 << 0)
+#define DL_MODE_FLAG_MAG (1 << 1)
 
 //---------------------------------------------------------------------------
 // Constructor
 //
 
-sfeDataLogger::sfeDataLogger() : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, 
-    _timer{kDefaultLogInterval}, _isValidMode{false}, _lastLCheck{0}, _modeFlags{0}
+sfeDataLogger::sfeDataLogger()
+    : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}, _isValidMode{false},
+      _lastLCheck{0}, _modeFlags{0}
 {
-    
+
     flxRegister(ledEnabled, "LED Enabled", "Enable/Disable the on-board LED activity");
 
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
 
-    // Add the format changing props to the logger - makese more sense from a UX standpont.
+    // Add the format changing props to the logger - makes more sense from a UX standpoint.
     _logger.addProperty(sdCardLogType);
     _logger.addProperty(serialLogType);
 
     // sleep properties
     flxRegister(sleepEnabled, "Enable System Sleep", "If enabled, sleep the system ");
-    flxRegister(sleepInterval,"Sleep Interval (S)", "The interval the system will sleep for");
-    flxRegister(wakeInterval, "Wake Interval (S)", "The interval the system will operate between sleep period");    
+    flxRegister(sleepInterval, "Sleep Interval (S)", "The interval the system will sleep for");
+    flxRegister(wakeInterval, "Wake Interval (S)", "The interval the system will operate between sleep period");
 
     // set some simple defaults
     sleepInterval = 20;
@@ -178,18 +176,18 @@ bool sfeDataLogger::setupIoTClients()
 bool sfeDataLogger::setupTime()
 {
 
-    // Add NTP and set as Prime! 
-    if ( !flxClock.setReferenceClock(&_ntpClient) )
-        flxLog_W(F("Unable to set %s to the reference clock during seutp"), _ntpClient.name());
+    // Add NTP and set as Prime!
+    if (!flxClock.setReferenceClock(&_ntpClient))
+        flxLog_W(F("Unable to set %s to the reference clock during setup"), _ntpClient.name());
 
     // Any GNSS devices attached?
     auto allGNSS = flux.get<flxDevGNSS>();
-    for ( auto gnss : *allGNSS)
+    for (auto gnss : *allGNSS)
         flxClock.addReferenceClock(gnss);
 
     // RTC clock?
     auto allRTC8803 = flux.get<flxDevRV8803>();
-    for ( auto rtc8803 : *allRTC8803 )
+    for (auto rtc8803 : *allRTC8803)
     {
         flxClock.addReferenceClock(rtc8803);
         flxClock.addConnectedClock(rtc8803);
@@ -198,7 +196,7 @@ bool sfeDataLogger::setupTime()
     // update connected clocks on a clock update
     flxClock.updateConnectedOnUpdate = true;
 
-    // update the system clock to the refernce clock
+    // update the system clock to the reference clock
     flxClock.updateClock();
 
     return true;
@@ -213,9 +211,7 @@ bool sfeDataLogger::setup()
     setName("SparkFun DataLogger IoT - 9DOF", "(c) 2023 SparkFun Electronics");
 
     // Version info
-    setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, 
-               kDLVersionDescriptor, BUILD_NUMBER);
-
+    setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, kDLVersionDescriptor, BUILD_NUMBER);
 
     // set the settings storage system for spark
     flxSettings.setStorage(&_sysStorage);
@@ -251,7 +247,7 @@ bool sfeDataLogger::setup()
     // Filesystem to read firmware from
     _sysUpdate.setFileSystem(&_theSDCard);
 
-    // Serial UX - used to list files to select off the fileystem
+    // Serial UX - used to list files to select off the filesystem
     _sysUpdate.setSerialSettings(_serialSettings);
 
     _sysUpdate.setFirmwareFilePrefix(kDataLoggerFirmwareFilePrefix);
@@ -314,7 +310,6 @@ void sfeDataLogger::setupSPIDevices()
     }
     else
         flxLog_E(F("Onboard %s failed to start"), _onboardMag.name());
-
 }
 //---------------------------------------------------------------------
 void sfeDataLogger::setupBioHub()
@@ -382,9 +377,8 @@ void sfeDataLogger::checkOpMode()
     _isValidMode = false;
     // Is this is a Data Logger 9DOF (2023)
 
-    if ( (_modeFlags & (DL_MODE_FLAG_MAG|DL_MODE_FLAG_IMU)) == (DL_MODE_FLAG_MAG|DL_MODE_FLAG_IMU) )
+    if ((_modeFlags & (DL_MODE_FLAG_MAG | DL_MODE_FLAG_IMU)) == (DL_MODE_FLAG_MAG | DL_MODE_FLAG_IMU))
         _isValidMode = true;
-
 }
 //---------------------------------------------------------------------------
 // start()
@@ -396,19 +390,32 @@ bool sfeDataLogger::start()
     // Waking up from a sleep (boot count isn't zero)
     if (boot_count != 0)
     {
-        flxLog_I(F("Starting system from deep sleep - boot_count %d - wake period is %d seconds"), boot_count, wakeInterval());
+        flxLog_I(F("Starting system from deep sleep - boot_count %d - wake period is %d seconds"), boot_count,
+                 wakeInterval());
 
         // Print the wakeup reason
         esp_sleep_wakeup_cause_t wakeup_reason;
         wakeup_reason = esp_sleep_get_wakeup_cause();
-        switch(wakeup_reason)
+        switch (wakeup_reason)
         {
-          case ESP_SLEEP_WAKEUP_EXT0 : flxLog_I(F("Wakeup caused by external signal using RTC_IO")); break;
-          case ESP_SLEEP_WAKEUP_EXT1 : flxLog_I(F("Wakeup caused by external signal using RTC_CNTL")); break;
-          case ESP_SLEEP_WAKEUP_TIMER : flxLog_I(F("Wakeup caused by timer")); break;
-          case ESP_SLEEP_WAKEUP_TOUCHPAD : flxLog_I(F("Wakeup caused by touchpad")); break;
-          case ESP_SLEEP_WAKEUP_ULP : flxLog_I(F("Wakeup caused by ULP program")); break;
-          default : flxLog_I(F("Wakeup was not caused by deep sleep: %d"), (int)wakeup_reason); break;
+        case ESP_SLEEP_WAKEUP_EXT0:
+            flxLog_I(F("Wakeup caused by external signal using RTC_IO"));
+            break;
+        case ESP_SLEEP_WAKEUP_EXT1:
+            flxLog_I(F("Wakeup caused by external signal using RTC_CNTL"));
+            break;
+        case ESP_SLEEP_WAKEUP_TIMER:
+            flxLog_I(F("Wakeup caused by timer"));
+            break;
+        case ESP_SLEEP_WAKEUP_TOUCHPAD:
+            flxLog_I(F("Wakeup caused by touchpad"));
+            break;
+        case ESP_SLEEP_WAKEUP_ULP:
+            flxLog_I(F("Wakeup caused by ULP program"));
+            break;
+        default:
+            flxLog_I(F("Wakeup was not caused by deep sleep: %d"), (int)wakeup_reason);
+            break;
         }
     }
 
@@ -435,7 +442,7 @@ bool sfeDataLogger::start()
     _logger.add(_fmtJSON);
     _logger.add(_fmtCSV);
 
-    // setup NFC - it provides another means to load WiFi creditials
+    // setup NFC - it provides another means to load WiFi credentials
     setupNFDevice();
 
     // What devices has the system detected?
@@ -493,10 +500,12 @@ void sfeDataLogger::enterSleepMode()
 
     flxLog_I(F("Starting device deep sleep for %d secs"), sleepInterval());
 
-    //esp_sleep_config_gpio_isolate(); // Don't. This causes: E (33643) gpio: gpio_sleep_set_pull_mode(827): GPIO number error
+    // esp_sleep_config_gpio_isolate(); // Don't. This causes: E (33643) gpio: gpio_sleep_set_pull_mode(827): GPIO
+    // number error
 
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
-    //esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_OFF); // Don't disable RTC SLOW MEM - otherwise boot_count (RTC_DATA_ATTR) becomes garbage
+    // esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_OFF); // Don't disable RTC SLOW MEM - otherwise
+    // boot_count (RTC_DATA_ATTR) becomes garbage
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_FAST_MEM, ESP_PD_OPTION_OFF);
     esp_sleep_pd_config(ESP_PD_DOMAIN_XTAL, ESP_PD_OPTION_OFF);
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC8M, ESP_PD_OPTION_OFF);
@@ -506,10 +515,9 @@ void sfeDataLogger::enterSleepMode()
 
     unsigned long long period = sleepInterval() * 1000000ULL;
 
-    esp_sleep_enable_timer_wakeup(period); 
+    esp_sleep_enable_timer_wakeup(period);
 
-    esp_deep_sleep_start(); // see you on the otherside 
-
+    esp_deep_sleep_start(); // see you on the other side
 }
 //---------------------------------------------------------------------------
 void sfeDataLogger::outputVMessage()
@@ -518,7 +526,7 @@ void sfeDataLogger::outputVMessage()
 
     // if not logging to the serial console, dump out a message
 
-    if ( _logTypeSer == kAppLogTypeNone )
+    if (_logTypeSer == kAppLogTypeNone)
         flxLog_W(kLNagMessage);
 }
 //---------------------------------------------------------------------------
@@ -529,13 +537,13 @@ void sfeDataLogger::outputVMessage()
 bool sfeDataLogger::loop()
 {
     // Is sleep enabled and if so, is it time to sleep the system
-    if (sleepEnabled() && millis() - _startTime > wakeInterval()*1000)
+    if (sleepEnabled() && millis() - _startTime > wakeInterval() * 1000)
     {
         enterSleepMode();
     }
 
     // If this isn't a valid hardware platform, output a nag string
-    if ( !_isValidMode && millis() - _lastLCheck > kLNagTimesMSecs )
+    if (!_isValidMode && millis() - _lastLCheck > kLNagTimesMSecs)
     {
         outputVMessage();
         _lastLCheck = millis();
