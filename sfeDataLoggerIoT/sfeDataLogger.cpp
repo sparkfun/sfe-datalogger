@@ -75,6 +75,7 @@ sfeDataLogger::sfeDataLogger()
 
     flxRegister(ledEnabled, "LED Enabled", "Enable/Disable the on-board LED activity");
 
+    sdCardLogType.setTitle("Output Formats");
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
 
@@ -83,9 +84,13 @@ sfeDataLogger::sfeDataLogger()
     _logger.addProperty(serialLogType);
 
     // sleep properties
+    sleepEnabled.setTitle("Sleep");
     flxRegister(sleepEnabled, "Enable System Sleep", "If enabled, sleep the system ");
     flxRegister(sleepInterval, "Sleep Interval (S)", "The interval the system will sleep for");
     flxRegister(wakeInterval, "Wake Interval (S)", "The interval the system will operate between sleep period");
+
+    // Update timer object string
+    _timer.setName("Logging Timer", "Set the internal between log entries");
 
     // set some simple defaults
     sleepInterval = 20;
