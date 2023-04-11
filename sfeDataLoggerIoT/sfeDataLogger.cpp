@@ -73,6 +73,9 @@ sfeDataLogger::sfeDataLogger()
       _lastLCheck{0}, _modeFlags{0}
 {
 
+    // Add a title for this section - the application level  - of settings
+    setTitle("General");
+
     flxRegister(ledEnabled, "LED Enabled", "Enable/Disable the on-board LED activity");
 
     sdCardLogType.setTitle("Output Formats");
@@ -82,6 +85,8 @@ sfeDataLogger::sfeDataLogger()
     // Add the format changing props to the logger - makes more sense from a UX standpoint.
     _logger.addProperty(sdCardLogType);
     _logger.addProperty(serialLogType);
+
+    _logger.setTitle("Logging");
 
     // sleep properties
     sleepEnabled.setTitle("Sleep");
@@ -137,6 +142,8 @@ bool sfeDataLogger::setupSDCard(void)
 bool sfeDataLogger::setupIoTClients()
 {
 
+    // Add title for this section
+    _mqttClient.setTitle("IoT Services");
     // setup the network connection for the mqtt
     _mqttClient.setNetwork(&_wifiConnection);
     // add mqtt to JSON
@@ -233,6 +240,8 @@ bool sfeDataLogger::setup()
     // of everything else.
     flux.add(_serialSettings);
 
+    _wifiConnection.setTitle("Network");
+    
     // wire up the NTP to the wifi network object. When the connection status changes,
     // the NTP client will start and stop.
     _ntpClient.setNetwork(&_wifiConnection);
@@ -258,6 +267,8 @@ bool sfeDataLogger::setup()
     _sysUpdate.setFirmwareFilePrefix(kDataLoggerFirmwareFilePrefix);
 
     // Add to the system - manual add so it appears last in the ops list
+
+    _sysUpdate.setTitle("Advanced");
     flux.add(_sysUpdate);
 
     return true;

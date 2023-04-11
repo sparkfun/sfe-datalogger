@@ -177,6 +177,10 @@ class sfeDataLogger : public flxApplication
 
     // Class members -- that make up the application structure
 
+// WiFi and NTP
+    flxWiFiESP32 _wifiConnection;
+    flxNTPESP32 _ntpClient;
+    
     // Create a JSON and CSV output formatters.
     // Note: setting internal buffer sizes using template to minimize alloc calls.
     flxFormatJSON<kAppJSONDocSize> _fmtJSON;
@@ -199,9 +203,7 @@ class sfeDataLogger : public flxApplication
     flxSettingsSerial _serialSettings;
     flxStorageJSONPref _jsonStorage;
 
-    // WiFi and NTP
-    flxWiFiESP32 _wifiConnection;
-    flxNTPESP32 _ntpClient;
+    
 
     // the onboard IMU
     flxDevISM330_SPI _onboardIMU;
