@@ -16,6 +16,10 @@
 // Version string description
 #define kDLVersionDescriptor		"beta"
 
+
+// app name/class ID string
+#define kDLAppClassNameID			"SFE-DATALOGGER-IOT"
+
 // Build number - should come from the build system. If not, set default
 
 #ifndef BUILD_NUMBER

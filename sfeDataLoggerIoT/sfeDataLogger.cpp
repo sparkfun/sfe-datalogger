@@ -228,6 +228,7 @@ bool sfeDataLogger::setup()
 
     // Version info
     setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, kDLVersionDescriptor, BUILD_NUMBER);
+    setAppClassID(kDLAppClassNameID); // internal name string for this app type
 
     // set the settings storage system for spark
     flxSettings.setStorage(&_sysStorage);
