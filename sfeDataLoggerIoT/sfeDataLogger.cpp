@@ -101,6 +101,7 @@ sfeDataLogger::sfeDataLogger()
 
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
+    aboutApplication.prompt=false; // no prompt needed before execution
 
     // Update timer object string
     _timer.setName("Logging Timer", "Set the internal between log entries");
