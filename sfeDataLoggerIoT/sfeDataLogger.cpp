@@ -24,6 +24,7 @@
 #include <Flux/flxClock.h>
 #include <Flux/flxDevGNSS.h>
 #include <Flux/flxDevRV8803.h>
+#include <Flux/flxDevMAX17048.h>
 
 RTC_DATA_ATTR int boot_count = 0;
 
@@ -65,8 +66,11 @@ static char *kLNagMessage =
     "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
 
 // devices - on board - flags
-#define DL_MODE_FLAG_IMU (1 << 0)
-#define DL_MODE_FLAG_MAG (1 << 1)
+#define DL_MODE_FLAG_IMU    (1 << 0)
+#define DL_MODE_FLAG_MAG    (1 << 1)
+#define DL_MODE_FLAG_FUEL   (1 << 2)
+
+#define SFE_DL_IOT_9DOF_MODE  (DL_MODE_FLAG_IMU | DL_MODE_FLAG_MAG | DL_MODE_FLAG_FUEL)
 
 //---------------------------------------------------------------------------
 // Constructor
@@ -380,6 +384,14 @@ void sfeDataLogger::setupSPIDevices()
     }
     else
         flxLog_E(F("Onboard %s failed to start"), _onboardMag.name());
+
+
+    // quick check on fuel gauge - which is part of the IOT 9DOF board
+    auto fuelGuage = flux.get<flxDevMAX17048>();
+
+    if (fuelGuage->size() > 0)
+        _modeFlags |= DL_MODE_FLAG_FUEL;
+
 }
 //---------------------------------------------------------------------
 void sfeDataLogger::setupBioHub()
@@ -447,7 +459,7 @@ void sfeDataLogger::checkOpMode()
     _isValidMode = false;
     // Is this is a Data Logger 9DOF (2023)
 
-    if ((_modeFlags & (DL_MODE_FLAG_MAG | DL_MODE_FLAG_IMU)) == (DL_MODE_FLAG_MAG | DL_MODE_FLAG_IMU))
+    if ((_modeFlags & SFE_DL_IOT_9DOF_MODE) == SFE_DL_IOT_9DOF_MODE)
         _isValidMode = true;
 }
 //---------------------------------------------------------------------------
