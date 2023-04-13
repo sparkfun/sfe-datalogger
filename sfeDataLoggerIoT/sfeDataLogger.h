@@ -140,6 +140,11 @@ class sfeDataLogger : public flxApplication
     //---------------------------------------------------------------------------
     void set_logTypeSer(uint8_t logType);
 
+    void about_app_status(void)
+    {
+        showAppStatus();
+
+    }
     uint8_t _logTypeSD;
     uint8_t _logTypeSer;
 
@@ -170,10 +175,14 @@ class sfeDataLogger : public flxApplication
     // Display LED Enabled?
     flxPropertyBool<sfeDataLogger> ledEnabled = {true};
 
+    flxParameterInVoid<sfeDataLogger, &sfeDataLogger::about_app_status> aboutApplication;
+
   private:
     void enterSleepMode(void);
     void outputVMessage(void);
     void checkOpMode(void);
+
+    void showAppStatus(void);
 
     // Class members -- that make up the application structure
 

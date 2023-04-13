@@ -98,6 +98,10 @@ sfeDataLogger::sfeDataLogger()
     flxRegister(sleepInterval, "Sleep Interval (S)", "The interval the system will sleep for");
     flxRegister(wakeInterval, "Wake Interval (S)", "The interval the system will operate between sleep period");
 
+
+    // about?
+    flxRegister(aboutApplication, "About...", "Details about the system");
+
     // Update timer object string
     _timer.setName("Logging Timer", "Set the internal between log entries");
 
@@ -216,6 +220,48 @@ bool sfeDataLogger::setupTime()
     flxClock.updateClock();
 
     return true;
+}
+
+void sfeDataLogger::showAppStatus(void)
+{
+
+    char szBuffer[128];
+    flux.versionString(szBuffer, sizeof(szBuffer), true);
+
+    flxLog_N("\n\r\t%s   %s", flux.name(), szBuffer);
+    flxLog_N("\t%s\n\r", flux.description());
+
+    Serial.printf("\tDevice ID: %s\n\r", flux.deviceId());
+
+    time_t t_now;
+    time(&t_now);
+    struct tm *tmLocal = localtime(&t_now);
+
+    memset(szBuffer, '\0', sizeof(szBuffer));
+    strftime(szBuffer, sizeof(szBuffer), "%G-%m-%dT%T", tmLocal);
+    Serial.printf("\tTime: %s\n\r", szBuffer);
+
+    // uptime
+    uint32_t days, hours, minutes, secs, mills;
+
+    flx_utils::uptime(days, hours, minutes, secs, mills);
+
+    Serial.printf("\tUptime: %u days, %02u:%02u:%02u.%u\n\r", days, hours, minutes, secs, mills);
+
+    // Write out the SD card stats - 4/12 - crashes 
+    // if (_theSDCard.enabled())
+    //     Serial.printf("\tSD card available. Type: %s, Size: %uMB, Used: %uMB\n\r"), 
+    //             _theSDCard.type(), _theSDCard.size(), _theSDCard.used();
+    // else
+    //     Serial.printf("SD card not available.\n\r");
+
+    if (_wifiConnection.isConnected())
+        Serial.printf("\tWiFi Network: %s\n\r", _wifiConnection.SSID().c_str() );
+    else
+        Serial.printf("\tWiFi not connected.\n\r");
+
+    Serial.printf("\n\r");
+
 }
 //---------------------------------------------------------------------------
 // setup()
@@ -450,7 +496,8 @@ bool sfeDataLogger::start()
 
     // Write out the SD card stats
     if (_theSDCard.enabled())
-        flxLog_I(F("SD card available. Type: %s, Size: %uMB"), _theSDCard.type(), _theSDCard.size());
+        flxLog_I(F("SD card available. Type: %s, Size: %uMB, Used: %uMB"), 
+                _theSDCard.type(), _theSDCard.size(), _theSDCard.used());
     else
         flxLog_W(F("SD card not available."));
 
