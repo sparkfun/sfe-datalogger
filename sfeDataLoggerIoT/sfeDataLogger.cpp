@@ -45,6 +45,10 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
                               52,  49, 70, 76,  103, 77,  84,  49, 85,  99,  117, 66,  111, 61};
 #endif
 
+// The datalogger firmware OTA manifest  URL
+
+#define kDataLoggerOTAManifestURL "https://raw.githubusercontent.com/gigapod/ota-demo-exp/main/manifiest/sfe-dl-manifest.json"
+
 // Valid platform check interface
 
 #ifdef DATALOGGER_IOT_NAG_TIME
@@ -265,6 +269,9 @@ bool sfeDataLogger::setup()
     _sysUpdate.setSerialSettings(_serialSettings);
 
     _sysUpdate.setFirmwareFilePrefix(kDataLoggerFirmwareFilePrefix);
+
+    _sysUpdate.setWiFiDevice(&_wifiConnection);
+    _sysUpdate.enableOTAUpdates(kDataLoggerOTAManifestURL);
 
     // Add to the system - manual add so it appears last in the ops list
 
