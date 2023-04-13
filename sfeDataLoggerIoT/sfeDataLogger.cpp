@@ -248,12 +248,11 @@ void sfeDataLogger::showAppStatus(void)
 
     Serial.printf("\tUptime: %u days, %02u:%02u:%02u.%u\n\r", days, hours, minutes, secs, mills);
 
-    // Write out the SD card stats - 4/12 - crashes 
-    // if (_theSDCard.enabled())
-    //     Serial.printf("\tSD card available. Type: %s, Size: %uMB, Used: %uMB\n\r"), 
-    //             _theSDCard.type(), _theSDCard.size(), _theSDCard.used();
-    // else
-    //     Serial.printf("SD card not available.\n\r");
+    if (_theSDCard.enabled())
+        Serial.printf("\tSD card available. Type: %s, Size: %uMB, Used: %uMB\n\r", 
+                _theSDCard.type(), _theSDCard.size(), _theSDCard.used());
+    else
+        Serial.printf("SD card not available.\n\r");
 
     if (_wifiConnection.isConnected())
         Serial.printf("\tWiFi Network: %s\n\r", _wifiConnection.SSID().c_str() );
