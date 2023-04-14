@@ -128,6 +128,8 @@ class sfeDataLogger : public flxApplication
     static constexpr uint8_t kAppLogTypeCSV = 0x1;
     static constexpr uint8_t kAppLogTypeJSON = 0x2;
 
+    static constexpr char *kLogFormatNames[] = {"Disabled", "CSV Format", "JSON Format"};
+
     //---------------------------------------------------------------------------
     uint8_t get_logTypeSD(void);
 
@@ -142,8 +144,7 @@ class sfeDataLogger : public flxApplication
 
     void about_app_status(void)
     {
-        showAppStatus();
-
+        displayAppAbout();
     }
     uint8_t _logTypeSD;
     uint8_t _logTypeSer;
@@ -161,11 +162,15 @@ class sfeDataLogger : public flxApplication
 
     flxPropertyRWUint8<sfeDataLogger, &sfeDataLogger::get_logTypeSD, &sfeDataLogger::set_logTypeSD> sdCardLogType = {
         kAppLogTypeCSV,
-        {{"Disabled", kAppLogTypeNone}, {"CSV Format", kAppLogTypeCSV}, {"JSON Format", kAppLogTypeJSON}}};
+        {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
+         {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
+         {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
 
     flxPropertyRWUint8<sfeDataLogger, &sfeDataLogger::get_logTypeSer, &sfeDataLogger::set_logTypeSer> serialLogType = {
         kAppLogTypeCSV,
-        {{"Disabled", kAppLogTypeNone}, {"CSV Format", kAppLogTypeCSV}, {"JSON Format", kAppLogTypeJSON}}};
+        {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
+         {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
+         {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
 
     // System sleep properties
     flxPropertyInt<sfeDataLogger> sleepInterval = {5, 86400};
@@ -182,14 +187,15 @@ class sfeDataLogger : public flxApplication
     void outputVMessage(void);
     void checkOpMode(void);
 
-    void showAppStatus(void);
+    void displayAppAbout(void);
+    void displayAppStatus(bool useInfo = false);
 
     // Class members -- that make up the application structure
 
-// WiFi and NTP
+    // WiFi and NTP
     flxWiFiESP32 _wifiConnection;
     flxNTPESP32 _ntpClient;
-    
+
     // Create a JSON and CSV output formatters.
     // Note: setting internal buffer sizes using template to minimize alloc calls.
     flxFormatJSON<kAppJSONDocSize> _fmtJSON;
@@ -211,8 +217,6 @@ class sfeDataLogger : public flxApplication
     flxStorageESP32Pref _sysStorage;
     flxSettingsSerial _serialSettings;
     flxStorageJSONPref _jsonStorage;
-
-    
 
     // the onboard IMU
     flxDevISM330_SPI _onboardIMU;

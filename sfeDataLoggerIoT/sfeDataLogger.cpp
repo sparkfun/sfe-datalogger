@@ -23,8 +23,8 @@
 // for our time setup
 #include <Flux/flxClock.h>
 #include <Flux/flxDevGNSS.h>
-#include <Flux/flxDevRV8803.h>
 #include <Flux/flxDevMAX17048.h>
+#include <Flux/flxDevRV8803.h>
 
 RTC_DATA_ATTR int boot_count = 0;
 
@@ -48,7 +48,8 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 
 // The datalogger firmware OTA manifest  URL
 
-#define kDataLoggerOTAManifestURL "https://raw.githubusercontent.com/gigapod/ota-demo-exp/main/manifiest/sfe-dl-manifest.json"
+#define kDataLoggerOTAManifestURL                                                                                      \
+    "https://raw.githubusercontent.com/gigapod/ota-demo-exp/main/manifiest/sfe-dl-manifest.json"
 
 // Valid platform check interface
 
@@ -66,12 +67,13 @@ static char *kLNagMessage =
     "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
 
 // devices - on board - flags
-#define DL_MODE_FLAG_IMU    (1 << 0)
-#define DL_MODE_FLAG_MAG    (1 << 1)
-#define DL_MODE_FLAG_FUEL   (1 << 2)
+#define DL_MODE_FLAG_IMU (1 << 0)
+#define DL_MODE_FLAG_MAG (1 << 1)
+#define DL_MODE_FLAG_FUEL (1 << 2)
 
-#define SFE_DL_IOT_9DOF_MODE  (DL_MODE_FLAG_IMU | DL_MODE_FLAG_MAG | DL_MODE_FLAG_FUEL)
+#define SFE_DL_IOT_9DOF_MODE (DL_MODE_FLAG_IMU | DL_MODE_FLAG_MAG | DL_MODE_FLAG_FUEL)
 
+constexpr char *sfeDataLogger::kLogFormatNames[];
 //---------------------------------------------------------------------------
 // Constructor
 //
@@ -102,10 +104,9 @@ sfeDataLogger::sfeDataLogger()
     flxRegister(sleepInterval, "Sleep Interval (S)", "The interval the system will sleep for");
     flxRegister(wakeInterval, "Wake Interval (S)", "The interval the system will operate between sleep period");
 
-
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
-    aboutApplication.prompt=false; // no prompt needed before execution
+    aboutApplication.prompt = false; // no prompt needed before execution
 
     // Update timer object string
     _timer.setName("Logging Timer", "Set the internal between log entries");
@@ -227,46 +228,116 @@ bool sfeDataLogger::setupTime()
     return true;
 }
 
-void sfeDataLogger::showAppStatus(void)
+//---------------------------------------------------------------------------
+// output things
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+// "about"
+void sfeDataLogger::displayAppStatus(bool useInfo)
 {
 
-    char szBuffer[128];
-    flux.versionString(szBuffer, sizeof(szBuffer), true);
-
-    flxLog_N("\n\r\t%s   %s", flux.name(), szBuffer);
-    flxLog_N("\t%s\n\r", flux.description());
-
-    Serial.printf("\tDevice ID: %s\n\r", flux.deviceId());
+    // type of output to use?
+    flxLogLevel_t logLevel;
+    char pre_ch;
+    if (useInfo)
+    {
+        logLevel = flxLogInfo;
+        pre_ch = ' ';
+    }
+    else
+    {
+        logLevel = flxLogNone;
+        pre_ch = '\t';
+    }
 
     time_t t_now;
     time(&t_now);
     struct tm *tmLocal = localtime(&t_now);
 
+    char szBuffer[64];
     memset(szBuffer, '\0', sizeof(szBuffer));
     strftime(szBuffer, sizeof(szBuffer), "%G-%m-%dT%T", tmLocal);
-    Serial.printf("\tTime: %s\n\r", szBuffer);
+    flxLog__(logLevel, "%cTime:\t%s", pre_ch, szBuffer);
 
     // uptime
     uint32_t days, hours, minutes, secs, mills;
 
     flx_utils::uptime(days, hours, minutes, secs, mills);
 
-    Serial.printf("\tUptime: %u days, %02u:%02u:%02u.%u\n\r", days, hours, minutes, secs, mills);
+    flxLog__(logLevel, "%cUptime:\t%u days, %02u:%02u:%02u.%u", pre_ch, days, hours, minutes, secs, mills);
+    flxLog__(logLevel, "%cExternal Time Source: %s", pre_ch, flxClock.referenceClock().c_str());
+
+    if (!useInfo)
+        flxLog_N("");
+
+    flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
+
+    if (!useInfo)
+        flxLog_N("");
 
     if (_theSDCard.enabled())
-        Serial.printf("\tSD card available. Type: %s, Size: %uMB, Used: %uMB\n\r", 
-                _theSDCard.type(), _theSDCard.size(), _theSDCard.used());
+        flxLog__(logLevel, "%cSD card - Type: %s, Size: %uMB, Used: %uMB", pre_ch, _theSDCard.type(), _theSDCard.size(),
+                 _theSDCard.used());
     else
-        Serial.printf("SD card not available.\n\r");
+        flxLog__(logLevel, "%cSD card not available", pre_ch);
 
-    if (_wifiConnection.isConnected())
-        Serial.printf("\tWiFi Network: %s\n\r", _wifiConnection.SSID().c_str() );
+    if (_wifiConnection.enabled())
+    {
+        flxLog__(logLevel, "%cWiFi - SSID: %s, Connected: %s", pre_ch,
+                 _wifiConnection.SSID().length() > 1 ? _wifiConnection.SSID().c_str() : "",
+                 _wifiConnection.isConnected() ? "yes" : "no");
+    }
     else
-        Serial.printf("\tWiFi not connected.\n\r");
+        flxLog__(logLevel, "%cWiFi not enabled", pre_ch);
 
-    Serial.printf("\n\r");
+    flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
+    if (!useInfo)
+        flxLog_N("");
 
+    flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
+    flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
+    flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
+
+    if (!useInfo)
+        flxLog_N("");
+
+    flxLog__(logLevel, "%cIoT Services:", pre_ch);
+
+    flxLog_N("%c    %s  \t: %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %s  \t: %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %s  \t: %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
+
+    if (!useInfo)
+        flxLog_N("");
+
+    // connected devices...
+    flxDeviceContainer myDevices = flux.connectedDevices();
+    flxLog__(logLevel, "%cConnected Devices [%d]:", pre_ch, myDevices.size());
+
+    // Loop over the device list - note that it is iterable.
+    for (auto device : myDevices)
+        flxLog_N("%c    %s \t- %s", pre_ch, device->name(), device->description());
+
+    flxLog_N("");
 }
+
+//---------------------------------------------------------------------------
+void sfeDataLogger::displayAppAbout()
+{
+
+    char szBuffer[128];
+    flux.versionString(szBuffer, sizeof(szBuffer), true);
+
+    flxLog_N("\n\r\t%s   %s", flux.name(), flux.description());
+    flxLog_N("\tVersion: %s\n\r", szBuffer);
+
+    displayAppStatus(false);
+}
+//---------------------------------------------------------------------------
+
 //---------------------------------------------------------------------------
 // setup()
 //
@@ -296,7 +367,7 @@ bool sfeDataLogger::setup()
     flux.add(_serialSettings);
 
     _wifiConnection.setTitle("Network");
-    
+
     // wire up the NTP to the wifi network object. When the connection status changes,
     // the NTP client will start and stop.
     _ntpClient.setNetwork(&_wifiConnection);
@@ -368,30 +439,22 @@ void sfeDataLogger::setupSPIDevices()
     // IMU
     if (_onboardIMU.initialize(kAppOnBoardIMUCS))
     {
-        flxLog_I(F("Onboard %s is enabled"), _onboardIMU.name());
         _logger.add(_onboardIMU);
         _modeFlags |= DL_MODE_FLAG_IMU;
     }
-    else
-        flxLog_E(F("Onboard %s failed to start"), _onboardIMU.name());
 
     // Magnetometer
     if (_onboardMag.initialize(kAppOnBoardMAGCS))
     {
-        flxLog_I(F("Onboard %s is enabled"), _onboardMag.name());
         _logger.add(_onboardMag);
         _modeFlags |= DL_MODE_FLAG_MAG;
     }
-    else
-        flxLog_E(F("Onboard %s failed to start"), _onboardMag.name());
-
 
     // quick check on fuel gauge - which is part of the IOT 9DOF board
     auto fuelGuage = flux.get<flxDevMAX17048>();
 
     if (fuelGuage->size() > 0)
         _modeFlags |= DL_MODE_FLAG_FUEL;
-
 }
 //---------------------------------------------------------------------
 void sfeDataLogger::setupBioHub()
@@ -503,20 +566,6 @@ bool sfeDataLogger::start()
 
     boot_count++;
 
-    // printout the device ID
-    flxLog_I(F("Device ID: %s"), flux.deviceId());
-
-    // Write out the SD card stats
-    if (_theSDCard.enabled())
-        flxLog_I(F("SD card available. Type: %s, Size: %uMB, Used: %uMB"), 
-                _theSDCard.type(), _theSDCard.size(), _theSDCard.used());
-    else
-        flxLog_W(F("SD card not available."));
-
-    // WiFi status
-    if (!_wifiConnection.isConnected())
-        flxLog_E(F("Unable to connect to WiFi!"));
-
     // Logging is done at an interval - using an interval timer.
     // Connect logger to the timer event
     _logger.listen(_timer.on_interval);
@@ -527,30 +576,6 @@ bool sfeDataLogger::start()
 
     // setup NFC - it provides another means to load WiFi credentials
     setupNFDevice();
-
-    // What devices has the system detected?
-    // List them and add them to the logger
-
-    flxDeviceContainer myDevices = flux.connectedDevices();
-
-    // The device list can be added directly to the logger object using an
-    // add() method call. This will only add devices with output parameters.
-    //
-    // Example:
-    //      logger.add(myDevices);
-    //
-    // But for this app, let's loop over our devices and show how use the
-    // device parameters.
-
-    flxLog_I(F("Devices Detected [%d]"), myDevices.size());
-
-    // Loop over the device list - note that it is iterable.
-    for (auto device : myDevices)
-    {
-        flxLog_I(F("\tDevice: %s, Output Number: %d"), device->name(), device->nOutputParameters());
-        if (device->nOutputParameters() > 0)
-            _logger.add(device);
-    }
 
     // Setup the Onboard IMU
     setupSPIDevices();
@@ -568,6 +593,9 @@ bool sfeDataLogger::start()
     _startTime = millis();
 
     checkOpMode();
+
+    displayAppStatus(true);
+
     if (!_isValidMode)
         outputVMessage();
 
