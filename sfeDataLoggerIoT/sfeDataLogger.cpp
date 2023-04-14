@@ -198,9 +198,10 @@ bool sfeDataLogger::setupIoTClients()
 bool sfeDataLogger::setupTime()
 {
 
-    // Add NTP and set as Prime!
-    if (!flxClock.setReferenceClock(&_ntpClient, _ntpClient.name()))
-        flxLog_W(F("Unable to set %s to the reference clock during setup"), _ntpClient.name());
+    // what is our clock - as setup from init/prefs
+    std::string refClock = flxClock.referenceClock();
+
+    flxClock.addReferenceClock(&_ntpClient, _ntpClient.name());
 
     // Any GNSS devices attached?
     auto allGNSS = flux.get<flxDevGNSS>();
@@ -215,8 +216,8 @@ bool sfeDataLogger::setupTime()
         flxClock.addConnectedClock(rtc8803);
     }
 
-    // update connected clocks on a clock update
-    flxClock.updateConnectedOnUpdate = true;
+    // Now that clocks are loaded, set the ref clock to what was started with. 
+    flxClock.referenceClock = refClock;
 
     // update the system clock to the reference clock
     flxClock.updateClock();
@@ -369,6 +370,9 @@ bool sfeDataLogger::setup()
     // the NTP client will start and stop.
     _ntpClient.setNetwork(&_wifiConnection);
     _ntpClient.setStartupDelay(kAppNTPStartupDelaySecs); // Give the NTP server some time to start
+
+    // set our default clock to NTP - this will be overwritten if prefs are loaded
+    flxClock.referenceClock = _ntpClient.name();
 
     // setup SD card. Do this before calling start - so prefs can be read off SD if needed
     if (!setupSDCard())
