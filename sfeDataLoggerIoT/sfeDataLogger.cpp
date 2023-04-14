@@ -17,6 +17,7 @@
 
 #include "sfeDataLogger.h"
 #include "dl_version.h"
+#include "dl_mode.h"
 
 #include "esp_sleep.h"
 
@@ -66,12 +67,7 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 static char *kLNagMessage =
     "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
 
-// devices - on board - flags
-#define DL_MODE_FLAG_IMU (1 << 0)
-#define DL_MODE_FLAG_MAG (1 << 1)
-#define DL_MODE_FLAG_FUEL (1 << 2)
 
-#define SFE_DL_IOT_9DOF_MODE (DL_MODE_FLAG_IMU | DL_MODE_FLAG_MAG | DL_MODE_FLAG_FUEL)
 
 constexpr char *sfeDataLogger::kLogFormatNames[];
 //---------------------------------------------------------------------------
@@ -271,6 +267,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     if (!useInfo)
         flxLog_N("");
 
+    flxLog__(logLevel, "%cBoard Name: %s", pre_ch, dlModeCheckName(_modeFlags));
     flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
 
     if (!useInfo)
@@ -518,12 +515,7 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
 // Check our platform status
 void sfeDataLogger::checkOpMode()
 {
-
-    _isValidMode = false;
-    // Is this is a Data Logger 9DOF (2023)
-
-    if ((_modeFlags & SFE_DL_IOT_9DOF_MODE) == SFE_DL_IOT_9DOF_MODE)
-        _isValidMode = true;
+    _isValidMode = dlModeCheckValid(_modeFlags);
 }
 //---------------------------------------------------------------------------
 // start()
