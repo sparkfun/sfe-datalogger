@@ -2,19 +2,19 @@
 
 #pragma once
 
-// Version information for the datalogger
+// Board ID/Mode information data
 
 // Major version number
-#define kDLVersionNumberMajor		0
+#define kDLVersionNumberMajor		1
 
 // Minor version number
-#define kDLVersionNumberMinor		9
+#define kDLVersionNumberMinor		0
 
 // Point version number
-#define kDLVersionNumberPoint		1
+#define kDLVersionNumberPoint		0
 
 // Version string description
-#define kDLVersionDescriptor		"beta"
+#define kDLVersionDescriptor		""
 
 
 // app name/class ID string
