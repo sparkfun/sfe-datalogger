@@ -97,8 +97,8 @@ sfeDataLogger::sfeDataLogger()
     // sleep properties
     sleepEnabled.setTitle("Sleep");
     flxRegister(sleepEnabled, "Enable System Sleep", "If enabled, sleep the system ");
-    flxRegister(sleepInterval, "Sleep Interval (S)", "The interval the system will sleep for");
-    flxRegister(wakeInterval, "Wake Interval (S)", "The interval the system will operate between sleep period");
+    flxRegister(sleepInterval, "Sleep Interval (sec)", "The interval the system will sleep for");
+    flxRegister(wakeInterval, "Wake Interval (sec)", "The interval the system will operate between sleep period");
 
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
@@ -290,12 +290,19 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         flxLog__(logLevel, "%cWiFi not enabled", pre_ch);
 
     flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
+    flxLog__(logLevel, "%c    Sleep Interval:  %d seconds", pre_ch, sleepInterval());
+    flxLog__(logLevel, "%c    Wake Interval:   %d seconds", pre_ch, wakeInterval());    
+
+
     if (!useInfo)
         flxLog_N("");
 
     flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
-    flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
+    flxLog__(logLevel, "%cSerial Output:  %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
+    flxLog__(logLevel, "%c    Current Filename: \t%s", pre_ch,  
+        _theOutputFile.currentFilename().length() == 0 ? "``" : _theOutputFile.currentFilename().c_str());
+    flxLog__(logLevel, "%c    Rotate Period: \t%d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
     if (!useInfo)
         flxLog_N("");
@@ -305,7 +312,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("%c    %s  \t: %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  \t: %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t: %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
 
     if (!useInfo)
