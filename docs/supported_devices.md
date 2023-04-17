@@ -4,7 +4,7 @@ The following table lists the devices/boards supported by the DataLogger IoT Boa
 
 ## Version 1.0
 
-* [ACS37800 Power Meter - on board](https://github.com/sparkfun/SparkFun_ACS37800_Power_Monitor_Arduino_Library)
+* [ACS37800 Power Meter](https://www.sparkfun.com/products/17873)
 * [SparkFun Qwiic 12 Bit ADC - 4 Channel (ADS1015)](https://www.sparkfun.com/products/15334)
 * [Qwiic PT100 - ADS122C04](https://www.sparkfun.com/products/16770)
 * [Qwiic Humidity AHT20](https://www.sparkfun.com/products/16618)
