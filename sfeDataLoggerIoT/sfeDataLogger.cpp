@@ -389,7 +389,12 @@ bool sfeDataLogger::setup()
 
     // setup SD card. Do this before calling start - so prefs can be read off SD if needed
     if (!setupSDCard())
-        flxLog_W(F("Error initializing the SD Card"));
+    {
+        flxLog_W(F("Error initializing the SD Card. Is an SD card installed on the board?"));
+
+        // disable SD card output
+        set_logTypeSD(kAppLogTypeNone);
+    }
 
     // Setup the IoT clients
     if (!setupIoTClients())
