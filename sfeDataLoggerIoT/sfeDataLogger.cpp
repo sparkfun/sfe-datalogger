@@ -159,6 +159,11 @@ bool sfeDataLogger::setupIoTClients()
     // add mqtt to JSON
     _fmtJSON.add(_mqttClient);
 
+    // setup the network connection for the mqtt
+    _mqttSecureClient.setNetwork(&_wifiConnection);
+    // add mqtt to JSON
+    _fmtJSON.add(_mqttSecureClient);
+
     // AWS
     _iotAWS.setName("AWS IoT", "Connect to an AWS Iot Thing");
     _iotAWS.setNetwork(&_wifiConnection);
@@ -310,6 +315,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cIoT Services:", pre_ch);
 
     flxLog_N("%c    %s  \t: %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %s  : %s", pre_ch, _mqttSecureClient.name(), _mqttSecureClient.enabled() ? "enabled" : "disabled");    
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");

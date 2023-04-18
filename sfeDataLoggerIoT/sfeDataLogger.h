@@ -229,6 +229,9 @@ class sfeDataLogger : public flxApplication
     // An generic MQTT client
     flxMQTTESP32 _mqttClient;
 
+    // secure mqtt
+    flxMQTTESP32Secure _mqttSecureClient;
+
     // AWS
     flxIoTAWS _iotAWS;
 
