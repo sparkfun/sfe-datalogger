@@ -1,8 +1,10 @@
-# SparkFun DataLogger IoT
+# SparkFun DataLogger IoT (sfe-datalogger)
 
-![DataLogger Builds](https://github.com/sparkfun/SparkFun_DataLogger/actions/workflows/build-datalogger-iot.yml/badge.svg)
+![DataLogger Builds](https://github.com/sparkfun/sfe-datalogger/actions/workflows/build-datalogger-iot.yml/badge.svg)
 
-The repository contains the various firmware applications for the SparkFun DataLogger IoT incarnations.
+The repository contains the various firmware applications for the SparkFun DataLogger IoT incarnations. This is an **internal** implementation private repository used to develop, build and release the Firmware for the DataLogger IoT boards.
+
+Public release of this firmware and documentation are made via the public repository [SparkFun_DataLogger](https//github.com/sparkfun/SparkFun_DataLogger)
 
 The firmware defines the functionally available for the supported  DataLogger IoT boards, with the core implementation of the exposed features delivered by the [SparkFun Flux Framework](https://github.com/sparkfun/SparkFun_Flux).
 
