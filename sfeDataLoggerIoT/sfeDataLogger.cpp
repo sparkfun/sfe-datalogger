@@ -591,6 +591,25 @@ bool sfeDataLogger::start()
     // setup NFC - it provides another means to load WiFi credentials
     setupNFDevice();
 
+    // check our I2C devices
+    // Loop over the device list - note that it is iterable.
+    flxLog_I_(F("Loading qwiic devices ..."));
+    flxDeviceContainer loadedDevices = flux.connectedDevices();
+
+    if (loadedDevices.size() == 0)
+        flxLog_N(F("no devices detected"));
+    else
+    {
+        flxLog_N(F("%d devices detected"), loadedDevices.size());
+
+        for (auto device : loadedDevices)
+        {
+            flxLog_N(F("      %s\t\t- %s"), device->name(), device->description());
+            if (device->nOutputParameters() > 0)
+                _logger.add(device);
+        }
+    }
+
     // Setup the Onboard IMU
     setupSPIDevices();
 
