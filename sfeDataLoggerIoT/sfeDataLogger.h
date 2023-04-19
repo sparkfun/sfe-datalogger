@@ -108,15 +108,19 @@ class sfeDataLogger : public flxApplication
     // Called by the system before devices are loaded, and system initialized
     bool setup();
 
+    //---------------------------------------------------------------------------
+    // onDeviceLoad()
+    // 
+    // Called by the system, right after device autoload, but before system restore
+    // Allows the app to load other devices.
+    void onDeviceLoad();
+
   private:
     //---------------------------------------------------------------------
     // Check if we have a NFC reader available -- for use with WiFi credentials
     //
     // Call after autoload
     void setupNFDevice(void);
-
-    //---------------------------------------------------------------------
-    void setupSPIDevices(void);
 
     //---------------------------------------------------------------------
     void setupBioHub(void);

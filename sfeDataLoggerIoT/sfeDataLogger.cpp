@@ -108,8 +108,8 @@ sfeDataLogger::sfeDataLogger()
     _timer.setName("Logging Timer", "Set the internal between log entries");
 
     // set some simple defaults
-    sleepInterval = 20;
-    wakeInterval = 30;
+    sleepInterval = 30;
+    wakeInterval = 120;
 
     flux.setAppToken(_app_jump, sizeof(_app_jump));
 }
@@ -330,7 +330,8 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     // Loop over the device list - note that it is iterable.
     for (auto device : myDevices)
-        flxLog_N("%c    %s \t- %s", pre_ch, device->name(), device->description());
+        flxLog_N("%c    %s \t- %s  {%s}", pre_ch, device->name(), device->description(),
+                device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
 
     flxLog_N("");
 }
@@ -452,22 +453,22 @@ void sfeDataLogger::setupNFDevice(void)
 }
 
 //---------------------------------------------------------------------
-void sfeDataLogger::setupSPIDevices()
+// onDeviceLoad()
+//
+// Called after qwiic/i2c autoload, but before system state restore
+
+void sfeDataLogger::onDeviceLoad()
 {
+    // Load SPI devices
     // Note - framework is setting up the pins ...
+
     // IMU
     if (_onboardIMU.initialize(kAppOnBoardIMUCS))
-    {
-        _logger.add(_onboardIMU);
         _modeFlags |= DL_MODE_FLAG_IMU;
-    }
 
     // Magnetometer
     if (_onboardMag.initialize(kAppOnBoardMAGCS))
-    {
-        _logger.add(_onboardMag);
         _modeFlags |= DL_MODE_FLAG_MAG;
-    }
 
     // quick check on fuel gauge - which is part of the IOT 9DOF board
     auto fuelGuage = flux.get<flxDevMAX17048>();
@@ -475,6 +476,7 @@ void sfeDataLogger::setupSPIDevices()
     if (fuelGuage->size() > 0)
         _modeFlags |= DL_MODE_FLAG_FUEL;
 }
+
 //---------------------------------------------------------------------
 void sfeDataLogger::setupBioHub()
 {
@@ -593,7 +595,7 @@ bool sfeDataLogger::start()
 
     // check our I2C devices
     // Loop over the device list - note that it is iterable.
-    flxLog_I_(F("Loading qwiic devices ..."));
+    flxLog_I_(F("Loading devices ... "));
     flxDeviceContainer loadedDevices = flux.connectedDevices();
 
     if (loadedDevices.size() == 0)
@@ -604,14 +606,12 @@ bool sfeDataLogger::start()
 
         for (auto device : loadedDevices)
         {
-            flxLog_N(F("      %s\t\t- %s"), device->name(), device->description());
+            flxLog_N(F("      %s\t\t- %s  {%s}"), device->name(), device->description(),
+                    device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
             if (device->nOutputParameters() > 0)
                 _logger.add(device);
         }
     }
-
-    // Setup the Onboard IMU
-    setupSPIDevices();
 
     // Setup the Bio Hub
     setupBioHub();
