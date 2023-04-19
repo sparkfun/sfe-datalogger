@@ -61,6 +61,7 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 #include <Flux/flxIoTHTTP.h>
 #include <Flux/flxIoTThingSpeak.h>
 #include <Flux/flxMQTTESP32.h>
+#include <Flux/flxIoTMachineChat.h>
 
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
@@ -247,6 +248,9 @@ class sfeDataLogger : public flxApplication
 
     // HTTP/URL Post
     flxIoTHTTP _iotHTTP;
+
+    // machine chat Iot
+    flxIoTMachineChat _iotMachineChat;
 
     // Our firmware Update/Reset system
     flxSysFirmware _sysUpdate;

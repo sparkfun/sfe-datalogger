@@ -187,10 +187,15 @@ bool sfeDataLogger::setupIoTClients()
     _fmtJSON.add(_iotAzure);
 
     // general HTTP / URL logger
-
     _iotHTTP.setNetwork(&_wifiConnection);
     _iotHTTP.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotHTTP);
+
+
+     // Machine Chat 
+    _iotMachineChat.setNetwork(&_wifiConnection);
+    _iotMachineChat.setFileSystem(&_theSDCard);
+    _fmtJSON.add(_iotMachineChat);
 
     return true;
 }
@@ -320,6 +325,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t: %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %s  \t: %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");    
 
     if (!useInfo)
         flxLog_N("");
