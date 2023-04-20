@@ -50,6 +50,9 @@ jobs:
       - name: Install Flux dependant libraries.
         run: ./SparkFun_Flux/install-libs.sh
 
+      - name: Install datalogger libraries
+        run: arduino-cli lib install FastLED
+        
       # Compile time - build the Firmware for the data logger.
       # Note:
       #   - The use of a full path to flux - this is needed or the build fails (relative paths get merged).
