@@ -18,12 +18,13 @@
 // Spark framework 
 #include "sfeDataLogger.h"
 
-
+#include "dl_led.h"
 
 #define OPENLOG_ESP32
 #ifdef OPENLOG_ESP32
 #define EN_3V3_SW 32
 #define LED_BUILTIN 25
+#define LED_RGB_BUILTIN 26
 #endif
 
 
@@ -36,24 +37,24 @@ sfeDataLogger  theDataLogger;
 //
 void setup() {
 
+
+    pinMode(EN_3V3_SW, OUTPUT); // Enable Qwiic power and I2C
+    digitalWrite(EN_3V3_SW, HIGH);
+
     // Begin setup - turn on board LED during setup.
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH); 
+    pinMode(LED_RGB_BUILTIN, OUTPUT);
+    (void)dl_ledInit(LED_RGB_BUILTIN);
+
+    dl_ledStartup();    // show startup LED
 
     Serial.begin(115200);  
     while (!Serial);
 
-
-#ifdef OPENLOG_ESP32    
-    pinMode(EN_3V3_SW, OUTPUT); // Enable Qwiic power and I2C
-    digitalWrite(EN_3V3_SW, HIGH);
-#endif
-
     // Start up the framework
     flux.start();
 
-    digitalWrite(LED_BUILTIN, LOW);  // board LED off
-
+    // LED off
+    dl_ledOff();
 }
 
 //---------------------------------------------------------------------
@@ -61,16 +62,14 @@ void setup() {
 void loop() {
 
     ///////////////////////////////////////////////////////////////////
-    // Spark
+    // Flux
     //
-    // Just call the spark framework loop() method. Spark will manage
+    // Just call the Flux framework loop() method. Flux will manage
     // the dispatch of processing to the components that were added 
     // to the system during setup.
     if(flux.loop() && theDataLogger.ledEnabled == true)        // will return true if an action did something
-        digitalWrite(LED_BUILTIN, HIGH); 
+        dl_ledActivity();
 
-    // Our loop - needs tweaks - minimize loop delay for speed. 
-    delay(10);
-    digitalWrite(LED_BUILTIN, LOW);   // turn off the log led
+    delay(1);
 
 }
