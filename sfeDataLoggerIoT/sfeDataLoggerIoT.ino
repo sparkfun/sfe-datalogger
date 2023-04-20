@@ -69,8 +69,8 @@ void loop() {
     if(flux.loop() && theDataLogger.ledEnabled == true)        // will return true if an action did something
         digitalWrite(LED_BUILTIN, HIGH); 
 
-    // Our loop delay 
-    delay(500); 
+    // Our loop - needs tweaks - minimize loop delay for speed. 
+    delay(10);
     digitalWrite(LED_BUILTIN, LOW);   // turn off the log led
-    delay(1000);
+
 }
