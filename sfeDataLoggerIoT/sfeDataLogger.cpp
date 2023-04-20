@@ -375,6 +375,7 @@ bool sfeDataLogger::setup()
 
     // Have settings saved when editing via serial console is complete.
     flxSettings.listenForSave(_serialSettings.on_finished);
+    flxSettings.listenForSave(_theOutputFile.on_newFile);
 
     // Add serial settings to spark - the spark loop call will take care
     // of everything else.
