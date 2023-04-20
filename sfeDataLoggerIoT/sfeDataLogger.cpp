@@ -300,22 +300,19 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         flxLog__(logLevel, "%cWiFi not enabled", pre_ch);
 
     flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
-    flxLog__(logLevel, "%c    Sleep Interval:  %d seconds", pre_ch, sleepInterval());
-    flxLog__(logLevel, "%c    Wake Interval:   %d seconds", pre_ch, wakeInterval());    
+    flxLog_N("%c    Sleep Interval:  %d seconds", pre_ch, sleepInterval());
+    flxLog_N("%c    Wake Interval:   %d seconds", pre_ch, wakeInterval());    
 
-
-    if (!useInfo)
-        flxLog_N("");
+    flxLog_N("");
 
     flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
     flxLog__(logLevel, "%cSerial Output:  %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
-    flxLog__(logLevel, "%c    Current Filename: \t%s", pre_ch,  
+    flxLog_N("%c    Current Filename: \t%s", pre_ch,  
         _theOutputFile.currentFilename().length() == 0 ? "``" : _theOutputFile.currentFilename().c_str());
-    flxLog__(logLevel, "%c    Rotate Period: \t%d Hours", pre_ch, _theOutputFile.rotatePeriod());
+    flxLog_N("%c    Rotate Period: \t%d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
-    if (!useInfo)
-        flxLog_N("");
+    flxLog_N("");
 
     flxLog__(logLevel, "%cIoT Services:", pre_ch);
 
@@ -327,8 +324,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("%c    %s  \t: %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t: %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");    
 
-    if (!useInfo)
-        flxLog_N("");
+    flxLog_N("");
 
     // connected devices...
     flxDeviceContainer myDevices = flux.connectedDevices();
@@ -612,7 +608,7 @@ bool sfeDataLogger::start()
 
         for (auto device : loadedDevices)
         {
-            flxLog_N(F("      %s\t\t- %s  {%s}"), device->name(), device->description(),
+            flxLog_N(F("    %s\t\t- %s  {%s}"), device->name(), device->description(),
                     device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
             if (device->nOutputParameters() > 0)
                 _logger.add(device);
