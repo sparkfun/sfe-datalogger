@@ -111,6 +111,9 @@ static void taskLEDProcessing(void *parameter){
     	else if (eventBits &  kEventOff == kEventOff)
     	   _ledOff();
 
+        else if (eventBits & kEventBusy == kEventBusy)
+            _ledYellow();
+
     }
 }
 
