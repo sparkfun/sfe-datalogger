@@ -363,6 +363,8 @@ void sfeDataLogger::displayAppAbout()
 }
 
 //---------------------------------------------------------------------------
+// Event callbacks
+//---------------------------------------------------------------------------
 // Display things during firmware loading
 //---------------------------------------------------------------------------
 void sfeDataLogger::onFirmwareLoad(bool bLoading)
@@ -377,7 +379,21 @@ void sfeDataLogger::listenForFirmwareLoad(flxSignalBool &theEvent)
 {
     theEvent.call(this, &sfeDataLogger::onFirmwareLoad);
 }
+//---------------------------------------------------------------------------
+// Display things during settings edits
+//---------------------------------------------------------------------------
+void sfeDataLogger::onSettingsEdit(bool bLoading)
+{
+    if (bLoading)
+        dl_ledEditing(true);
+    else
+        dl_ledOff(true);
+}
 
+void sfeDataLogger::listenForSettingsEdit(flxSignalBool &theEvent)
+{
+    theEvent.call(this, &sfeDataLogger::onSettingsEdit);
+}
 //---------------------------------------------------------------------------
 // setup()
 //
@@ -399,6 +415,7 @@ bool sfeDataLogger::setup()
     _jsonStorage.setFilename("datalogger.json");
 
     // Have settings saved when editing via serial console is complete.
+    listenForSettingsEdit(_serialSettings.on_editing);
     flxSettings.listenForSave(_serialSettings.on_finished);
     flxSettings.listenForSave(_theOutputFile.on_newFile);
 

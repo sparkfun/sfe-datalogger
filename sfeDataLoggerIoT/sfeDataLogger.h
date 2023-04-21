@@ -197,8 +197,12 @@ class sfeDataLogger : public flxApplication
     void displayAppAbout(void);
     void displayAppStatus(bool useInfo = false);
 
+    // event things
     void onFirmwareLoad(bool bLoading);
     void listenForFirmwareLoad(flxSignalBool &theEvent);
+
+    void onSettingsEdit(bool bLoading);
+    void listenForSettingsEdit(flxSignalBool &theEvent);
 
     // Class members -- that make up the application structure
 
