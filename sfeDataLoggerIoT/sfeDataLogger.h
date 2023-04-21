@@ -59,9 +59,9 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 #include <Flux/flxIoTAWS.h>
 #include <Flux/flxIoTAzure.h>
 #include <Flux/flxIoTHTTP.h>
+#include <Flux/flxIoTMachineChat.h>
 #include <Flux/flxIoTThingSpeak.h>
 #include <Flux/flxMQTTESP32.h>
-#include <Flux/flxIoTMachineChat.h>
 
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
@@ -111,10 +111,12 @@ class sfeDataLogger : public flxApplication
 
     //---------------------------------------------------------------------------
     // onDeviceLoad()
-    // 
+    //
     // Called by the system, right after device autoload, but before system restore
     // Allows the app to load other devices.
-    void onDeviceLoad();
+    void onDeviceLoad(void);
+
+    void onRestore(void);
 
   private:
     //---------------------------------------------------------------------
@@ -197,7 +199,6 @@ class sfeDataLogger : public flxApplication
 
     void onFirmwareLoad(bool bLoading);
     void listenForFirmwareLoad(flxSignalBool &theEvent);
-
 
     // Class members -- that make up the application structure
 

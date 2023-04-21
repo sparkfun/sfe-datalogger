@@ -16,9 +16,9 @@
  */
 
 #include "sfeDataLogger.h"
-#include "dl_version.h"
-#include "dl_mode.h"
 #include "dl_led.h"
+#include "dl_mode.h"
+#include "dl_version.h"
 
 #include "esp_sleep.h"
 
@@ -67,8 +67,6 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 
 static char *kLNagMessage =
     "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
-
-
 
 constexpr char *sfeDataLogger::kLogFormatNames[];
 //---------------------------------------------------------------------------
@@ -192,8 +190,7 @@ bool sfeDataLogger::setupIoTClients()
     _iotHTTP.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotHTTP);
 
-
-     // Machine Chat 
+    // Machine Chat
     _iotMachineChat.setNetwork(&_wifiConnection);
     _iotMachineChat.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotMachineChat);
@@ -227,7 +224,7 @@ bool sfeDataLogger::setupTime()
         flxClock.addConnectedClock(rtc8803);
     }
 
-    // Now that clocks are loaded, set the ref clock to what was started with. 
+    // Now that clocks are loaded, set the ref clock to what was started with.
     flxClock.referenceClock = refClock;
 
     // update the system clock to the reference clock
@@ -302,15 +299,15 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
     flxLog_N("%c    Sleep Interval:  %d seconds", pre_ch, sleepInterval());
-    flxLog_N("%c    Wake Interval:   %d seconds", pre_ch, wakeInterval());    
+    flxLog_N("%c    Wake Interval:   %d seconds", pre_ch, wakeInterval());
 
     flxLog_N("");
 
     flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
     flxLog__(logLevel, "%cSerial Output:  %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
-    flxLog_N("%c    Current Filename: \t%s", pre_ch,  
-        _theOutputFile.currentFilename().length() == 0 ? "``" : _theOutputFile.currentFilename().c_str());
+    flxLog_N("%c    Current Filename: \t%s", pre_ch,
+             _theOutputFile.currentFilename().length() == 0 ? "``" : _theOutputFile.currentFilename().c_str());
     flxLog_N("%c    Rotate Period: \t%d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
     flxLog_N("");
@@ -318,12 +315,12 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cIoT Services:", pre_ch);
 
     flxLog_N("%c    %s  \t: %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  : %s", pre_ch, _mqttSecureClient.name(), _mqttSecureClient.enabled() ? "enabled" : "disabled");    
+    flxLog_N("%c    %s  : %s", pre_ch, _mqttSecureClient.name(), _mqttSecureClient.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %s  \t: %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  \t: %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");    
+    flxLog_N("%c    %s  \t: %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");
 
     flxLog_N("");
 
@@ -334,7 +331,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     // Loop over the device list - note that it is iterable.
     for (auto device : myDevices)
         flxLog_N("%c    %s \t- %s  {%s}", pre_ch, device->name(), device->description(),
-                device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
+                 device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
 
     flxLog_N("");
 }
@@ -351,7 +348,6 @@ void sfeDataLogger::displayAppAbout()
 
     displayAppStatus(false);
 }
-
 
 //---------------------------------------------------------------------------
 // Display things during firmware loading
@@ -380,7 +376,6 @@ bool sfeDataLogger::setup()
 
     // Version info
     setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, kDLVersionDescriptor, BUILD_NUMBER);
-    setAppClassID(kDLAppClassNameID); // internal name string for this app type
 
     // set the settings storage system for spark
     flxSettings.setStorage(&_sysStorage);
@@ -494,6 +489,18 @@ void sfeDataLogger::onDeviceLoad()
 
     if (fuelGuage->size() > 0)
         _modeFlags |= DL_MODE_FLAG_FUEL;
+}
+//---------------------------------------------------------------------
+// onRestore()
+//
+// Called just before settings are restored on startup.
+
+void sfeDataLogger::onRestore(void)
+{
+    // At this point, we know enough about the device to set details about it.
+    char prefix[5] = "0000";
+    (void)dlModeCheckPrefix(_modeFlags, prefix);
+    setAppClassID(kDLAppClassNameID, prefix); // internal name string for this app type
 }
 
 //---------------------------------------------------------------------
@@ -609,14 +616,13 @@ bool sfeDataLogger::start()
     _logger.add(_fmtJSON);
     _logger.add(_fmtCSV);
 
-
     // check SD card status
-    if ( !_theSDCard.enabled())
+    if (!_theSDCard.enabled())
     {
         // disable SD card output
         set_logTypeSD(kAppLogTypeNone);
     }
-    
+
     // setup NFC - it provides another means to load WiFi credentials
     setupNFDevice();
 
@@ -630,11 +636,10 @@ bool sfeDataLogger::start()
     else
     {
         flxLog_N(F("%d devices detected"), loadedDevices.size());
-
         for (auto device : loadedDevices)
         {
             flxLog_N(F("    %s\t\t- %s  {%s}"), device->name(), device->description(),
-                    device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
+                     device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
             if (device->nOutputParameters() > 0)
                 _logger.add(device);
         }
@@ -673,7 +678,6 @@ void sfeDataLogger::enterSleepMode()
 
     // esp_sleep_config_gpio_isolate(); // Don't. This causes: E (33643) gpio: gpio_sleep_set_pull_mode(827): GPIO
     // number error
-
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
     // esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_OFF); // Don't disable RTC SLOW MEM - otherwise
     // boot_count (RTC_DATA_ATTR) becomes garbage
