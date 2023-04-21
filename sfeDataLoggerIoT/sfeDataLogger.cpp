@@ -412,9 +412,6 @@ bool sfeDataLogger::setup()
     if (!setupSDCard())
     {
         flxLog_W(F("Error initializing the SD Card. Is an SD card installed on the board?"));
-
-        // disable SD card output
-        set_logTypeSD(kAppLogTypeNone);
     }
 
     // Setup the IoT clients
@@ -612,6 +609,14 @@ bool sfeDataLogger::start()
     _logger.add(_fmtJSON);
     _logger.add(_fmtCSV);
 
+
+    // check SD card status
+    if ( !_theSDCard.enabled())
+    {
+        // disable SD card output
+        set_logTypeSD(kAppLogTypeNone);
+    }
+    
     // setup NFC - it provides another means to load WiFi credentials
     setupNFDevice();
 
