@@ -195,6 +195,10 @@ class sfeDataLogger : public flxApplication
     void displayAppAbout(void);
     void displayAppStatus(bool useInfo = false);
 
+    void onFirmwareLoad(bool bLoading);
+    void listenForFirmwareLoad(flxSignalBool &theEvent);
+
+
     // Class members -- that make up the application structure
 
     // WiFi and NTP

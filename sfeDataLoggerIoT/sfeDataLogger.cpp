@@ -18,6 +18,7 @@
 #include "sfeDataLogger.h"
 #include "dl_version.h"
 #include "dl_mode.h"
+#include "dl_led.h"
 
 #include "esp_sleep.h"
 
@@ -350,7 +351,23 @@ void sfeDataLogger::displayAppAbout()
 
     displayAppStatus(false);
 }
+
+
 //---------------------------------------------------------------------------
+// Display things during firmware loading
+//---------------------------------------------------------------------------
+void sfeDataLogger::onFirmwareLoad(bool bLoading)
+{
+    if (bLoading)
+        dl_ledBusy(true);
+    else
+        dl_ledOff(true);
+}
+
+void sfeDataLogger::listenForFirmwareLoad(flxSignalBool &theEvent)
+{
+    theEvent.call(this, &sfeDataLogger::onFirmwareLoad);
+}
 
 //---------------------------------------------------------------------------
 // setup()
@@ -417,6 +434,8 @@ bool sfeDataLogger::setup()
 
     _sysUpdate.setWiFiDevice(&_wifiConnection);
     _sysUpdate.enableOTAUpdates(kDataLoggerOTAManifestURL);
+
+    listenForFirmwareLoad(_sysUpdate.on_firmwareload);
 
     // Add to the system - manual add so it appears last in the ops list
 
