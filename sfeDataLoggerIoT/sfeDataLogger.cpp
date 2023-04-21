@@ -27,6 +27,7 @@
 #include <Flux/flxDevGNSS.h>
 #include <Flux/flxDevMAX17048.h>
 #include <Flux/flxDevRV8803.h>
+#include <Flux/flxUtils.h>
 
 RTC_DATA_ATTR int boot_count = 0;
 
@@ -283,8 +284,18 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         flxLog_N("");
 
     if (_theSDCard.enabled())
-        flxLog__(logLevel, "%cSD card - Type: %s, Size: %uMB, Used: %uMB", pre_ch, _theSDCard.type(), _theSDCard.size(),
-                 _theSDCard.used());
+    {
+
+        char szSize[32];
+        char szCap[32];        
+        char szAvail[32];
+
+        flx_utils::formatByteString(_theSDCard.size(), 2, szSize, sizeof(szSize));
+        flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));        
+        flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
+
+        flxLog__(logLevel, "%cSD card - Type: %s Size: %s Capacity: %s Free: %s", pre_ch, _theSDCard.type(), szSize, szCap, szAvail);
+    }
     else
         flxLog__(logLevel, "%cSD card not available", pre_ch);
 
@@ -306,8 +317,10 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
     flxLog__(logLevel, "%cSerial Output:  %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
-    flxLog_N("%c    Current Filename: \t%s", pre_ch,
-             _theOutputFile.currentFilename().length() == 0 ? "``" : _theOutputFile.currentFilename().c_str());
+    // at startup, useInfo == true, the file isn't known, so skip output
+    if (!useInfo)
+        flxLog_N("%c    Current Filename: \t%s", pre_ch,
+             _theOutputFile.currentFilename().length() == 0 ? "<none>" : _theOutputFile.currentFilename().c_str());
     flxLog_N("%c    Rotate Period: \t%d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
     flxLog_N("");
