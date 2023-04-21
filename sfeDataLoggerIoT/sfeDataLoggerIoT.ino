@@ -43,9 +43,9 @@ void setup() {
 
     // Begin setup - turn on board LED during setup.
     pinMode(LED_RGB_BUILTIN, OUTPUT);
-    (void)dl_ledInit(LED_RGB_BUILTIN);
+    (void)dl_ledInit();
 
-    dl_ledStartup();    // show startup LED
+    dl_ledStartup(true);    // show startup LED
 
     Serial.begin(115200);  
     while (!Serial);
@@ -54,7 +54,7 @@ void setup() {
     flux.start();
 
     // LED off
-    dl_ledOff();
+    dl_ledOff(true);
 }
 
 //---------------------------------------------------------------------

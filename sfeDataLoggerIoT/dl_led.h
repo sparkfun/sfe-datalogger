@@ -14,7 +14,9 @@
 // LED Display for the datalogger - led display in a task
 #pragma once
 
-void dl_ledActivity(void);
-void dl_ledStartup(void);
-void dl_ledOff(void);
-bool dl_ledInit(uint ledPIN);
+// calls to set/adjust LED display
+void dl_ledActivity(bool immediate = false);
+void dl_ledStartup(bool immediate = false);
+void dl_ledBusy(bool immediate = false);
+void dl_ledOff(bool immediate = false);
+bool dl_ledInit();

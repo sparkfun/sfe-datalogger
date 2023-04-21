@@ -16,6 +16,7 @@
 
 #include "dl_led.h"
 
+// quiet a damn prama message - silly
 #define FASTLED_INTERNAL
 #include <FastLED.h>
 
@@ -31,29 +32,59 @@ typedef enum {
     kEventActvity       = (1UL << 0UL),
     kEventPending       = (1UL << 1UL),
     kEventStartup       = (1UL << 2UL),
-    kEventOff           = (1UL << 3UL)        
+    kEventBusy          = (1UL << 3UL),    
+    kEventOff           = (1UL << 4UL)        
 }UXEvent_t;
 
-#define kMaxEvent 5
+#define kMaxEvent 6
 #define kEventAllMask  ~(0xFFFFFFFFUL << kMaxEvent )
 
 // A task needs a Stack - let's set that size
 #define kStackSize  1024
-
 #define kActivityDelay 100
 
-static uint theOnBoardLEDPin = 0;
 
+#define kLedRGBLedPin       26 //Pin for the datalogger
+#define kLedColorOrder      GRB
+#define kLedChipset         WS2812
+#define kLedNumLed          1
+#define kLEDBrightness      20
 
-#define LED_PIN     26 //Pin 2 on Thing Plus C is connected to WS2812 LED
-#define COLOR_ORDER GRB
-#define CHIPSET     WS2812
-#define NUM_LEDS    1
+static CRGB leds[kLedNumLed];
 
-#define kLEDBrightness 20
 
 static bool isEnabled = false;
-static CRGB leds[NUM_LEDS];
+
+//--------------------------------------------------------------------------------
+// helpers 
+static void _ledBlue(void)
+{
+    leds[0] = CRGB::Blue;
+    FastLED.show();
+}
+//--------------------------------------------------------------------------------
+static void _ledGreen(void)
+{
+    leds[0] = CRGB::Green;
+    FastLED.show();
+}
+
+//--------------------------------------------------------------------------------
+static void _ledYellow(void)
+{
+    leds[0] = CRGB::Yellow;
+    FastLED.show();
+}
+
+//--------------------------------------------------------------------------------
+static void _ledOff(void)
+{
+    leds[0] = CRGB::Black;
+    FastLED.show();
+}
+
+//--------------------------------------------------------------------------------
+// task event loop
 
 static void taskLEDProcessing(void *parameter){
 
@@ -69,54 +100,79 @@ static void taskLEDProcessing(void *parameter){
 
     	if (eventBits & kEventActvity  == kEventActvity)
     	{
-    		leds[0] = CRGB::Blue;
-    		FastLED.show();
+            _ledBlue();
     		vTaskDelay(kActivityDelay/portTICK_RATE_MS);
-    		leds[0] = CRGB::Black;
-    		FastLED.show();
+            _ledOff();
+
     	}
     	else if (eventBits & kEventStartup == kEventStartup)
-    	{
-    		leds[0] = CRGB::Green;
-    		FastLED.show();
-    	}
+            _ledGreen();
+
     	else if (eventBits &  kEventOff == kEventOff)
-    	{
-    		leds[0] = CRGB::Black;
-    		FastLED.show();
-    	}
+    	   _ledOff();
 
     }
 }
 
-void dl_ledStartup(void)
+//--------------------------------------------------------------------------------
+// Startup led color
+//
+// Note - will use immediate mode here - since event task isn't fully started 
+void dl_ledStartup(bool immediate)
 {
 	if (!isEnabled)
 		return;
 
-	xEventGroupSetBits(hEventGroup, kEventStartup);
+    // event?
+    if (!immediate)
+    	xEventGroupSetBits(hEventGroup, kEventStartup);
+    else 
+        _ledGreen();
 }
-void dl_ledOff(void)
+
+//--------------------------------------------------------------------------------
+// led off 
+void dl_ledOff(bool immediate)
 {
 	if (!isEnabled)
 		return;
 
-	xEventGroupSetBits(hEventGroup, kEventOff);
+    // event driven?
+    if (!immediate)
+        xEventGroupSetBits(hEventGroup, kEventOff);
+    else 
+        _ledOff();
+
 }
 
-void dl_ledActivity(void)
+//--------------------------------------------------------------------------------
+// led busy 
+void dl_ledBusy(bool immediate)
+{
+    if (!isEnabled)
+        return;
+
+    // event driven?
+    if (!immediate)
+        xEventGroupSetBits(hEventGroup, kEventBusy);
+    else 
+        _ledYellow();
+
+}
+//--------------------------------------------------------------------------------
+void dl_ledActivity(bool immediate)
 {
 	if (!isEnabled)
 		return;
 
+    // just do event driven
 	xEventGroupSetBits(hEventGroup, kEventActvity);
 }
 
-
-bool dl_ledInit(uint ledPIN)
+//--------------------------------------------------------------------------------
+bool dl_ledInit(void)
 {
 
-	theOnBoardLEDPin = ledPIN;
 
 	hEventGroup = xEventGroupCreate();
     if(!hEventGroup)
@@ -136,7 +192,7 @@ bool dl_ledInit(uint ledPIN)
         return false;
     }
 
-    FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.addLeds<kLedChipset, kLedRGBLedPin, kLedColorOrder>(leds, kLedNumLed).setCorrection( TypicalLEDStrip );
   	FastLED.setBrightness( kLEDBrightness );
 
   	isEnabled=true;
