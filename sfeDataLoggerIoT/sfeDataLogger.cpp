@@ -32,7 +32,7 @@
 RTC_DATA_ATTR int boot_count = 0;
 
 // For finding the firmware files on SD card
-#define kDataLoggerFirmwareFilePrefix "SparkFunDataLoggerIoT"
+#define kDataLoggerFirmwareFilePrefix "SparkFun_DataLoggerIoT_"
 
 // Application keys - used to encrypt runtime secrets for the app.
 //
@@ -50,9 +50,11 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 #endif
 
 // The datalogger firmware OTA manifest  URL
+// Testing repo location
+//#define kDataLoggerOTAManifestURL   "https://raw.githubusercontent.com/gigapod/ota-demo-exp/main/manifiest/sfe-dl-manifest.json"
 
-#define kDataLoggerOTAManifestURL                                                                                      \
-    "https://raw.githubusercontent.com/gigapod/ota-demo-exp/main/manifiest/sfe-dl-manifest.json"
+// Final/Deploy repo
+#define kDataLoggerOTAManifestURL   "https://raw.githubusercontent.com/sparkfun/SparkFun_DataLogger/main/firmware/manifest/sfe-dl-manifest.json"
 
 // Valid platform check interface
 
