@@ -3,6 +3,7 @@
 
 
 #include "dl_mode.h"
+#include <string.h>
 
 
 // what defines / IDs a IOT 9DOF board?
@@ -14,8 +15,10 @@
 static struct mode_entry{
 	uint32_t 		mode;
 	const char 	   *name;
+	const char      prefix[5];
 } dlBoardInfo[] = {
-	{ SFE_DL_IOT_9DOF_MODE, "SparkFun DataLogger IoT - 9DoF"}
+	// DataLogger 9DOF - ID Prefix [S]park[F]un [D]atalogger [1]
+	{ SFE_DL_IOT_9DOF_MODE, "SparkFun DataLogger IoT - 9DoF", "SFD1"}
 };
 
 
@@ -42,6 +45,21 @@ const char * dlModeCheckName(uint32_t mode)
 			return dlBoardInfo[i].name;
 	}
 	return "Unknown Board";
+
+}
+//---------------------------------------------------------------------------------
+bool dlModeCheckPrefix(uint32_t mode, char prefix[5])
+{
+	// do we know about this board? 
+	for(int i = 0; i < sizeof(dlBoardInfo)/sizeof(struct mode_entry); i++)
+	{
+		if ( (dlBoardInfo[i].mode & mode) == dlBoardInfo[i].mode )
+		{
+			memcpy(prefix, dlBoardInfo[i].prefix, 5);
+			return true;
+		}
+	}
+	return false;
 
 }
 

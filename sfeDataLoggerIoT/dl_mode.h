@@ -14,6 +14,6 @@
 
 
 bool dlModeCheckValid(uint32_t mode);
-
 const char * dlModeCheckName(uint32_t mode);
+bool dlModeCheckPrefix(uint32_t mode, char prefix[5]);
 
