@@ -32,11 +32,12 @@ typedef enum {
     kEventActvity       = (1UL << 0UL),
     kEventPending       = (1UL << 1UL),
     kEventStartup       = (1UL << 2UL),
-    kEventBusy          = (1UL << 3UL),    
-    kEventOff           = (1UL << 4UL)        
+    kEventBusy          = (1UL << 3UL),
+    kEventEditing       = (1UL << 4UL),    
+    kEventOff           = (1UL << 5UL)        
 }UXEvent_t;
 
-#define kMaxEvent 6
+#define kMaxEvent 7
 #define kEventAllMask  ~(0xFFFFFFFFUL << kMaxEvent )
 
 // A task needs a Stack - let's set that size
@@ -73,6 +74,12 @@ static void _ledGreen(void)
 static void _ledYellow(void)
 {
     leds[0] = CRGB::Yellow;
+    FastLED.show();
+}
+//--------------------------------------------------------------------------------
+static void _ledGray(void)
+{
+    leds[0] = CRGB::LightSlateGray;
     FastLED.show();
 }
 
@@ -113,6 +120,8 @@ static void taskLEDProcessing(void *parameter){
 
         else if (eventBits & kEventBusy == kEventBusy)
             _ledYellow();
+        else if (eventBits & kEventEditing == kEventEditing)
+            _ledGray();
 
     }
 }
@@ -171,7 +180,19 @@ void dl_ledActivity(bool immediate)
     // just do event driven
 	xEventGroupSetBits(hEventGroup, kEventActvity);
 }
+//--------------------------------------------------------------------------------
+void dl_ledEditing(bool immediate)
+{
+    if (!isEnabled)
+        return;
 
+        // event driven?
+    if (!immediate)
+        xEventGroupSetBits(hEventGroup, kEventEditing);
+    else 
+        _ledGray();
+
+}
 //--------------------------------------------------------------------------------
 bool dl_ledInit(void)
 {

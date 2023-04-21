@@ -18,5 +18,6 @@
 void dl_ledActivity(bool immediate = false);
 void dl_ledStartup(bool immediate = false);
 void dl_ledBusy(bool immediate = false);
+void dl_ledEditing(bool immediate = false);
 void dl_ledOff(bool immediate = false);
 bool dl_ledInit();
