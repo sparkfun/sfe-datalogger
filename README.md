@@ -18,6 +18,9 @@ The following sections provide details for the main features exposed by the Data
 
 The devices supported by the DataLogger are listed in the [Device List](docs/supported_devices.md)
 
+### Application Settings
+* [Details on the systems Application Settings menu](https://github.com/sparkfun/sfe-datalogger/blob/main/docs/act_app_settings.md)
+
 ### IoT Service Connections
 
 * [Connecting to ThingSpeak](https://github.com/sparkfun/SparkFun_Flux/blob/main/docs/iot_thingspeak.md)
