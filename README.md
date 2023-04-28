@@ -26,6 +26,7 @@ The devices supported by the DataLogger are listed in the [Device List](docs/sup
 * [Connecting to ThingSpeak](https://github.com/sparkfun/SparkFun_Flux/blob/main/docs/iot_thingspeak.md)
 * [Connecting to AWS IoT](https://github.com/sparkfun/SparkFun_Flux/blob/main/docs/iot_aws.md)
 * [Connecting to Azure IoT](https://github.com/sparkfun/SparkFun_Flux/blob/main/docs/iot_azure.md)
+* [Connecting to an HTTP Server](https://github.com/sparkfun/SparkFun_Flux/blob/main/docs/iot_http.md)
 
 ### System
 
