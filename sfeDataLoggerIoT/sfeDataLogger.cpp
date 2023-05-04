@@ -56,6 +56,9 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 // Final/Deploy repo
 #define kDataLoggerOTAManifestURL   "https://raw.githubusercontent.com/sparkfun/SparkFun_DataLogger/main/firmware/manifest/sfe-dl-manifest.json"
 
+// What is the out of the box baud rate ..
+#define kDefaultTerminalBaudRate 115200
+
 // Valid platform check interface
 
 #ifdef DATALOGGER_IOT_NAG_TIME
@@ -85,6 +88,10 @@ sfeDataLogger::sfeDataLogger()
     setTitle("General");
 
     flxRegister(ledEnabled, "LED Enabled", "Enable/Disable the on-board LED activity");
+
+    // Terminal Serial Baud Rate
+    flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart.");
+    serialBaudRate = kDefaultTerminalBaudRate; 
 
     sdCardLogType.setTitle("Output Formats");
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
@@ -593,6 +600,43 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
         _fmtJSON.add(flxSerial());
 }
 
+//---------------------------------------------------------------------------
+uint sfeDataLogger::getTerminalBaudRate(void)
+{
+    // Do we have this block in storage? And yes, a little hacky with name :)
+    flxStorageBlock *stBlk = _sysStorage.getBlock(((flxObject *)this)->name());
+
+    if (!stBlk)
+        return kDefaultTerminalBaudRate;
+
+    uint theRate = 0;
+    bool status = stBlk->read(serialBaudRate.name(), theRate);
+
+    _sysStorage.endBlock(stBlk);
+
+    return status ? theRate : kDefaultTerminalBaudRate;
+}
+//---------------------------------------------------------------------------
+// init()
+//
+// Called before the system/framework is up
+
+void sfeDataLogger::init(void)
+{
+
+    // Did the user set a serial value?
+
+    uint theRate = getTerminalBaudRate();
+    Serial.begin(115200);  
+    while (!Serial);
+
+    // testing
+    Serial.printf("Startup Rate is: %u \n\r", theRate );
+
+
+    (void)dl_ledInit();
+    dl_ledStartup(true);    // show startup LED
+}
 //---------------------------------------------------------------------------
 // Check our platform status
 void sfeDataLogger::checkOpMode()

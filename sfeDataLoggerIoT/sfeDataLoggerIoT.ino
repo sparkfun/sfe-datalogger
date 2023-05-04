@@ -43,12 +43,7 @@ void setup() {
 
     // Begin setup - turn on board LED during setup.
     pinMode(LED_RGB_BUILTIN, OUTPUT);
-    (void)dl_ledInit();
-
-    dl_ledStartup(true);    // show startup LED
-
-    Serial.begin(115200);  
-    while (!Serial);
+    
 
     // Start up the framework
     flux.start();

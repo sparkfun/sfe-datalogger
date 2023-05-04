@@ -158,6 +158,12 @@ class sfeDataLogger : public flxApplication
 
   public:
     //---------------------------------------------------------------------------
+
+    // init()
+    // 
+    // Called before anything is started 
+    void init();
+
     // start()
     //
     // Called after the system is loaded, restored and initialized
@@ -187,6 +193,9 @@ class sfeDataLogger : public flxApplication
     // Display LED Enabled?
     flxPropertyBool<sfeDataLogger> ledEnabled = {true};
 
+    // Serial Baud rate setting
+    flxPropertyUint<sfeDataLogger> serialBaudRate = {1200, 500000};
+
     flxParameterInVoid<sfeDataLogger, &sfeDataLogger::about_app_status> aboutApplication;
 
   private:
@@ -203,6 +212,8 @@ class sfeDataLogger : public flxApplication
 
     void onSettingsEdit(bool bLoading);
     void listenForSettingsEdit(flxSignalBool &theEvent);
+
+    uint getTerminalBaudRate(void);
 
     // Class members -- that make up the application structure
 
