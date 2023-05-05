@@ -346,13 +346,13 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     flxLog__(logLevel, "%cIoT Services:", pre_ch);
 
-    flxLog_N("%c    %s  \t: %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  : %s", pre_ch, _mqttSecureClient.name(), _mqttSecureClient.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  \t\t: %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  \t: %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %s  \t: %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _mqttSecureClient.name(), _mqttSecureClient.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");
 
     flxLog_N("");
 
@@ -362,7 +362,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     // Loop over the device list - note that it is iterable.
     for (auto device : myDevices)
-        flxLog_N("%c    %s \t- %s  {%s}", pre_ch, device->name(), device->description(),
+        flxLog_N("%c    %-20s  - %s  {%s}", pre_ch, device->name(), device->description(),
                  device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
 
     flxLog_N("");
@@ -769,7 +769,7 @@ bool sfeDataLogger::onStart()
         flxLog_N(F("%d devices detected"), loadedDevices.size());
         for (auto device : loadedDevices)
         {
-            flxLog_N(F("    %s\t\t- %s  {%s}"), device->name(), device->description(),
+            flxLog_N(F("    %-20s  - %s  {%s}"), device->name(), device->description(),
                      device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
             if (device->nOutputParameters() > 0)
                 _logger.add(device);
