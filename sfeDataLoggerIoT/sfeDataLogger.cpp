@@ -68,11 +68,20 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 #endif
 
 #define kLNagTimeSecs (kLNagTimeMins * 60)
-
 #define kLNagTimesMSecs (kLNagTimeSecs * 1000)
 
 static char *kLNagMessage =
     "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
+
+
+// Operation mode flags
+#define  kDataLoggerOpEditing  (1<<0)
+#define  kDataLoggerOpStartup  (1<<1)
+#define  kDataLoggerOpPendingRestart  (1<<2)
+
+#define inOpMode(__mode__) ( (_opFlags & __mode__) == __mode__)
+#define setOpMode(__mode__) _opFlags |= __mode__
+#define clearOpMode(__mode__) _opFlags &= ~__mode__
 
 constexpr char *sfeDataLogger::kLogFormatNames[];
 //---------------------------------------------------------------------------
@@ -81,7 +90,7 @@ constexpr char *sfeDataLogger::kLogFormatNames[];
 
 sfeDataLogger::sfeDataLogger()
     : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}, _isValidMode{false},
-      _lastLCheck{0}, _modeFlags{0}
+      _lastLCheck{0}, _modeFlags{0}, _opFlags{0}
 {
 
     // Add a title for this section - the application level  - of settings
@@ -89,13 +98,12 @@ sfeDataLogger::sfeDataLogger()
 
     flxRegister(ledEnabled, "LED Enabled", "Enable/Disable the on-board LED activity");
 
-    // Terminal Serial Baud Rate
-    flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart.");
-    serialBaudRate = kDefaultTerminalBaudRate; 
-
-    sdCardLogType.setTitle("Output Formats");
+    sdCardLogType.setTitle("Output");
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
+    // Terminal Serial Baud Rate
+    flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart");
+    _terminalBaudRate = kDefaultTerminalBaudRate; 
 
     // Add the format changing props to the logger - makes more sense from a UX standpoint.
     _logger.addProperty(sdCardLogType);
@@ -396,15 +404,36 @@ void sfeDataLogger::listenForFirmwareLoad(flxSignalBool &theEvent)
 void sfeDataLogger::onSettingsEdit(bool bLoading)
 {
     if (bLoading)
+    {
+        setOpMode(kDataLoggerOpEditing);
         dl_ledEditing(true);
+    }    
     else
+    {
         dl_ledOff(true);
-}
 
+        // no longer editing
+        clearOpMode(kDataLoggerOpEditing);
+
+        // did the editing operation set a restart flag? If so see if the user wants to restart
+        // the device.
+        if (inOpMode(kDataLoggerOpPendingRestart))
+        {
+            flxLog_N("\n\rSome changes required a device restart to take effect...");
+            _sysUpdate.restartDevice();
+
+            // this shouldn't return unless user aborted 
+            clearOpMode(kDataLoggerOpPendingRestart);
+        }
+    }
+}
+//---------------------------------------------------------------------------
 void sfeDataLogger::listenForSettingsEdit(flxSignalBool &theEvent)
 {
     theEvent.call(this, &sfeDataLogger::onSettingsEdit);
 }
+
+
 //---------------------------------------------------------------------------
 // setup()
 //
@@ -471,7 +500,6 @@ bool sfeDataLogger::setup()
     listenForFirmwareLoad(_sysUpdate.on_firmwareload);
 
     // Add to the system - manual add so it appears last in the ops list
-
     _sysUpdate.setTitle("Advanced");
     flux.add(_sysUpdate);
 
@@ -602,6 +630,31 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
         _fmtJSON.add(flxSerial());
 }
 
+
+//---------------------------------------------------------------------------
+// Terminal Baudrate things 
+//---------------------------------------------------------------------------
+uint sfeDataLogger::get_termBaudRate(void)
+{
+    return _terminalBaudRate;
+}
+//---------------------------------------------------------------------------
+void sfeDataLogger::set_termBaudRate(uint newRate)
+{
+    // no change?
+    if (newRate == _terminalBaudRate)
+        return; 
+
+    _terminalBaudRate = newRate;
+    
+    // Was this done during an edit session?
+    if ( inOpMode(kDataLoggerOpEditing) )
+    {
+        flxLog_N(F("\n\r\n\r\t[The new baud rate of %u takes effect when this device is restarted]"), newRate);
+        delay(700);
+        setOpMode(kDataLoggerOpPendingRestart);
+    }
+}
 //---------------------------------------------------------------------------
 uint sfeDataLogger::getTerminalBaudRate(void)
 {
@@ -625,13 +678,11 @@ uint sfeDataLogger::getTerminalBaudRate(void)
 
 void sfeDataLogger::init(void)
 {
-
     // Did the user set a serial value?
-
     uint theRate = getTerminalBaudRate();
 
     // just to be safe...
-    theRate = theRate >= 1200 : theRate : kDefaultTerminalBaudRate;
+    theRate = theRate >= 1200 ? theRate : kDefaultTerminalBaudRate;
 
     Serial.begin(theRate);  
     while (!Serial);
@@ -639,6 +690,7 @@ void sfeDataLogger::init(void)
 
     (void)dl_ledInit();
     dl_ledStartup(true);    // show startup LED
+    setOpMode(kDataLoggerOpStartup);
 }
 //---------------------------------------------------------------------------
 // Check our platform status
@@ -743,6 +795,7 @@ bool sfeDataLogger::start()
     if (!_isValidMode)
         outputVMessage();
 
+    clearOpMode(kDataLoggerOpStartup);
     return true;
 }
 
