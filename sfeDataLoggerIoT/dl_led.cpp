@@ -16,7 +16,7 @@
 
 #include "dl_led.h"
 
-// quiet a damn prama message - silly
+// quiet a damn pragma message - silly
 #define FASTLED_INTERNAL
 #include <FastLED.h>
 
