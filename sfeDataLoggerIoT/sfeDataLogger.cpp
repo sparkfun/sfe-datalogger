@@ -325,7 +325,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
     flxLog__(logLevel, "%cSerial Output:  %s", pre_ch, kLogFormatNames[serialLogType()]);
+    flxLog_N("%c    Baud Rate:  %d", pre_ch, serialBaudRate());
     flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
+
     // at startup, useInfo == true, the file isn't known, so skip output
     if (!useInfo)
         flxLog_N("%c    Current Filename: \t%s", pre_ch,
@@ -627,11 +629,12 @@ void sfeDataLogger::init(void)
     // Did the user set a serial value?
 
     uint theRate = getTerminalBaudRate();
-    Serial.begin(115200);  
-    while (!Serial);
 
-    // testing
-    Serial.printf("Startup Rate is: %u \n\r", theRate );
+    // just to be safe...
+    theRate = theRate >= 1200 : theRate : kDefaultTerminalBaudRate;
+
+    Serial.begin(theRate);  
+    while (!Serial);
 
 
     (void)dl_ledInit();
