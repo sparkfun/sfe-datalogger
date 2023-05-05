@@ -98,6 +98,9 @@ sfeDataLogger::sfeDataLogger()
 
     flxRegister(ledEnabled, "LED Enabled", "Enable/Disable the on-board LED activity");
 
+    // our the menu timeout property to our props/menu system entries
+    addProperty(_serialSettings.menuTimeout);
+
     sdCardLogType.setTitle("Output");
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
