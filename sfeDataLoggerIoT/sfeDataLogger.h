@@ -104,10 +104,10 @@ class sfeDataLogger : public flxApplication
     sfeDataLogger();
 
     //---------------------------------------------------------------------------
-    // setup()
+    // onSetup()
     //
     // Called by the system before devices are loaded, and system initialized
-    bool setup();
+    bool onSetup();
 
     //---------------------------------------------------------------------------
     // onDeviceLoad()
@@ -165,15 +165,15 @@ class sfeDataLogger : public flxApplication
   public:
     //---------------------------------------------------------------------------
 
-    // init()
+    // onInit()
     // 
     // Called before anything is started 
-    void init();
+    void onInit();
 
-    // start()
+    // onStart()
     //
     // Called after the system is loaded, restored and initialized
-    bool start();
+    bool onStart();
 
     bool loop();
 

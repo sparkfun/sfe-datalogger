@@ -435,10 +435,10 @@ void sfeDataLogger::listenForSettingsEdit(flxSignalBool &theEvent)
 
 
 //---------------------------------------------------------------------------
-// setup()
+// onSetup()
 //
 // Called by the system before devices are loaded, and system initialized
-bool sfeDataLogger::setup()
+bool sfeDataLogger::onSetup()
 {
     // Lets set the application name?!
     setName("SparkFun DataLogger IoT - 9DOF", "(c) 2023 SparkFun Electronics");
@@ -672,11 +672,11 @@ uint sfeDataLogger::getTerminalBaudRate(void)
     return status ? theRate : kDefaultTerminalBaudRate;
 }
 //---------------------------------------------------------------------------
-// init()
+// onInit()
 //
 // Called before the system/framework is up
 
-void sfeDataLogger::init(void)
+void sfeDataLogger::onInit(void)
 {
     // Did the user set a serial value?
     uint theRate = getTerminalBaudRate();
@@ -699,10 +699,10 @@ void sfeDataLogger::checkOpMode()
     _isValidMode = dlModeCheckValid(_modeFlags);
 }
 //---------------------------------------------------------------------------
-// start()
+// onStart()
 //
 // Called after the system is loaded, restored and initialized
-bool sfeDataLogger::start()
+bool sfeDataLogger::onStart()
 {
 
     // Waking up from a sleep (boot count isn't zero)
