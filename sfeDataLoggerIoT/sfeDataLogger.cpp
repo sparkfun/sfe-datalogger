@@ -392,9 +392,9 @@ void sfeDataLogger::displayAppAbout()
 void sfeDataLogger::onFirmwareLoad(bool bLoading)
 {
     if (bLoading)
-        dl_ledBusy(true);
+        sfeLED.on(sfeLED.Yellow);
     else
-        dl_ledOff(true);
+        sfeLED.off();    
 }
 
 void sfeDataLogger::listenForFirmwareLoad(flxSignalBool &theEvent)
@@ -409,11 +409,11 @@ void sfeDataLogger::onSettingsEdit(bool bLoading)
     if (bLoading)
     {
         setOpMode(kDataLoggerOpEditing);
-        dl_ledEditing(true);
+        sfeLED.on(sfeLED.LightGray);
     }    
     else
     {
-        dl_ledOff(true);
+        sfeLED.off();
 
         // no longer editing
         clearOpMode(kDataLoggerOpEditing);
@@ -690,9 +690,9 @@ void sfeDataLogger::onInit(void)
     Serial.begin(theRate);  
     while (!Serial);
 
+    sfeLED.initialize();
+    sfeLED.on(sfeLED.Green);
 
-    (void)dl_ledInit();
-    dl_ledStartup(true);    // show startup LED
     setOpMode(kDataLoggerOpStartup);
 }
 //---------------------------------------------------------------------------
@@ -799,6 +799,9 @@ bool sfeDataLogger::onStart()
         outputVMessage();
 
     clearOpMode(kDataLoggerOpStartup);
+
+    sfeLED.off();
+
     return true;
 }
 
