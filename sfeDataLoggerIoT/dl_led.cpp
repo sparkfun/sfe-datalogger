@@ -16,209 +16,234 @@
 
 #include "dl_led.h"
 
-// quiet a damn pragma message - silly
-#define FASTLED_INTERNAL
-#include <FastLED.h>
-
 // Our event group handle
-static EventGroupHandle_t  hEventGroup = NULL;
+static EventGroupHandle_t hEventGroup = NULL;
 
-// task handle  
-static TaskHandle_t hTaskLED = NULL;   
+// task handle
+static TaskHandle_t hTaskLED = NULL;
+
+// Time for flashing the LED
+xTimerHandle hTimer;
+#define kTimerPeriod 100
 
 // Event Types (these map to bits -- for XEventGroup calls)
-typedef enum {
-    kEventNull          = 0UL,
-    kEventActvity       = (1UL << 0UL),
-    kEventPending       = (1UL << 1UL),
-    kEventStartup       = (1UL << 2UL),
-    kEventBusy          = (1UL << 3UL),
-    kEventEditing       = (1UL << 4UL),    
-    kEventOff           = (1UL << 5UL)        
-}UXEvent_t;
+typedef enum
+{
+    kEventNull = 0UL,
+    kEventActvity = (1UL << 0UL),
+    kEventPending = (1UL << 1UL),
+    kEventStartup = (1UL << 2UL),
+    kEventBusy = (1UL << 3UL),
+    kEventEditing = (1UL << 4UL),
+    kEventOff = (1UL << 5UL)
+} UXEvent_t;
 
-#define kMaxEvent 7
-#define kEventAllMask  ~(0xFFFFFFFFUL << kMaxEvent )
+#define kMaxEvent 6
+#define kEventAllMask ~(0xFFFFFFFFUL << kMaxEvent)
 
 // A task needs a Stack - let's set that size
-#define kStackSize  1024
+#define kStackSize 1024
 #define kActivityDelay 100
 
+#define kLedRGBLedPin 26 // Pin for the datalogger
+#define kLedColorOrder GRB
+#define kLedChipset WS2812
+#define kLEDBrightness 20
 
-#define kLedRGBLedPin       26 //Pin for the datalogger
-#define kLedColorOrder      GRB
-#define kLedChipset         WS2812
-#define kLedNumLed          1
-#define kLEDBrightness      20
+_sfeLED &sfeLED = _sfeLED::get();
 
-static CRGB leds[kLedNumLed];
-
-
-static bool isEnabled = false;
-
-//--------------------------------------------------------------------------------
-// helpers 
-static void _ledBlue(void)
+//------------------------------------------------------------------------------
+// Callback for the FreeRTOS timer -- used to blink LED
+static void _sfeLED_TimerCallback(xTimerHandle pxTimer)
 {
-    leds[0] = CRGB::Blue;
-    FastLED.show();
-}
-//--------------------------------------------------------------------------------
-static void _ledGreen(void)
-{
-    leds[0] = CRGB::Green;
-    FastLED.show();
-}
 
-//--------------------------------------------------------------------------------
-static void _ledYellow(void)
-{
-    leds[0] = CRGB::Yellow;
-    FastLED.show();
-}
-//--------------------------------------------------------------------------------
-static void _ledGray(void)
-{
-    leds[0] = CRGB::LightSlateGray;
-    FastLED.show();
-}
-
-//--------------------------------------------------------------------------------
-static void _ledOff(void)
-{
-    leds[0] = CRGB::Black;
-    FastLED.show();
+    sfeLED._timerCB();
 }
 
 //--------------------------------------------------------------------------------
 // task event loop
 
-static void taskLEDProcessing(void *parameter){
+static void _sfeLED_TaskProcessing(void *parameter)
+{
+    // startup delay
+    vTaskDelay(50);
+    uint32_t eventBits;
 
-
-	// startup delay
-	vTaskDelay(50);
-    UXEvent_t eventBits;
-
-    while(true)
+    while (true)
     {
+        eventBits = (uint32_t)xEventGroupWaitBits(hEventGroup, kEventAllMask, pdTRUE, pdFALSE, portMAX_DELAY);
 
-    	eventBits = (UXEvent_t)xEventGroupWaitBits(hEventGroup, kEventAllMask, pdTRUE, pdFALSE, portMAX_DELAY) ;
-
-    	if (eventBits & kEventActvity  == kEventActvity)
-    	{
-            _ledBlue();
-    		vTaskDelay(kActivityDelay/portTICK_RATE_MS);
-            _ledOff();
-
-    	}
-    	else if (eventBits & kEventStartup == kEventStartup)
-            _ledGreen();
-
-    	else if (eventBits &  kEventOff == kEventOff)
-    	   _ledOff();
-
-        else if (eventBits & kEventBusy == kEventBusy)
-            _ledYellow();
-        else if (eventBits & kEventEditing == kEventEditing)
-            _ledGray();
-
+        sfeLED._eventCB(eventBits);
     }
 }
 
-//--------------------------------------------------------------------------------
-// Startup led color
-//
-// Note - will use immediate mode here - since event task isn't fully started 
-void dl_ledStartup(bool immediate)
-{
-	if (!isEnabled)
-		return;
+//---------------------------------------------------------
 
-    // event?
-    if (!immediate)
-    	xEventGroupSetBits(hEventGroup, kEventStartup);
-    else 
-        _ledGreen();
+_sfeLED::_sfeLED() : _current{0}, _isInitialized{false}, _blinkOn{false}
+{
+    _colorStack[0] = {_sfeLED::Black, 0};
 }
 
-//--------------------------------------------------------------------------------
-// led off 
-void dl_ledOff(bool immediate)
-{
-	if (!isEnabled)
-		return;
-
-    // event driven?
-    if (!immediate)
-        xEventGroupSetBits(hEventGroup, kEventOff);
-    else 
-        _ledOff();
-
-}
-
-//--------------------------------------------------------------------------------
-// led busy 
-void dl_ledBusy(bool immediate)
-{
-    if (!isEnabled)
-        return;
-
-    // event driven?
-    if (!immediate)
-        xEventGroupSetBits(hEventGroup, kEventBusy);
-    else 
-        _ledYellow();
-
-}
-//--------------------------------------------------------------------------------
-void dl_ledActivity(bool immediate)
-{
-	if (!isEnabled)
-		return;
-
-    // just do event driven
-	xEventGroupSetBits(hEventGroup, kEventActvity);
-}
-//--------------------------------------------------------------------------------
-void dl_ledEditing(bool immediate)
-{
-    if (!isEnabled)
-        return;
-
-        // event driven?
-    if (!immediate)
-        xEventGroupSetBits(hEventGroup, kEventEditing);
-    else 
-        _ledGray();
-
-}
-//--------------------------------------------------------------------------------
-bool dl_ledInit(void)
+//---------------------------------------------------------
+bool _sfeLED::initialize(void)
 {
 
+    // Create a timer, which is used to drive the user experience.
+    hTimer = xTimerCreate("ledtimer", kTimerPeriod / portTICK_RATE_MS, pdTRUE, (void *)0, _sfeLED_TimerCallback);
+    if (hTimer == NULL)
+    {
+        Serial.println("[WARNING] - failed to create LED timer");
+    }
 
-	hEventGroup = xEventGroupCreate();
-    if(!hEventGroup)
-    	return false;
+    hEventGroup = xEventGroupCreate();
+    if (!hEventGroup)
+        return false;
 
     // Event processing task
-    BaseType_t xReturnValue = xTaskCreate(taskLEDProcessing,    // Event processing task functoin
-                            "eventProc",                            // String with name of task.
-                            kStackSize,             // Stack size in 32 bit words.
-                            NULL,                                  // Parameter passed as input of the task
-                            1,                                      // Priority of the task.
-                            &hTaskLED);                         // Task handle.
+    BaseType_t xReturnValue = xTaskCreate(_sfeLED_TaskProcessing, // Event processing task functoin
+                                          "eventProc",            // String with name of task.
+                                          kStackSize,             // Stack size in 32 bit words.
+                                          NULL,                   // Parameter passed as input of the task
+                                          1,                      // Priority of the task.
+                                          &hTaskLED);             // Task handle.
 
-    if(xReturnValue != pdPASS){
-    	hTaskLED = NULL;
+    if (xReturnValue != pdPASS)
+    {
+        hTaskLED = NULL;
         Serial.println("[ERROR] - Failure to start event processing task. Halting");
         return false;
     }
 
-    FastLED.addLeds<kLedChipset, kLedRGBLedPin, kLedColorOrder>(leds, kLedNumLed).setCorrection( TypicalLEDStrip );
-  	FastLED.setBrightness( kLEDBrightness );
+    FastLED.addLeds<kLedChipset, kLedRGBLedPin, kLedColorOrder>(&_theLED, 1).setCorrection(TypicalLEDStrip);
+    FastLED.setBrightness(kLEDBrightness);
 
-  	isEnabled=true;
+    _isInitialized = true;
+    update();
     return true;
+}
+
+//------------------------------------------------------------------------------
+// Callback for the FreeRTOS timer -- used to blink LED
+void _sfeLED::_timerCB(void)
+{
+    _theLED = _blinkOn ? _sfeLED::Black : _colorStack[_current].color;
+    FastLED.show();
+
+    _blinkOn = !_blinkOn;
+}
+
+//---------------------------------------------------------
+void _sfeLED::_eventCB(uint32_t event)
+{
+    if (event & kEventActvity == kEventActvity)
+    {
+        update();
+        vTaskDelay(kActivityDelay / portTICK_RATE_MS);
+        off();
+    }
+}
+//---------------------------------------------------------
+// private.
+//---------------------------------------------------------
+
+void _sfeLED::start_blink(void)
+{
+    if (!_isInitialized || _colorStack[_current].ticks == 0)
+        return;
+
+    xTimerChangePeriod(hTimer, _colorStack[_current].ticks / portTICK_RATE_MS, 10);
+    xTimerReset(hTimer, 10);
+}
+
+//---------------------------------------------------------
+void _sfeLED::stop_blink(void)
+{
+    if (xTimerStop(hTimer, 10) != pdPASS)
+        Serial.println("Error stop LED timer");
+}
+
+//---------------------------------------------------------
+void _sfeLED::update(void)
+{
+    if (!_isInitialized)
+        return;
+
+    _theLED = _colorStack[_current].color;
+    FastLED.show();
+
+    if (_colorStack[_current].ticks > 0)
+        start_blink();
+}
+
+//---------------------------------------------------------
+// public
+//---------------------------------------------------------
+
+void _sfeLED::flash(_sfeLED::LEDColor_t color)
+{
+    if (_current > kStackSize - 2)
+    {
+        Serial.println("LED - Color Stack Overflow");
+        return;
+    }
+
+    _current++;
+    _colorStack[_current] = {color, 0};
+
+    // just do event driven
+    xEventGroupSetBits(hEventGroup, kEventActvity);
+}
+
+//---------------------------------------------------------
+void _sfeLED::off(void)
+{
+    if (_current == 0)
+    {
+        Serial.println("LED - Color Stack Underflow");
+        return;
+    }
+    if (_colorStack[_current].ticks > 0)
+        stop_blink();
+
+    _current--;
+    update();
+}
+
+//---------------------------------------------------------
+void _sfeLED::on(_sfeLED::LEDColor_t color)
+{
+    if (_current > kStackSize - 2)
+    {
+        Serial.println("LED - Color Stack Overflow");
+        return;
+    }
+
+    _current++;
+    _colorStack[_current] = {color, 0};
+
+    update();
+}
+
+//---------------------------------------------------------
+void _sfeLED::blink(uint timeout)
+{
+
+    // at off state?
+    if (_current == 0 || !_isInitialized)
+        return;
+
+    _colorStack[_current].ticks = timeout;
+
+    _blinkOn = true;
+
+    start_blink();
+}
+
+//---------------------------------------------------------
+void _sfeLED::stopBlink(bool turnoff)
+{
+    stop_blink();
+
+    if (turnoff)
+        off();
 }
