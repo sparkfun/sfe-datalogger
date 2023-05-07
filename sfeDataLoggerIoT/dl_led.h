@@ -52,7 +52,8 @@ class _sfeLED
     void on(_sfeLED::LEDColor_t color);
     void off(void);
     void blink(uint32_t);
-    void stopBlink(bool off = true);
+    void blink(_sfeLED::LEDColor_t, uint32_t);
+    void stop(bool off = true);
     void flash(_sfeLED::LEDColor_t color);
 
     void _timerCB(void);
@@ -71,7 +72,7 @@ class _sfeLED
         uint32_t ticks;
     } colorState_t;
 
-    static constexpr uint16_t kStackSize = 6;
+    static constexpr uint16_t kStackSize = 10;
     colorState_t _colorStack[kStackSize];
 
     int _current;

@@ -56,7 +56,6 @@ _sfeLED &sfeLED = _sfeLED::get();
 // Callback for the FreeRTOS timer -- used to blink LED
 static void _sfeLED_TimerCallback(xTimerHandle pxTimer)
 {
-
     sfeLED._timerCB();
 }
 
@@ -238,9 +237,14 @@ void _sfeLED::blink(uint timeout)
 
     start_blink();
 }
-
 //---------------------------------------------------------
-void _sfeLED::stopBlink(bool turnoff)
+void _sfeLED::blink(_sfeLED::LEDColor_t color, uint timeout)
+{
+    on(color);
+    blink(timeout);
+}
+//---------------------------------------------------------
+void _sfeLED::stop(bool turnoff)
 {
     stop_blink();
 
