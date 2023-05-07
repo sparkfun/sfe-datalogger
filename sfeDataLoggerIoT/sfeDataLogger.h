@@ -118,6 +118,8 @@ class sfeDataLogger : public flxApplication
 
     void onRestore(void);
 
+    void resetDevice(void);
+    
   private:
     //---------------------------------------------------------------------
     // Check if we have a NFC reader available -- for use with WiFi credentials
@@ -162,6 +164,8 @@ class sfeDataLogger : public flxApplication
 
     uint get_termBaudRate(void);
     void set_termBaudRate(uint rate);
+
+
   public:
     //---------------------------------------------------------------------------
 

@@ -576,6 +576,14 @@ void sfeDataLogger::onRestore(void)
 }
 
 //---------------------------------------------------------------------
+// reset the device - erase settings, reboot
+void sfeDataLogger::resetDevice(void)
+{
+    _sysStorage.resetStorage();
+    _sysUpdate.restartDevice();
+}
+
+//---------------------------------------------------------------------
 void sfeDataLogger::setupBioHub()
 {
     if (_bioHub.initialize(kAppBioHubReset,
