@@ -19,7 +19,6 @@
 #include "sfeDataLogger.h"
 
 #include "dl_led.h"
-#include "dl_ev.h"
 
 #define OPENLOG_ESP32
 #ifdef OPENLOG_ESP32
