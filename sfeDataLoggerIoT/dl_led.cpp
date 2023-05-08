@@ -198,7 +198,7 @@ void _sfeLED::off(void)
 {
     if (_current == 0)
     {
-        Serial.println("LED - Color Stack Underflow");
+        //Serial.println("LED - Color Stack Underflow");
         return;
     }
     if (_colorStack[_current].ticks > 0)
