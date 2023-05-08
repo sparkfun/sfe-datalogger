@@ -10,10 +10,12 @@
  *
  *---------------------------------------------------------------------------------
  */
-// Impelements onboard LED updates in an ESP32 task
+// Implements onboard LED updates in an ESP32 task
 
 #include "Arduino.h"
 
+
+#include "sfeDLBoard.h"
 #include "dl_led.h"
 
 // Our event group handle
@@ -45,7 +47,6 @@ typedef enum
 #define kStackSize 1024
 #define kActivityDelay 100
 
-#define kLedRGBLedPin 26 // Pin for the datalogger
 #define kLedColorOrder GRB
 #define kLedChipset WS2812
 #define kLEDBrightness 20
@@ -87,6 +88,9 @@ _sfeLED::_sfeLED() : _current{0}, _isInitialized{false}, _blinkOn{false}
 bool _sfeLED::initialize(void)
 {
 
+     // Begin setup - turn on board LED during setup.
+    pinMode(kDLBoardLEDRGBBuiltin, OUTPUT);
+    
     // Create a timer, which is used to drive the user experience.
     hTimer = xTimerCreate("ledtimer", kTimerPeriod / portTICK_RATE_MS, pdTRUE, (void *)0, _sfeLED_TimerCallback);
     if (hTimer == NULL)
@@ -113,7 +117,7 @@ bool _sfeLED::initialize(void)
         return false;
     }
 
-    FastLED.addLeds<kLedChipset, kLedRGBLedPin, kLedColorOrder>(&_theLED, 1).setCorrection(TypicalLEDStrip);
+    FastLED.addLeds<kLedChipset, kDLBoardLEDRGBBuiltin, kLedColorOrder>(&_theLED, 1).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(kLEDBrightness);
 
     _isInitialized = true;
