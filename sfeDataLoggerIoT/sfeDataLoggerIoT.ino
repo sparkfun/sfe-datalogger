@@ -19,7 +19,7 @@
 #include "sfeDataLogger.h"
 #include "sfeDLBoard.h"
 
-#include "dl_led.h"
+#include "sfeDLLed.h"
 
 // Our data logger application
 sfeDataLogger  theDataLogger;

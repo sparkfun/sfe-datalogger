@@ -16,7 +16,7 @@
  */
 
 #include "sfeDataLogger.h"
-#include "dl_led.h"
+#include "sfeDLLed.h"
 #include "dl_mode.h"
 #include "dl_version.h"
 
