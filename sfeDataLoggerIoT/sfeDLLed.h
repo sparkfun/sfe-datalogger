@@ -18,11 +18,10 @@
 #define FASTLED_INTERNAL
 #include <FastLED.h>
 
-
 // This are Handy Flash levels...
-#define kLEDFlashSlow    600
-#define kLEDFlashMedium  200
-#define kLEDFlashFast    80
+#define kLEDFlashSlow 600
+#define kLEDFlashMedium 200
+#define kLEDFlashFast 80
 //---------------------------------------------------------------
 class _sfeLED
 {
@@ -64,6 +63,13 @@ class _sfeLED
     void _timerCB(void);
     void _eventCB(uint32_t);
 
+    void setDisabled(bool bDisable);
+
+    bool disabled(void)
+    {
+        return _disabled;
+    }
+
   private:
     _sfeLED();
 
@@ -86,5 +92,7 @@ class _sfeLED
     bool _blinkOn;
 
     CRGB _theLED;
+
+    bool _disabled;
 };
 extern _sfeLED &sfeLED;

@@ -79,7 +79,7 @@ static void _sfeLED_TaskProcessing(void *parameter)
 
 //---------------------------------------------------------
 
-_sfeLED::_sfeLED() : _current{0}, _isInitialized{false}, _blinkOn{false}
+_sfeLED::_sfeLED() : _current{0}, _isInitialized{false}, _blinkOn{false}, _disabled{false}
 {
     _colorStack[0] = {_sfeLED::Black, 0};
 }
@@ -168,7 +168,7 @@ void _sfeLED::stop_blink(void)
 //---------------------------------------------------------
 void _sfeLED::update(void)
 {
-    if (!_isInitialized)
+    if (!_isInitialized || _disabled)
         return;
 
     _theLED = _colorStack[_current].color;
@@ -184,6 +184,9 @@ void _sfeLED::update(void)
 
 void _sfeLED::flash(_sfeLED::LEDColor_t color)
 {
+    if (_disabled)
+        return;
+
     if (_current > kStackSize - 2)
     {
         Serial.println("LED - Color Stack Overflow");
@@ -200,11 +203,9 @@ void _sfeLED::flash(_sfeLED::LEDColor_t color)
 //---------------------------------------------------------
 void _sfeLED::off(void)
 {
-    if (_current == 0)
-    {
-        //Serial.println("LED - Color Stack Underflow");
+    if (_current == 0 || _disabled)
         return;
-    }
+
     if (_colorStack[_current].ticks > 0)
         stop_blink();
 
@@ -215,6 +216,10 @@ void _sfeLED::off(void)
 //---------------------------------------------------------
 void _sfeLED::on(_sfeLED::LEDColor_t color)
 {
+
+    if (_disabled)
+        return;
+
     if (_current > kStackSize - 2)
     {
         Serial.println("LED - Color Stack Overflow");
@@ -230,9 +235,8 @@ void _sfeLED::on(_sfeLED::LEDColor_t color)
 //---------------------------------------------------------
 void _sfeLED::blink(uint timeout)
 {
-
     // at off state?
-    if (_current == 0 || !_isInitialized)
+    if (_current == 0 || !_isInitialized || _disabled)
         return;
 
     _colorStack[_current].ticks = timeout;
@@ -244,14 +248,38 @@ void _sfeLED::blink(uint timeout)
 //---------------------------------------------------------
 void _sfeLED::blink(_sfeLED::LEDColor_t color, uint timeout)
 {
+    if (_disabled)
+        return;
+
     on(color);
     blink(timeout);
 }
 //---------------------------------------------------------
 void _sfeLED::stop(bool turnoff)
 {
+    if (_disabled)
+        return;
+
     stop_blink();
 
     if (turnoff)
         off();
 }
+
+//---------------------------------------------------------
+void _sfeLED::setDisabled(bool bDisable)
+{
+
+    if (bDisable == _disabled)
+        return;
+
+    if (bDisable && _current > 0 && _isInitialized) 
+    {
+        off();
+        _current = 0;
+    }
+    
+
+    _disabled = bDisable;
+}
+
