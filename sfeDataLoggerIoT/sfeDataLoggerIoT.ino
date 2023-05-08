@@ -17,17 +17,9 @@
 
 // Spark framework 
 #include "sfeDataLogger.h"
+#include "sfeDLBoard.h"
 
 #include "dl_led.h"
-
-#define OPENLOG_ESP32
-#ifdef OPENLOG_ESP32
-#define EN_3V3_SW 32
-#define LED_BUILTIN 25
-#define LED_RGB_BUILTIN 26
-#define BOOT_BUTTON 0
-#endif
-
 
 // Our data logger application
 sfeDataLogger  theDataLogger;
@@ -38,12 +30,9 @@ sfeDataLogger  theDataLogger;
 void setup() {
 
 
-    pinMode(EN_3V3_SW, OUTPUT); // Enable Qwiic power and I2C
-    digitalWrite(EN_3V3_SW, HIGH);
-
-    // Begin setup - turn on board LED during setup.
-    pinMode(LED_RGB_BUILTIN, OUTPUT);
-
+    pinMode(kDLBoardEn3v3_SW, OUTPUT); // Enable Qwiic power and I2C
+    digitalWrite(kDLBoardEn3v3_SW, HIGH);
+    
     // Start up the framework
     flux.start();
 }
