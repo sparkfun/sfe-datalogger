@@ -31,18 +31,7 @@
 
 
 // Our data logger application
-
 sfeDataLogger  theDataLogger;
-
-static bool userButtonPressed;
-static uint userButtonEvent;
-
-void userButtonISR(void)
-{
-    userButtonEvent = digitalRead(BOOT_BUTTON) == HIGH ? kEventButtonRelease : kEventButtonPress;
-}
-
-
 
 //---------------------------------------------------------------------
 // Arduino Setup
@@ -58,14 +47,6 @@ void setup() {
 
     // Start up the framework
     flux.start();
-
-    // setup the button
-    pinMode(BOOT_BUTTON, INPUT_PULLUP);
-    attachInterrupt(BOOT_BUTTON, userButtonISR, CHANGE);
-
-    userButtonPressed = false;
-    userButtonEvent = kEventNone;
-
 }
 
 //---------------------------------------------------------------------
@@ -80,21 +61,6 @@ void loop() {
     // to the system during setup.
     if(flux.loop() && theDataLogger.ledEnabled == true)        // will return true if an action did something
         sfeLED.flash(sfeLED.Blue);
-
-    // user button event?
-    if (userButtonEvent != kEventNone)
-    {
-        dl_evButtonEvent(userButtonEvent);
-        userButtonPressed = (userButtonEvent == kEventButtonPress);
-        userButtonEvent = kEventNone;
-    }
-    // In a press event
-    else if (userButtonPressed)
-    {
-        // Reset the system?
-        if (dl_evButtonReset())
-            theDataLogger.resetDevice();
-    }
 
     delay(1);
 
