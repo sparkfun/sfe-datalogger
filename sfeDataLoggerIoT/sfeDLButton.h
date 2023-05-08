@@ -15,13 +15,15 @@
 
 #include <Flux/flxCore.h>
 
-
+// A class to encapsulate the event logic/handling of the on-board button of the DataLogger.
+//
+// Note: For button press events, the class will send out "increment" events if the button is pressed for a 
+// longer that "momentary" period
 
 class sfeDLButton : public flxActionType<sfeDLButton>
 {
 
-public:
-
+  public:
     sfeDLButton() : _pressIncrement{5}, _userButtonPressed{false}, _pressEventTime{0}, _currentInc{0}
     {
         setHidden();
@@ -37,17 +39,25 @@ public:
             _pressIncrement = inc;
     }
 
-
+    // Our events - signals ... 
     flxSignalVoid on_momentaryPress;
     flxSignalUInt on_buttonRelease;
     flxSignalUInt on_buttonPressed;
 
-private:
+  private:
 
+    // How many seconds per increment on a button press
     uint32_t _pressIncrement;
+
+    // button pressed?
     bool _userButtonPressed;
+
+    // ticks when the button was pressed
     uint32_t _pressEventTime;
+
+    // Ticks since last increment event
     uint32_t _incEventTime;
 
+    // the current increment count
     uint16_t _currentInc;
 };
