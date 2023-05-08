@@ -168,6 +168,9 @@ class sfeDataLogger : public flxApplication
     uint get_termBaudRate(void);
     void set_termBaudRate(uint rate);
 
+    bool get_ledEnabled(void);
+    void set_ledEnabled(bool);
+
   public:
     //---------------------------------------------------------------------------
 
@@ -203,7 +206,7 @@ class sfeDataLogger : public flxApplication
     flxPropertyBool<sfeDataLogger> sleepEnabled = {false};
 
     // Display LED Enabled?
-    flxPropertyBool<sfeDataLogger> ledEnabled = {true};
+    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_ledEnabled, &sfeDataLogger::set_ledEnabled> ledEnabled;
 
     // Serial Baud rate setting
     flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_termBaudRate, &sfeDataLogger::set_termBaudRate>

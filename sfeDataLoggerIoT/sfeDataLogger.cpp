@@ -449,6 +449,9 @@ void sfeDataLogger::listenForSettingsEdit(flxSignalBool &theEvent)
 void sfeDataLogger::onButtonPressed(uint increment)
 {
 
+    // we need LED on for visual feedback...
+    sfeLED.setDisabled(false);
+
     if (increment == 1)
         sfeLED.blink(sfeLED.Yellow, kLEDFlashSlow);
 
@@ -690,6 +693,19 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
         _fmtJSON.add(flxSerial());
 }
 
+
+//---------------------------------------------------------------------------
+// LED 
+//---------------------------------------------------------------------------
+bool sfeDataLogger::get_ledEnabled(void)
+{
+    return !sfeLED.disabled();
+}
+
+void sfeDataLogger::set_ledEnabled(bool enabled)
+{
+    sfeLED.setDisabled(!enabled);
+}
 
 //---------------------------------------------------------------------------
 // Terminal Baudrate things 
