@@ -462,6 +462,10 @@ void sfeDataLogger::onButtonPressed(uint increment)
     {
         sfeLED.stop();
 
+        sfeLED.on(sfeLED.Red);
+        delay(500);
+        sfeLED.off();
+
         // Reset time ! 
         resetDevice();
     }
