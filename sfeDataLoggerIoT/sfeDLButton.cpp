@@ -11,9 +11,7 @@
  */
 
 #include "sfeDLButton.h"
-
-
-#define BOOT_BUTTON 0
+#include "sfeDLBoard.h"
 
 
 #define kEventNone    0
@@ -28,7 +26,7 @@ static uint userButtonEvent = kEventNone;
 
 static void userButtonISR(void)
 {
-    userButtonEvent = digitalRead(BOOT_BUTTON) == HIGH ? kEventButtonRelease : kEventButtonPress;
+    userButtonEvent = digitalRead(kDLBoardBootButton) == HIGH ? kEventButtonRelease : kEventButtonPress;
 }
 
 
@@ -39,8 +37,8 @@ bool sfeDLButton::initialize(void)
 
     // setup our event handler
     // setup the button
-    pinMode(BOOT_BUTTON, INPUT_PULLUP);
-    attachInterrupt(BOOT_BUTTON, userButtonISR, CHANGE);
+    pinMode(kDLBoardBootButton, INPUT_PULLUP);
+    attachInterrupt(kDLBoardBootButton, userButtonISR, CHANGE);
 
     userButtonEvent = kEventNone;
 
