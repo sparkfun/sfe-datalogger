@@ -47,7 +47,7 @@ void loop() {
     // Just call the Flux framework loop() method. Flux will manage
     // the dispatch of processing to the components that were added 
     // to the system during setup.
-    if(flux.loop() && theDataLogger.ledEnabled == true)        // will return true if an action did something
+    if(flux.loop())        // will return true if an action did something
         sfeLED.flash(sfeLED.Blue);
 
     delay(1);
