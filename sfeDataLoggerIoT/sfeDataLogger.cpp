@@ -17,8 +17,8 @@
 
 #include "sfeDataLogger.h"
 #include "sfeDLLed.h"
-#include "dl_mode.h"
-#include "dl_version.h"
+#include "sfeDLMode.h"
+#include "sfeDLVersion.h"
 
 #include "esp_sleep.h"
 
