@@ -65,6 +65,9 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
+
+#include "sfeDLButton.h"
+
 //------------------------------------------
 // Default log interval in milli secs
 #define kDefaultLogInterval 15000
@@ -119,7 +122,7 @@ class sfeDataLogger : public flxApplication
     void onRestore(void);
 
     void resetDevice(void);
-    
+
   private:
     //---------------------------------------------------------------------
     // Check if we have a NFC reader available -- for use with WiFi credentials
@@ -165,13 +168,12 @@ class sfeDataLogger : public flxApplication
     uint get_termBaudRate(void);
     void set_termBaudRate(uint rate);
 
-
   public:
     //---------------------------------------------------------------------------
 
     // onInit()
-    // 
-    // Called before anything is started 
+    //
+    // Called before anything is started
     void onInit();
 
     // onStart()
@@ -204,7 +206,8 @@ class sfeDataLogger : public flxApplication
     flxPropertyBool<sfeDataLogger> ledEnabled = {true};
 
     // Serial Baud rate setting
-    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_termBaudRate, &sfeDataLogger::set_termBaudRate> serialBaudRate = {1200, 500000};
+    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_termBaudRate, &sfeDataLogger::set_termBaudRate>
+        serialBaudRate = {1200, 500000};
 
     flxParameterInVoid<sfeDataLogger, &sfeDataLogger::about_app_status> aboutApplication;
 
@@ -224,6 +227,10 @@ class sfeDataLogger : public flxApplication
     void listenForSettingsEdit(flxSignalBool &theEvent);
 
     uint getTerminalBaudRate(void);
+
+    // Board button callbacks
+    void onButtonPressed(uint);
+    void onButtonReleased(uint);    
 
     // Class members -- that make up the application structure
 
@@ -284,6 +291,9 @@ class sfeDataLogger : public flxApplication
 
     // Our firmware Update/Reset system
     flxSysFirmware _sysUpdate;
+
+    // for our button events of the board
+    sfeDLButton _boardButton;
 
     // For the sleep timer
     unsigned long _startTime = 0;

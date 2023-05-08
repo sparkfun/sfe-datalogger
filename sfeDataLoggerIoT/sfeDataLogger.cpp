@@ -59,6 +59,10 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 // What is the out of the box baud rate ..
 #define kDefaultTerminalBaudRate 115200
 
+
+// Button event increment 
+#define kButtonPressedIncrement 5
+
 // Valid platform check interface
 
 #ifdef DATALOGGER_IOT_NAG_TIME
@@ -438,6 +442,37 @@ void sfeDataLogger::listenForSettingsEdit(flxSignalBool &theEvent)
 
 
 //---------------------------------------------------------------------------
+// Button Events - general handler 
+//---------------------------------------------------------------------------
+// 
+// CAlled when the button is pressed and an increment time passed
+void sfeDataLogger::onButtonPressed(uint increment)
+{
+
+    if (increment == 1)
+        sfeLED.blink(sfeLED.Yellow, kLEDFlashSlow);
+
+    else if (increment == 2)
+        sfeLED.blink(kLEDFlashMedium);
+
+    else if (increment == 3)
+        sfeLED.blink(kLEDFlashFast);
+
+    else if (increment >= 4)
+    {
+        sfeLED.stop();
+
+        // Reset time ! 
+        resetDevice();
+    }
+}
+//---------------------------------------------------------------------------
+void sfeDataLogger::onButtonReleased(uint increment)
+{
+    if (increment > 0)
+        sfeLED.off();
+}
+//---------------------------------------------------------------------------
 // onSetup()
 //
 // Called by the system before devices are loaded, and system initialized
@@ -505,6 +540,16 @@ bool sfeDataLogger::onSetup()
     // Add to the system - manual add so it appears last in the ops list
     _sysUpdate.setTitle("Advanced");
     flux.add(_sysUpdate);
+
+    // The on-board button 
+    flux.add(_boardButton);
+
+    // We want an event every 5 seconds
+    _boardButton.setPressIncrement(kButtonPressedIncrement);
+
+    // Button events we're listening on 
+    _boardButton.on_buttonRelease.call(this, &sfeDataLogger::onButtonReleased);
+    _boardButton.on_buttonPressed.call(this, &sfeDataLogger::onButtonPressed);  
 
     return true;
 }
