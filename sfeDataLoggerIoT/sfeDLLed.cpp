@@ -182,7 +182,7 @@ void _sfeLED::update(void)
 // public
 //---------------------------------------------------------
 
-void _sfeLED::flash(_sfeLED::LEDColor_t color)
+void _sfeLED::flash(sfeLEDColor_t color)
 {
     if (_disabled)
         return;
@@ -214,7 +214,7 @@ void _sfeLED::off(void)
 }
 
 //---------------------------------------------------------
-void _sfeLED::on(_sfeLED::LEDColor_t color)
+void _sfeLED::on(sfeLEDColor_t color)
 {
 
     if (_disabled)
@@ -246,7 +246,7 @@ void _sfeLED::blink(uint timeout)
     start_blink();
 }
 //---------------------------------------------------------
-void _sfeLED::blink(_sfeLED::LEDColor_t color, uint timeout)
+void _sfeLED::blink(sfeLEDColor_t color, uint timeout)
 {
     if (_disabled)
         return;

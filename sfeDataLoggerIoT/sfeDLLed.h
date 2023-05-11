@@ -22,6 +22,8 @@
 #define kLEDFlashSlow 600
 #define kLEDFlashMedium 200
 #define kLEDFlashFast 80
+
+typedef uint32_t sfeLEDColor_t;
 //---------------------------------------------------------------
 class _sfeLED
 {
@@ -38,27 +40,25 @@ class _sfeLED
     _sfeLED(_sfeLED const &) = delete;
     void operator=(_sfeLED const &) = delete;
 
-    typedef enum
-    {
-        Black = 0x000000,
-        Blue = 0x0000FF,
-        Green = 0x008000,
-        Yellow = 0xFFFF00,
-        Red = 0xFF0000,
-        Gray = 0x808080,
-        LightGray = 0x778899,
-        Orange = 0xFFA500,
-        White = 0xFFFFFF,
-        Purple = 0x800080
-    } LEDColor_t;
+    // colors
+    static constexpr sfeLEDColor_t Black = 0x000000;
+    static constexpr sfeLEDColor_t Blue = 0x0000FF;
+    static constexpr sfeLEDColor_t Green = 0x008000;
+    static constexpr sfeLEDColor_t Yellow = 0xFFFF00;
+    static constexpr sfeLEDColor_t Red = 0xFF0000;
+    static constexpr sfeLEDColor_t Gray = 0x808080;
+    static constexpr sfeLEDColor_t LightGray = 0x778899;
+    static constexpr sfeLEDColor_t Orange = 0xFFA500;
+    static constexpr sfeLEDColor_t White = 0xFFFFFF;
+    static constexpr sfeLEDColor_t Purple = 0x80008;
 
     bool initialize(void);
-    void on(_sfeLED::LEDColor_t color);
+    void on(sfeLEDColor_t color);
     void off(void);
     void blink(uint32_t);
-    void blink(_sfeLED::LEDColor_t, uint32_t);
+    void blink(sfeLEDColor_t, uint32_t);
     void stop(bool off = true);
-    void flash(_sfeLED::LEDColor_t color);
+    void flash(sfeLEDColor_t color);
 
     void _timerCB(void);
     void _eventCB(uint32_t);
