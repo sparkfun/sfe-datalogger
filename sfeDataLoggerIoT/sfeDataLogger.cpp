@@ -325,9 +325,10 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     if (_wifiConnection.enabled())
     {
-        flxLog__(logLevel, "%cWiFi - SSID: %s, Connected: %s", pre_ch,
-                 _wifiConnection.SSID().length() > 1 ?  _wifiConnection.connectedSSID() : "",
-                 _wifiConnection.isConnected() ? "yes" : "no");
+        if (_wifiConnection.isConnected())
+            flxLog__(logLevel, "%cWiFi - Connected to %s", pre_ch, _wifiConnection.connectedSSID().c_str());
+        else
+            flxLog__(logLevel, "%cWiFi - Not Connected", pre_ch);
     }
     else
         flxLog__(logLevel, "%cWiFi not enabled", pre_ch);
