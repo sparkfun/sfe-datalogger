@@ -55,6 +55,10 @@ static const uint8_t kAppOnBoardMAGCS = 27;
 static const uint8_t kAppBioHubReset = 17; // Use the TXD pin as the bio hub reset pin
 static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfio pin
 
+
+// Fuel gauge
+#include <Flux/flxDevMAX17048.h>
+
 // IoT Client Includes
 #include <Flux/flxIoTAWS.h>
 #include <Flux/flxIoTAzure.h>
@@ -235,6 +239,9 @@ class sfeDataLogger : public flxApplication
     void onButtonPressed(uint);
     void onButtonReleased(uint);    
 
+    // battery level checks
+    void checkBatteryLevels(void);
+    
     // Class members -- that make up the application structure
 
     // WiFi and NTP
@@ -306,4 +313,8 @@ class sfeDataLogger : public flxApplication
     unsigned long _lastLCheck;
     uint16_t _modeFlags;
     uint16_t _opFlags;
+
+    // Fuel gauge 
+    flxDevMAX17048 *_fuelGauge; 
+    unsigned long _lastBatteryCheck;
 };

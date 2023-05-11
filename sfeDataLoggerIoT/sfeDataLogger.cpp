@@ -87,6 +87,9 @@ static char *kLNagMessage =
 #define setOpMode(__mode__) _opFlags |= __mode__
 #define clearOpMode(__mode__) _opFlags &= ~__mode__
 
+// Battery check interval (90 seconds)
+#define kBatteryCheckInterval  90000
+
 constexpr char *sfeDataLogger::kLogFormatNames[];
 //---------------------------------------------------------------------------
 // Constructor
@@ -94,7 +97,7 @@ constexpr char *sfeDataLogger::kLogFormatNames[];
 
 sfeDataLogger::sfeDataLogger()
     : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}, _isValidMode{false},
-      _lastLCheck{0}, _modeFlags{0}, _opFlags{0}
+      _lastLCheck{0}, _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _lastBatteryCheck{0}
 {
 
     // Add a title for this section - the application level  - of settings
@@ -610,10 +613,12 @@ void sfeDataLogger::onDeviceLoad()
         _modeFlags |= DL_MODE_FLAG_MAG;
 
     // quick check on fuel gauge - which is part of the IOT 9DOF board
-    auto fuelGuage = flux.get<flxDevMAX17048>();
+    auto fuelGauge = flux.get<flxDevMAX17048>();
 
-    if (fuelGuage->size() > 0)
+    if (fuelGauge->size() > 0){
         _modeFlags |= DL_MODE_FLAG_FUEL;
+        _fuelGauge = fuelGauge->at(0);
+    }
 }
 //---------------------------------------------------------------------
 // onRestore()
@@ -865,6 +870,8 @@ bool sfeDataLogger::onStart()
     // set our system start time im millis
     _startTime = millis();
 
+    _lastBatteryCheck = _startTime;
+
     checkOpMode();
 
     displayAppStatus(true);
@@ -917,24 +924,61 @@ void sfeDataLogger::outputVMessage()
         flxLog_W(kLNagMessage);
 }
 //---------------------------------------------------------------------------
+// checkBatteryLevels()
+//
+// If a battery is attached, flash the led based on state of charge
+//
+void sfeDataLogger::checkBatteryLevels(void)
+{
+
+    if (!_fuelGauge)
+        return;
+
+    float batterySOC = _fuelGauge->getSOC();
+
+    sfeLEDColor_t color;
+
+    if (batterySOC > 100.) // no battery 
+        return;
+
+    if ( batterySOC < 10.)
+        color = sfeLED.Red;
+    else if (batterySOC < 50.)
+        color = sfeLED.Yellow;
+    else 
+        color = sfeLED.Green;
+
+    sfeLED.flash(color);
+}
+
+//---------------------------------------------------------------------------
 // loop()
 //
 // Called during the operational loop of the system.
 
 bool sfeDataLogger::loop()
 {
+
+    unsigned long ticks = millis();
     // Is sleep enabled and if so, is it time to sleep the system
-    if (sleepEnabled() && millis() - _startTime > wakeInterval() * 1000)
+    if (sleepEnabled() && ticks - _startTime > wakeInterval() * 1000)
     {
         enterSleepMode();
     }
 
     // If this isn't a valid hardware platform, output a nag string
-    if (!_isValidMode && millis() - _lastLCheck > kLNagTimesMSecs)
+    if (!_isValidMode && ticks - _lastLCheck > kLNagTimesMSecs)
     {
         outputVMessage();
-        _lastLCheck = millis();
+        _lastLCheck = ticks;
     }
 
+
+    // Check our battery levels?
+    if (_fuelGauge != nullptr && ticks - _lastBatteryCheck > kBatteryCheckInterval)
+    {
+        checkBatteryLevels();
+        _lastBatteryCheck = ticks;
+    }
     return false;
 }
