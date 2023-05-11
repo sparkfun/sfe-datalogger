@@ -336,6 +336,17 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     else
         flxLog__(logLevel, "%cWiFi not enabled", pre_ch);
 
+    if (_fuelGauge != nullptr)
+    {
+        float batterySOC = _fuelGauge->getSOC();
+        if (batterySOC < 100.1)
+            flxLog__(logLevel, "%cBattery - Charge: %d%% Voltage: %0.02fV", pre_ch, (int)batterySOC, _fuelGauge->getVoltage() );
+        else 
+            flxLog__(logLevel, "%cBattery - Not Connected", pre_ch);
+    }else 
+        flxLog__(logLevel, "%cBattery - Not Connected", pre_ch);
+
+
     flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
     flxLog_N("%c    Sleep Interval:  %d seconds", pre_ch, sleepInterval());
     flxLog_N("%c    Wake Interval:   %d seconds", pre_ch, wakeInterval());
