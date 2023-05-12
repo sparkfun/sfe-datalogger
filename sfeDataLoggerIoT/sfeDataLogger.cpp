@@ -63,6 +63,7 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 // Button event increment 
 #define kButtonPressedIncrement 5
 
+//---------------------------------------------------------
 // Valid platform check interface
 
 #ifdef DATALOGGER_IOT_NAG_TIME
@@ -87,8 +88,14 @@ static char *kLNagMessage =
 #define setOpMode(__mode__) _opFlags |= __mode__
 #define clearOpMode(__mode__) _opFlags &= ~__mode__
 
+//---------------------------------------------------------
+// Battery things ..
+//
 // Battery check interval (90 seconds)
 #define kBatteryCheckInterval  90000
+
+// Battery SOC that helps ID if a battery is connectec (usb only ~=115)
+#define kBatteryNoBatterySOC 110.
 
 constexpr char *sfeDataLogger::kLogFormatNames[];
 //---------------------------------------------------------------------------
@@ -321,7 +328,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));        
         flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
 
-        flxLog__(logLevel, "%cSD card - Type: %s Size: %s Capacity: %s Free: %s", pre_ch, _theSDCard.type(), szSize, szCap, szAvail);
+        flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s", pre_ch, _theSDCard.type(), szSize, szCap, szAvail);
     }
     else
         flxLog__(logLevel, "%cSD card not available", pre_ch);
@@ -329,23 +336,34 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     if (_wifiConnection.enabled())
     {
         if (_wifiConnection.isConnected())
-            flxLog__(logLevel, "%cWiFi - Connected to %s", pre_ch, _wifiConnection.connectedSSID().c_str());
+        {
+            IPAddress addr = _wifiConnection.localIP();
+            int8_t rssi = _wifiConnection.RSSI();
+            const char *szRSSI = rssi > -40 ? "Excellent" : 
+                                 rssi > -60 ? "Good" :
+                                 rssi > -80 ? "Fair" : "Weak";
+
+            flxLog__(logLevel, "%cWiFi - Connected  SSID: %s  IP Address: %d.%d.%d.%d  Signal: %s",  pre_ch, 
+                    _wifiConnection.connectedSSID().c_str(), addr[0], addr[1], addr[2], addr[3], szRSSI);
+        }
         else
             flxLog__(logLevel, "%cWiFi - Not Connected", pre_ch);
     }
     else
         flxLog__(logLevel, "%cWiFi not enabled", pre_ch);
 
+    // Battery fuel gauge available?
     if (_fuelGauge != nullptr)
     {
+        // Output if a) we have a batter connected, and if so the % charge, and if it's charging
         float batterySOC = _fuelGauge->getSOC();
-        if (batterySOC < 100.1)
-            flxLog__(logLevel, "%cBattery - Charge: %d%% Voltage: %0.02fV", pre_ch, (int)batterySOC, _fuelGauge->getVoltage() );
+        // Is a battery connected - look at SOC
+        if (batterySOC < kBatteryNoBatterySOC)
+            flxLog__(logLevel, "%cBattery - Level: %c%.1f%%", pre_ch, 
+                            _fuelGauge->getChangeRate() > 0 ? '+' : ' ', batterySOC);
         else 
             flxLog__(logLevel, "%cBattery - Not Connected", pre_ch);
-    }else 
-        flxLog__(logLevel, "%cBattery - Not Connected", pre_ch);
-
+    }
 
     flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
     flxLog_N("%c    Sleep Interval:  %d seconds", pre_ch, sleepInterval());
@@ -949,7 +967,7 @@ void sfeDataLogger::checkBatteryLevels(void)
 
     sfeLEDColor_t color;
 
-    if (batterySOC > 100.) // no battery 
+    if (batterySOC > kBatteryNoBatterySOC) // no battery 
         return;
 
     if ( batterySOC < 10.)
