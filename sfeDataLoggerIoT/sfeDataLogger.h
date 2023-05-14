@@ -70,6 +70,9 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
 
+// OLED
+#include <Flux/flxDevMicroOLED.h>
+
 #include "sfeDLButton.h"
 
 //------------------------------------------
@@ -82,6 +85,51 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 // NTP Startup delay in secs
 
 #define kAppNTPStartupDelaySecs 5
+
+
+// Battery check interval (90 seconds)
+#define kBatteryCheckInterval  90000
+
+// Default Sleep Periods
+#define kSystemSleepSleepSec   60
+#define kSystemSleepWakeSec    120
+
+
+//-----------------------------------------------------------------
+// Helper class for loop events - unifies the idea of calling a method
+// after a specific time ...
+class sfeDLLoopEvent {
+
+public:
+    sfeDLLoopEvent(const char *label): name{label}, delta{0}, last{0} {}
+
+    sfeDLLoopEvent(const char *label, uint32_t in_delta, uint32_t in_last) : sfeDLLoopEvent(label) 
+    {
+        delta = in_delta;
+        last =  in_last;
+    }
+
+    // what method to call when time expried
+    template <typename T> void call(T *inst, void (T::*func)())
+    {
+        handler = [=]() { // uses a lambda for the callback
+            (inst->*func)();
+        };
+    }
+
+    // handler
+    std::function<void()>   handler;
+
+    // Time delta in MS
+    uint32_t                delta;
+
+    // Last time checked im MS;
+    uint32_t                last;
+
+    // Event name = helpful 
+    const char             *name;
+};
+
 
 /////////////////////////////////////////////////////////////////////////
 // Define our application class for the data logger
@@ -175,6 +223,12 @@ class sfeDataLogger : public flxApplication
     bool get_ledEnabled(void);
     void set_ledEnabled(bool);
 
+    bool get_sleepEnabled(void);
+    void set_sleepEnabled(bool);
+
+    uint get_sleepWakePeriod(void);
+    void set_sleepWakePeriod(uint);    
+
   public:
     //---------------------------------------------------------------------------
 
@@ -205,9 +259,9 @@ class sfeDataLogger : public flxApplication
          {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
 
     // System sleep properties
-    flxPropertyInt<sfeDataLogger> sleepInterval = {5, 86400};
-    flxPropertyInt<sfeDataLogger> wakeInterval = {60, 86400};
-    flxPropertyBool<sfeDataLogger> sleepEnabled = {false};
+    flxPropertyUint<sfeDataLogger> sleepInterval = {5, 86400};
+    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_sleepWakePeriod, &sfeDataLogger::set_sleepWakePeriod> wakeInterval = {60, 86400};
+    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_sleepEnabled, &sfeDataLogger::set_sleepEnabled> sleepEnabled;
 
     // Display LED Enabled?
     flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_ledEnabled, &sfeDataLogger::set_ledEnabled> ledEnabled;
@@ -310,11 +364,22 @@ class sfeDataLogger : public flxApplication
 
     bool _isValidMode;
 
-    unsigned long _lastLCheck;
     uint16_t _modeFlags;
     uint16_t _opFlags;
 
     // Fuel gauge 
     flxDevMAX17048 *_fuelGauge; 
-    unsigned long _lastBatteryCheck;
+
+    // oled 
+    flxDevMicroOLED *_microOLED;
+
+    // loop event things
+    std::vector<sfeDLLoopEvent*>  _loopEventList;
+
+    // battery check event
+    sfeDLLoopEvent        _batteryEvent = {"BATTERY", kBatteryCheckInterval, 0};
+
+    // sleep things - is enabled storage, sleep event
+    bool  _bSleepEnabled;
+    sfeDLLoopEvent  _sleepEvent = {"SLEEP", kSystemSleepWakeSec*1000, 0};
 };

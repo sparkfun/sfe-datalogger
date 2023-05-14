@@ -51,16 +51,17 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 
 // The datalogger firmware OTA manifest  URL
 // Testing repo location
-//#define kDataLoggerOTAManifestURL   "https://raw.githubusercontent.com/gigapod/ota-demo-exp/main/manifiest/sfe-dl-manifest.json"
+// #define kDataLoggerOTAManifestURL
+// "https://raw.githubusercontent.com/gigapod/ota-demo-exp/main/manifiest/sfe-dl-manifest.json"
 
 // Final/Deploy repo
-#define kDataLoggerOTAManifestURL   "https://raw.githubusercontent.com/sparkfun/SparkFun_DataLogger/main/firmware/manifest/sfe-dl-manifest.json"
+#define kDataLoggerOTAManifestURL                                                                                      \
+    "https://raw.githubusercontent.com/sparkfun/SparkFun_DataLogger/main/firmware/manifest/sfe-dl-manifest.json"
 
 // What is the out of the box baud rate ..
 #define kDefaultTerminalBaudRate 115200
 
-
-// Button event increment 
+// Button event increment
 #define kButtonPressedIncrement 5
 
 //---------------------------------------------------------
@@ -78,23 +79,20 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 static char *kLNagMessage =
     "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
 
-
 // Operation mode flags
-#define  kDataLoggerOpEditing  (1<<0)
-#define  kDataLoggerOpStartup  (1<<1)
-#define  kDataLoggerOpPendingRestart  (1<<2)
+#define kDataLoggerOpEditing (1 << 0)
+#define kDataLoggerOpStartup (1 << 1)
+#define kDataLoggerOpPendingRestart (1 << 2)
 
-#define inOpMode(__mode__) ( (_opFlags & __mode__) == __mode__)
+#define inOpMode(__mode__) ((_opFlags & __mode__) == __mode__)
 #define setOpMode(__mode__) _opFlags |= __mode__
 #define clearOpMode(__mode__) _opFlags &= ~__mode__
 
 //---------------------------------------------------------
 // Battery things ..
 //
-// Battery check interval (90 seconds)
-#define kBatteryCheckInterval  90000
 
-// Battery SOC that helps ID if a battery is connectec (usb only ~=115)
+// Battery SOC that helps ID if a battery is connected (usb only ~=115)
 #define kBatteryNoBatterySOC 110.
 
 constexpr char *sfeDataLogger::kLogFormatNames[];
@@ -104,7 +102,7 @@ constexpr char *sfeDataLogger::kLogFormatNames[];
 
 sfeDataLogger::sfeDataLogger()
     : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}, _isValidMode{false},
-      _lastLCheck{0}, _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _lastBatteryCheck{0}
+      _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _microOLED{nullptr}, _bSleepEnabled{false}
 {
 
     // Add a title for this section - the application level  - of settings
@@ -120,7 +118,7 @@ sfeDataLogger::sfeDataLogger()
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
     // Terminal Serial Baud Rate
     flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart");
-    _terminalBaudRate = kDefaultTerminalBaudRate; 
+    _terminalBaudRate = kDefaultTerminalBaudRate;
 
     // Add the format changing props to the logger - makes more sense from a UX standpoint.
     _logger.addProperty(sdCardLogType);
@@ -141,10 +139,11 @@ sfeDataLogger::sfeDataLogger()
     // Update timer object string
     _timer.setName("Logging Timer", "Set the internal between log entries");
 
-    // set some simple defaults
-    sleepInterval = 30;
-    wakeInterval = 120;
+    // set sleep default interval && event handler method
+    sleepInterval = kSystemSleepSleepSec;
+    _sleepEvent.call(this, &sfeDataLogger::enterSleepMode);
 
+    // app key
     flux.setAppToken(_app_jump, sizeof(_app_jump));
 }
 
@@ -321,14 +320,15 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     {
 
         char szSize[32];
-        char szCap[32];        
+        char szCap[32];
         char szAvail[32];
 
         flx_utils::formatByteString(_theSDCard.size(), 2, szSize, sizeof(szSize));
-        flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));        
+        flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));
         flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
 
-        flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s", pre_ch, _theSDCard.type(), szSize, szCap, szAvail);
+        flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s", pre_ch, _theSDCard.type(), szSize,
+                 szCap, szAvail);
     }
     else
         flxLog__(logLevel, "%cSD card not available", pre_ch);
@@ -339,12 +339,10 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         {
             IPAddress addr = _wifiConnection.localIP();
             int8_t rssi = _wifiConnection.RSSI();
-            const char *szRSSI = rssi > -40 ? "Excellent" : 
-                                 rssi > -60 ? "Good" :
-                                 rssi > -80 ? "Fair" : "Weak";
+            const char *szRSSI = rssi > -40 ? "Excellent" : rssi > -60 ? "Good" : rssi > -80 ? "Fair" : "Weak";
 
-            flxLog__(logLevel, "%cWiFi - Connected  SSID: %s  IP Address: %d.%d.%d.%d  Signal: %s",  pre_ch, 
-                    _wifiConnection.connectedSSID().c_str(), addr[0], addr[1], addr[2], addr[3], szRSSI);
+            flxLog__(logLevel, "%cWiFi - Connected  SSID: %s  IP Address: %d.%d.%d.%d  Signal: %s", pre_ch,
+                     _wifiConnection.connectedSSID().c_str(), addr[0], addr[1], addr[2], addr[3], szRSSI);
         }
         else
             flxLog__(logLevel, "%cWiFi - Not Connected", pre_ch);
@@ -359,9 +357,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         float batterySOC = _fuelGauge->getSOC();
         // Is a battery connected - look at SOC
         if (batterySOC < kBatteryNoBatterySOC)
-            flxLog__(logLevel, "%cBattery - Level: %c%.1f%%", pre_ch, 
-                            _fuelGauge->getChangeRate() > 0 ? '+' : ' ', batterySOC);
-        else 
+            flxLog__(logLevel, "%cBattery - Level: %c%.1f%%", pre_ch, _fuelGauge->getChangeRate() > 0 ? '+' : ' ',
+                     batterySOC);
+        else
             flxLog__(logLevel, "%cBattery - Not Connected", pre_ch);
     }
 
@@ -379,7 +377,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     // at startup, useInfo == true, the file isn't known, so skip output
     if (!useInfo)
         flxLog_N("%c    Current Filename: \t%s", pre_ch,
-             _theOutputFile.currentFilename().length() == 0 ? "<none>" : _theOutputFile.currentFilename().c_str());
+                 _theOutputFile.currentFilename().length() == 0 ? "<none>" : _theOutputFile.currentFilename().c_str());
     flxLog_N("%c    Rotate Period: \t%d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
     flxLog_N("");
@@ -387,7 +385,8 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cIoT Services:", pre_ch);
 
     flxLog_N("%c    %-20s  : %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _mqttSecureClient.name(), _mqttSecureClient.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _mqttSecureClient.name(),
+             _mqttSecureClient.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %-20s  : %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %-20s  : %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %-20s  : %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
@@ -431,7 +430,7 @@ void sfeDataLogger::onFirmwareLoad(bool bLoading)
     if (bLoading)
         sfeLED.on(sfeLED.Yellow);
     else
-        sfeLED.off();    
+        sfeLED.off();
 }
 
 void sfeDataLogger::listenForFirmwareLoad(flxSignalBool &theEvent)
@@ -447,7 +446,7 @@ void sfeDataLogger::onSettingsEdit(bool bLoading)
     {
         setOpMode(kDataLoggerOpEditing);
         sfeLED.on(sfeLED.LightGray);
-    }    
+    }
     else
     {
         sfeLED.off();
@@ -462,7 +461,7 @@ void sfeDataLogger::onSettingsEdit(bool bLoading)
             flxLog_N("\n\rSome changes required a device restart to take effect...");
             _sysUpdate.restartDevice();
 
-            // this shouldn't return unless user aborted 
+            // this shouldn't return unless user aborted
             clearOpMode(kDataLoggerOpPendingRestart);
         }
     }
@@ -473,11 +472,10 @@ void sfeDataLogger::listenForSettingsEdit(flxSignalBool &theEvent)
     theEvent.call(this, &sfeDataLogger::onSettingsEdit);
 }
 
-
 //---------------------------------------------------------------------------
-// Button Events - general handler 
+// Button Events - general handler
 //---------------------------------------------------------------------------
-// 
+//
 // CAlled when the button is pressed and an increment time passed
 void sfeDataLogger::onButtonPressed(uint increment)
 {
@@ -502,7 +500,7 @@ void sfeDataLogger::onButtonPressed(uint increment)
         delay(500);
         sfeLED.off();
 
-        // Reset time ! 
+        // Reset time !
         resetDevice();
     }
 }
@@ -581,15 +579,15 @@ bool sfeDataLogger::onSetup()
     _sysUpdate.setTitle("Advanced");
     flux.add(_sysUpdate);
 
-    // The on-board button 
+    // The on-board button
     flux.add(_boardButton);
 
     // We want an event every 5 seconds
     _boardButton.setPressIncrement(kButtonPressedIncrement);
 
-    // Button events we're listening on 
+    // Button events we're listening on
     _boardButton.on_buttonRelease.call(this, &sfeDataLogger::onButtonReleased);
-    _boardButton.on_buttonPressed.call(this, &sfeDataLogger::onButtonPressed);  
+    _boardButton.on_buttonPressed.call(this, &sfeDataLogger::onButtonPressed);
 
     return true;
 }
@@ -643,11 +641,16 @@ void sfeDataLogger::onDeviceLoad()
 
     // quick check on fuel gauge - which is part of the IOT 9DOF board
     auto fuelGauge = flux.get<flxDevMAX17048>();
-
-    if (fuelGauge->size() > 0){
+    if (fuelGauge->size() > 0)
+    {
         _modeFlags |= DL_MODE_FLAG_FUEL;
         _fuelGauge = fuelGauge->at(0);
     }
+
+    // OLED connected?
+    auto oled = flux.get<flxDevMicroOLED>();
+    if (oled->size() > 0)
+        _microOLED = oled->at(0);
 }
 //---------------------------------------------------------------------
 // onRestore()
@@ -728,22 +731,69 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
         _fmtJSON.add(flxSerial());
 }
 
+//---------------------------------------------------------------------------
+// Sleep
+//---------------------------------------------------------------------------
+bool sfeDataLogger::get_sleepEnabled(void)
+{
+    return _bSleepEnabled;
+}
 
 //---------------------------------------------------------------------------
-// LED 
+void sfeDataLogger::set_sleepEnabled(bool enabled)
+{
+    if (_bSleepEnabled == enabled)
+        return;
+
+    _bSleepEnabled = enabled;
+
+    // manage our event -- if enabled, add to loop events, else remove it
+    // Is it in the loop event list ?
+    auto it = std::find(_loopEventList.begin(), _loopEventList.end(), &_sleepEvent);
+
+    if (_bSleepEnabled)
+    {
+        _sleepEvent.last = millis();
+
+        // just to be safe - check for dups
+        if (it == _loopEventList.end())
+            _loopEventList.push_back(&_sleepEvent);
+    }
+    else
+    {
+        if (it != _loopEventList.end()) // need to remove this
+            _loopEventList.erase(it);
+    }
+}
+
+//---------------------------------------------------------------------------
+// Wake interval - get/set in secs; stored in our sleep event as MSecs
+uint sfeDataLogger::get_sleepWakePeriod(void)
+{
+    return _sleepEvent.delta / 1000;
+}
+//---------------------------------------------------------------------------
+// set period -- in secs
+void sfeDataLogger::set_sleepWakePeriod(uint period)
+{
+    _sleepEvent.delta = period * 1000;
+}
+
+//---------------------------------------------------------------------------
+// LED
 //---------------------------------------------------------------------------
 bool sfeDataLogger::get_ledEnabled(void)
 {
     return !sfeLED.disabled();
 }
-
+//---------------------------------------------------------------------------
 void sfeDataLogger::set_ledEnabled(bool enabled)
 {
     sfeLED.setDisabled(!enabled);
 }
 
 //---------------------------------------------------------------------------
-// Terminal Baudrate things 
+// Terminal Baudrate things
 //---------------------------------------------------------------------------
 uint sfeDataLogger::get_termBaudRate(void)
 {
@@ -754,12 +804,12 @@ void sfeDataLogger::set_termBaudRate(uint newRate)
 {
     // no change?
     if (newRate == _terminalBaudRate)
-        return; 
+        return;
 
     _terminalBaudRate = newRate;
-    
+
     // Was this done during an edit session?
-    if ( inOpMode(kDataLoggerOpEditing) )
+    if (inOpMode(kDataLoggerOpEditing))
     {
         flxLog_N(F("\n\r\n\r\t[The new baud rate of %u takes effect when this device is restarted]"), newRate);
         delay(700);
@@ -795,8 +845,9 @@ void sfeDataLogger::onInit(void)
     // just to be safe...
     theRate = theRate >= 1200 ? theRate : kDefaultTerminalBaudRate;
 
-    Serial.begin(theRate);  
-    while (!Serial);
+    Serial.begin(theRate);
+    while (!Serial)
+        ;
 
     sfeLED.initialize();
     sfeLED.on(sfeLED.Green);
@@ -808,6 +859,15 @@ void sfeDataLogger::onInit(void)
 void sfeDataLogger::checkOpMode()
 {
     _isValidMode = dlModeCheckValid(_modeFlags);
+   
+   // DO we need to nag? If so, add nag event to loop
+    if (!_isValidMode)
+    {
+        // Create a loop event for the nag message
+        sfeDLLoopEvent *pEvent = new sfeDLLoopEvent("VALIDMODE", kLNagTimesMSecs, 0);
+        pEvent->call(this, &sfeDataLogger::outputVMessage);
+        _loopEventList.push_back(pEvent);
+    }
 }
 //---------------------------------------------------------------------------
 // onStart()
@@ -899,7 +959,13 @@ bool sfeDataLogger::onStart()
     // set our system start time im millis
     _startTime = millis();
 
-    _lastBatteryCheck = _startTime;
+    // Do we have a fuel gauge ...
+    if (_fuelGauge)
+    {
+        _batteryEvent.last = _startTime;
+        _batteryEvent.call(this, &sfeDataLogger::checkBatteryLevels);
+        _loopEventList.push_back(&_batteryEvent);
+    }
 
     checkOpMode();
 
@@ -922,7 +988,7 @@ void sfeDataLogger::enterSleepMode()
     if (!sleepEnabled())
         return;
 
-    flxLog_I(F("Starting device deep sleep for %d secs"), sleepInterval());
+    flxLog_I(F("Starting device deep sleep for %u secs"), sleepInterval());
 
     // esp_sleep_config_gpio_isolate(); // Don't. This causes: E (33643) gpio: gpio_sleep_set_pull_mode(827): GPIO
     // number error
@@ -959,7 +1025,6 @@ void sfeDataLogger::outputVMessage()
 //
 void sfeDataLogger::checkBatteryLevels(void)
 {
-
     if (!_fuelGauge)
         return;
 
@@ -967,14 +1032,14 @@ void sfeDataLogger::checkBatteryLevels(void)
 
     sfeLEDColor_t color;
 
-    if (batterySOC > kBatteryNoBatterySOC) // no battery 
+    if (batterySOC > kBatteryNoBatterySOC) // no battery
         return;
 
-    if ( batterySOC < 10.)
+    if (batterySOC < 10.)
         color = sfeLED.Red;
     else if (batterySOC < 50.)
         color = sfeLED.Yellow;
-    else 
+    else
         color = sfeLED.Green;
 
     sfeLED.flash(color);
@@ -989,25 +1054,16 @@ bool sfeDataLogger::loop()
 {
 
     unsigned long ticks = millis();
-    // Is sleep enabled and if so, is it time to sleep the system
-    if (sleepEnabled() && ticks - _startTime > wakeInterval() * 1000)
+    
+    // Loop over loop Events - if limit reached, call event handler
+    for (sfeDLLoopEvent *pEvent : _loopEventList)
     {
-        enterSleepMode();
+        if (ticks - pEvent->last > pEvent->delta)
+        {
+            pEvent->handler();
+            pEvent->last = ticks;
+        }
     }
 
-    // If this isn't a valid hardware platform, output a nag string
-    if (!_isValidMode && ticks - _lastLCheck > kLNagTimesMSecs)
-    {
-        outputVMessage();
-        _lastLCheck = ticks;
-    }
-
-
-    // Check our battery levels?
-    if (_fuelGauge != nullptr && ticks - _lastBatteryCheck > kBatteryCheckInterval)
-    {
-        checkBatteryLevels();
-        _lastBatteryCheck = ticks;
-    }
     return false;
 }
