@@ -88,11 +88,6 @@ static char *kLNagMessage =
 #define setOpMode(__mode__) _opFlags |= __mode__
 #define clearOpMode(__mode__) _opFlags &= ~__mode__
 
-//---------------------------------------------------------
-// Battery things ..
-//
-
-// Battery SOC that helps ID if a battery is connected (usb only ~=115)
 #define kBatteryNoBatterySOC 110.
 
 constexpr char *sfeDataLogger::kLogFormatNames[];
@@ -103,6 +98,9 @@ constexpr char *sfeDataLogger::kLogFormatNames[];
 sfeDataLogger::sfeDataLogger()
     : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}, _isValidMode{false},
       _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _microOLED{nullptr}, _bSleepEnabled{false}
+#ifdef ENABLE_OLED_DISPLAY
+      , _pDisplay{nullptr}
+#endif
 {
 
     // Add a title for this section - the application level  - of settings
@@ -338,8 +336,8 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         if (_wifiConnection.isConnected())
         {
             IPAddress addr = _wifiConnection.localIP();
-            int8_t rssi = _wifiConnection.RSSI();
-            const char *szRSSI = rssi > -40 ? "Excellent" : rssi > -60 ? "Good" : rssi > -80 ? "Fair" : "Weak";
+            uint rating = _wifiConnection.rating();
+            const char *szRSSI = rating == kWiFiLevelExcellent ? "Excellent" : rating == kWiFiLevelGood ? "Good" : rating == kWiFiLevelFair? "Fair" : "Weak";
 
             flxLog__(logLevel, "%cWiFi - Connected  SSID: %s  IP Address: %d.%d.%d.%d  Signal: %s", pre_ch,
                      _wifiConnection.connectedSSID().c_str(), addr[0], addr[1], addr[2], addr[3], szRSSI);
@@ -647,10 +645,15 @@ void sfeDataLogger::onDeviceLoad()
         _fuelGauge = fuelGauge->at(0);
     }
 
+#ifdef ENABLE_OLED_DISPLAY
     // OLED connected?
     auto oled = flux.get<flxDevMicroOLED>();
-    if (oled->size() > 0)
-        _microOLED = oled->at(0);
+    if (oled->size() > 0){
+        _microOLED = oled->at(0);    
+        _pDisplay = new sfeDLDisplay();
+        _pDisplay->initialize(_microOLED, &_wifiConnection, _fuelGauge, &_theSDCard);
+    }
+#endif
 }
 //---------------------------------------------------------------------
 // onRestore()
@@ -976,6 +979,10 @@ bool sfeDataLogger::onStart()
 
     clearOpMode(kDataLoggerOpStartup);
 
+#ifdef ENABLE_OLED_DISPLAY
+    if (_pDisplay)
+        _pDisplay->update();
+#endif
     sfeLED.off();
 
     return true;

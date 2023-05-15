@@ -75,6 +75,10 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 
 #include "sfeDLButton.h"
 
+#ifdef ENABLE_OLED_DISPLAY
+#include "sfeDLDisplay.h"
+#endif
+
 //------------------------------------------
 // Default log interval in milli secs
 #define kDefaultLogInterval 15000
@@ -382,4 +386,8 @@ class sfeDataLogger : public flxApplication
     // sleep things - is enabled storage, sleep event
     bool  _bSleepEnabled;
     sfeDLLoopEvent  _sleepEvent = {"SLEEP", kSystemSleepWakeSec*1000, 0};
+
+#ifdef ENABLE_OLED_DISPLAY
+    sfeDLDisplay  *_pDisplay;
+#endif
 };
