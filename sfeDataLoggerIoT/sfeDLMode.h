@@ -21,7 +21,10 @@
 #define DL_MODE_FLAG_IMU (1 << 0)
 #define DL_MODE_FLAG_MAG (1 << 1)
 #define DL_MODE_FLAG_FUEL (1 << 2)
+#define DL_MODE_FLAG_IOTSTD (1 << 3)
 
+// pin for our IoT std board check
+#define kDLModeSTDCheckPin 35
 
 bool dlModeCheckValid(uint32_t mode);
 const char * dlModeCheckName(uint32_t mode);

@@ -515,7 +515,7 @@ void sfeDataLogger::onButtonReleased(uint increment)
 bool sfeDataLogger::onSetup()
 {
     // Lets set the application name?!
-    setName("SparkFun DataLogger IoT - 9DOF", "(c) 2023 SparkFun Electronics");
+    setName("SparkFun DataLogger IoT", "(c) 2023 SparkFun Electronics");
 
     // Version info
     setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, kDLVersionDescriptor, BUILD_NUMBER);
@@ -626,23 +626,36 @@ void sfeDataLogger::setupNFDevice(void)
 
 void sfeDataLogger::onDeviceLoad()
 {
-    // Load SPI devices
-    // Note - framework is setting up the pins ...
-
-    // IMU
-    if (_onboardIMU.initialize(kAppOnBoardIMUCS))
-        _modeFlags |= DL_MODE_FLAG_IMU;
-
-    // Magnetometer
-    if (_onboardMag.initialize(kAppOnBoardMAGCS))
-        _modeFlags |= DL_MODE_FLAG_MAG;
-
     // quick check on fuel gauge - which is part of the IOT 9DOF board
     auto fuelGauge = flux.get<flxDevMAX17048>();
     if (fuelGauge->size() > 0)
     {
         _modeFlags |= DL_MODE_FLAG_FUEL;
         _fuelGauge = fuelGauge->at(0);
+    }
+
+    // Check for a board ID.... 
+    // TODO  - probably move this into the mode logic file
+    uint16_t modeValue = analogReadMilliVolts(kDLModeSTDCheckPin);
+    Serial.printf("MODE VALUE IS: %u\n\r", modeValue);
+    // TODO FIX this range for DL standard release ...
+    if (modeValue > 200 && modeValue < 300)
+            _modeFlags |= DL_MODE_FLAG_IOTSTD;
+
+
+    // if we don't have a valid mode yet, let's try and load our SPI devices
+    if ( !dlModeCheckValid(_modeFlags))
+    {
+        // Load SPI devices
+        // Note - framework is setting up the pins ...
+
+        // IMU
+        if (_onboardIMU.initialize(kAppOnBoardIMUCS))
+            _modeFlags |= DL_MODE_FLAG_IMU;
+
+        // Magnetometer
+        if (_onboardMag.initialize(kAppOnBoardMAGCS))
+            _modeFlags |= DL_MODE_FLAG_MAG;
     }
 
 #ifdef ENABLE_OLED_DISPLAY
@@ -871,6 +884,8 @@ void sfeDataLogger::checkOpMode()
         pEvent->call(this, &sfeDataLogger::outputVMessage);
         _loopEventList.push_back(pEvent);
     }
+    // at this point we know the board we're running on. Set the name...
+    setName(dlModeCheckName(_modeFlags));
 }
 //---------------------------------------------------------------------------
 // onStart()
