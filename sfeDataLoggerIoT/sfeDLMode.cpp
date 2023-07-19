@@ -9,7 +9,8 @@
 // what defines / IDs a IOT 9DOF board?
 #define SFE_DL_IOT_9DOF_MODE (DL_MODE_FLAG_IMU | DL_MODE_FLAG_MAG | DL_MODE_FLAG_FUEL)
 
-
+// Our generic - bare-bones IOT Board - 
+#define SFE_DL_IOT_STD_MODE (DL_MODE_FLAG_FUEL | DL_MODE_FLAG_IOTSTD)
 
 // define the boards we know about
 static struct mode_entry{
@@ -18,7 +19,8 @@ static struct mode_entry{
 	const char      prefix[5];
 } dlBoardInfo[] = {
 	// DataLogger 9DOF - ID Prefix [S]park[F]un [D]atalogger [1]
-	{ SFE_DL_IOT_9DOF_MODE, "SparkFun DataLogger IoT - 9DoF", "SFD1"}
+	{ SFE_DL_IOT_9DOF_MODE, "SparkFun DataLogger IoT - 9DoF", "SFD1"},
+	{ SFE_DL_IOT_STD_MODE, "SparkFun DataLogger IoT", "SFD2"}
 };
 
 
