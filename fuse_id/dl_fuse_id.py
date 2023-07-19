@@ -47,9 +47,20 @@
 import time
 import os
 import os.path
+import sys
 import subprocess
+import argparse
+import random
+from Crypto.Cipher import AES
+from base64 import b64encode
 
 
+#### HACK
+from base64 import b64decode
+
+test_key = '3Y3rOODfH4DV5XgpP/vkf6CHBZ2Rg3TI'
+
+#### END HACK
 #-----------------------------------------------------------------------------
 # get_esp_chip_id()
 #
@@ -113,3 +124,77 @@ def getESPChipID(port=None):
 
 
     return chipID
+
+#-----------------------------------------------------------------------------
+def fuse_process(args):
+
+
+    # get the ID of the connected board
+
+    chipID = getESPChipID(args.port)
+
+    if len(chipID) == 0:
+        print("Unable to determine board id number - is a DataLogger attached to this system?")
+        return
+
+    #print("Board ID Number: {0}".format(chipID))
+
+    # random ints for padding  - we want a 32 byte value (256 bits)
+    r1 = int(random.random() * 1000000000)
+    r2 = int(random.random() * 1000000000)
+
+    # Build our ID string - limit to 32 chars long or encrypt will dork
+    sID = "{:<4.4s}00{:<12.12s}{:006X}{:006X}".format(args.ident, chipID, r1, r2)[:32]
+
+    print("ID IS: {0} - {1}".format(sID, len(sID)))
+
+    # encrypt the ID string  - IV - a 1 padded chip ID
+    iv = bytes("1111"+chipID, 'ascii')
+    keyb = bytes(test_key, 'utf-8')
+    cipher = AES.new(keyb, AES.MODE_CBC, iv)
+
+    enc_SID = b64encode(cipher.encrypt(sID.encode('utf-8')))
+
+    print("Encoded ID: {0}".format(enc_SID))
+
+    ## testing - check the decode of this for now.
+    cipher2 = AES.new(keyb, AES.MODE_CBC, iv)
+    denc_SID = cipher2.decrypt(b64decode(enc_SID))
+    print("Decoded ID: {0}".format(denc_SID.decode('utf-8')))
+
+    #end testing
+
+#-----------------------------------------------------------------------------
+def main(argv=None):
+
+    parser = argparse.ArgumentParser(description='SparkFun DataLogger IoT ID fuse utility')
+
+    parser.add_argument(
+        '--port', '-p',
+        help='Serial port device',
+        default=os.environ.get('ESPTOOL_PORT', None))
+
+    parser.add_argument(
+        '--ident', '-i', dest='ident',
+        help="Board Identifier",
+        required=True, type=str)
+
+    args = parser.parse_args(argv)
+
+    if args.ident is None:
+        # parser.print_help()
+        sys.exit(1)
+
+    fuse_process(args)
+
+#-----------------------------------------------------------------------------
+def _main():
+    #try:
+    main()
+    # except Exception as e:
+    #     print('\nA fatal error occurred: %s' % e)
+    #     sys.exit(2)
+
+
+if __name__ == '__main__':
+    _main()
