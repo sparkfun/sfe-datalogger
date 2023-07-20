@@ -61,6 +61,21 @@ from base64 import b64decode
 test_key = '3Y3rOODfH4DV5XgpP/vkf6CHBZ2Rg3TI'
 
 #### END HACK
+
+## State and consts
+
+# Board Class and  types 
+
+_CLASS_DATALOGGER = 0x01
+
+_CLASS_TYPE_DL_BASE = 0x01
+_CLASS_TYPE_DL_9DOF = 0x02
+
+# define our board name to type dict
+_supported_boards = {
+    "DLBASE"    : [_CLASS_DATALOGGER, _CLASS_TYPE_DL_BASE],
+    "DL9DOF"    : [_CLASS_DATALOGGER, _CLASS_TYPE_DL_9DOF]
+    }
 #-----------------------------------------------------------------------------
 # get_esp_chip_id()
 #
@@ -126,6 +141,17 @@ def getESPChipID(port=None):
     return chipID
 
 #-----------------------------------------------------------------------------
+# Return numeric codes for a given board
+#
+# Return None for uknown board
+def get_board_code(args):
+
+    if args.board in _supported_boards:
+        return _supported_boards[args.board]
+
+    return None
+
+#-----------------------------------------------------------------------------
 def fuse_process(args):
 
 
@@ -137,6 +163,14 @@ def fuse_process(args):
         print("Unable to determine board id number - is a DataLogger attached to this system?")
         return
 
+    # get the board code
+    boardCode = get_board_code(args)
+
+    if boardCode == None:
+        print("Invalid board type specified: {0}".format(args.board))
+        return
+
+
     #print("Board ID Number: {0}".format(chipID))
 
     # random ints for padding  - we want a 32 byte value (256 bits)
@@ -144,7 +178,7 @@ def fuse_process(args):
     r2 = int(random.random() * 1000000000)
 
     # Build our ID string - limit to 32 chars long or encrypt will dork
-    sID = "{:<4.4s}00{:<12.12s}{:006X}{:006X}".format(args.ident, chipID, r1, r2)[:32]
+    sID = "{:002X}{:002X}00{:<12.12s}{:006X}{:006X}".format(boardCode[0], boardCode[1], chipID, r1, r2)[:32]
 
     print("ID IS: {0} - {1}".format(sID, len(sID)))
 
@@ -175,15 +209,11 @@ def main(argv=None):
         default=os.environ.get('ESPTOOL_PORT', None))
 
     parser.add_argument(
-        '--ident', '-i', dest='ident',
-        help="Board Identifier",
-        required=True, type=str)
+        '--board', '-b', dest='board',
+        help="Board type name", choices=list(_supported_boards),
+        default="DLBASE", type=str)
 
     args = parser.parse_args(argv)
-
-    if args.ident is None:
-        # parser.print_help()
-        sys.exit(1)
 
     fuse_process(args)
 
