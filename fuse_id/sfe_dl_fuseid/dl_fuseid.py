@@ -217,7 +217,7 @@ def fuse_process(args):
     print("FILENAME: {0}".format(tmp_name))
 
 #-----------------------------------------------------------------------------
-def main(argv=None):
+def dl_fuseid():
 
     parser = argparse.ArgumentParser(description='SparkFun DataLogger IoT ID fuse utility')
 
@@ -231,6 +231,7 @@ def main(argv=None):
         help="Board type name", choices=list(_supported_boards),
         default="DLBASE", type=str)
 
+    argv = sys.argv[1:]
     args = parser.parse_args(argv)
 
     fuse_process(args)
