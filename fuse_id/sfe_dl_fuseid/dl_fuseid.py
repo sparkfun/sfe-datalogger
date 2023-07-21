@@ -56,12 +56,17 @@ from base64 import b64encode
 import tempfile
 
 
-#### HACK
-from base64 import b64decode
+
+from .dl_log import info, warning, error, debug, init_logging, set_debug
+
+from .dl_prefs import dlPrefs
 
 test_key = '3Y3rOODfH4DV5XgpP/vkf6CHBZ2Rg3TI'
 
 #### END HACK
+
+#
+
 
 ## State and consts
 
@@ -103,12 +108,12 @@ def getESPChipID(port=None):
         results = subprocess.run(args, capture_output=True)
 
     except Exception as err:
-        print("Error running esptool.py: {0}".format(str(err)))
+        error("Error running esptool.py: {0}".format(str(err)))
         return chipID
 
     # The results
     if results.returncode != 0:
-        print("Error running esptool.py: return code {0}".format(results.returncode))
+        error("Error running esptool.py: return code {0}".format(results.returncode))
         return chipID
 
     # The desired ID is part of the text output from the esptool command, so parse the results.
@@ -158,66 +163,81 @@ def fuse_process(args):
     boardCode = get_board_code(args)
 
     if boardCode == None:
-        print("Invalid board type specified: {0}".format(args.board))
+        error("Invalid board type specified: {0}".format(args.board))
         return
 
     # get the ID of the connected board
     chipID = getESPChipID(args.port)
 
     if len(chipID) == 0:
-        print("Unable to determine board id number - is a DataLogger attached to this system?")
+        error("Unable to determine board id number - is a DataLogger attached to this system?")
         return
 
-    print("Board ID: {0}, len: {1}".format(chipID.hex().upper(), len(chipID)))
+    debug("Board ID: {0}, len: {1}".format(chipID.hex().upper(), len(chipID)))
 
     ## Testing - convert to byte array
     bID = boardCode[0].to_bytes(1, 'big') + boardCode[1].to_bytes(1, 'big') + (0).to_bytes(1, 'big') + chipID
 
-    print("Binary ID is 0x{0}, len: {1}".format(bID.hex().upper(), len(bID)))
+    debug("Binary ID is 0x{0}, len: {1}".format(bID.hex().upper(), len(bID)))
 
     bID_pad = pad(bID, AES.block_size * (2 if AES.block_size == 16 else 1 ))
 
-    print("Binary Padded ID is {0}, len: {1}".format(bID_pad.hex().upper(), len(bID_pad)))
+    debug("Binary Padded ID is {0}, len: {1}".format(bID_pad.hex().upper(), len(bID_pad)))
 
     # encrypt the ID string  - IV - a 1 padded chip ID
 
     sIV  = '1111' + chipID.hex().upper()
 
     iv = bytes(sIV, 'ascii')
-    print("IV: {0}".format(sIV))
+    debug("IV: {0}".format(sIV))
 
     keyb = bytes(test_key, 'utf-8')
 
     cipher = AES.new(keyb, AES.MODE_CBC, iv)
     enc_ID = cipher.encrypt(bID_pad)
 
-    print("After Encrypt: {0}, type: {1}, len: {2}".format(enc_ID.hex().upper(), type(enc_ID), len(enc_ID)))
+    debug("After Encrypt: {0}, type: {1}, len: {2}".format(enc_ID.hex().upper(), type(enc_ID), len(enc_ID)))
 
     ## testing - check the decode of this for now.
     cipher2 = AES.new(keyb, AES.MODE_CBC, iv)
     denc_SID = cipher2.decrypt(enc_ID)
-    print("Decoded ID: {0}".format(denc_SID.hex().upper()))
+    debug("Decoded ID: {0}".format(denc_SID.hex().upper()))
 
     #end testing
     # pad the data to 32 - which is needed for
     # write the key to a temporary file
     tmp_name = ''
-    # with tempfile.NamedTemporaryFile(delete=False) as f_tmp:
-    #     tmp_name = f_tmp.name
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.dat', prefix='dlfuse_') as f_tmp:
+        tmp_name = f_tmp.name
 
-    # if len(tmp_name) == 0 :
-    #     print("Error creating key data file. Unable to  continue")
-    #     return
+    if len(tmp_name) == 0 :
+        error("Error creating key data file. Unable to  continue")
+        return
 
-    tmp_name = 'test.bin'
     f_tmp = open(tmp_name, 'wb')
 
     f_tmp.write(enc_ID)
     f_tmp.close()
-    print("FILENAME: {0}".format(tmp_name))
+    debug("FILENAME: {0}".format(tmp_name))
+
+    ## TODO BURN!
+
+    # delete our data file
+    os.remove(tmp_name)
+
+    # done!
+
+    info("ID Fuse burn to board {0} completed".format(chipID.hex().upper()))
+
+
+#-----------------------------------------------------------------------------
+# do this...
+
+init_logging()
 
 #-----------------------------------------------------------------------------
 def dl_fuseid():
+
 
     parser = argparse.ArgumentParser(description='SparkFun DataLogger IoT ID fuse utility')
 
@@ -231,8 +251,21 @@ def dl_fuseid():
         help="Board type name", choices=list(_supported_boards),
         default="DLBASE", type=str)
 
+    parser.add_argument(
+        '--version', '-v', help="Print version", action='store_true')
+
+    parser.add_argument("-d", "--debug", help='sets debug mode', action='store_true')
+
     argv = sys.argv[1:]
     args = parser.parse_args(argv)
+
+    if args.version:
+        print("{0}: version - {1}".format(os.path.basename(sys.argv[0]), dlPrefs['version']))
+        sys.exit(0)
+
+    if args.debug:
+        dlPrefs['debug'] = True
+        set_debug(True)
 
     fuse_process(args)
 
