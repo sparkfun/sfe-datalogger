@@ -50,9 +50,10 @@ import os.path
 import sys
 import subprocess
 import argparse
-import random
 from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
 from base64 import b64encode
+import tempfile
 
 
 #### HACK
@@ -86,6 +87,9 @@ _supported_boards = {
 #
 def getESPChipID(port=None):
 
+
+    chipID = bytes(0)
+
     # Make the call to esptool.py -- capture output
 
     args = ['esptool.py']
@@ -100,19 +104,17 @@ def getESPChipID(port=None):
 
     except Exception as err:
         print("Error running esptool.py: {0}".format(str(err)))
-        return ""
+        return chipID
 
     # The results
     if results.returncode != 0:
         print("Error running esptool.py: return code {0}".format(results.returncode))
-        return ""
+        return chipID
 
     # The desired ID is part of the text output from the esptool command, so parse the results.
     # Note - we start from the last line of the output, and work back.
 
     output = str(results.stdout).split("\\n")
-
-    chipID = ""
 
     for line in reversed(output):
 
@@ -126,19 +128,16 @@ def getESPChipID(port=None):
 
         idx = line.find(":")
         tmpID = line[idx+1:]
-        chipID = tmpID.strip()  # cleanout whitespace
+        tmpID = tmpID.strip()  # cleanout whitespace
 
-        # to match the ID we get at runtime, we need to - remove ":" and reverse the order of the address tuples
+        # to match the ID we get at runtime, we need to - remove ":"
 
-        tups = chipID.split(':')
-        tups.reverse()
-        ''.join(tups)
-        chipID = ''.join(tups).upper()
+        chipID = ''.join(tmpID.split(':')).upper()
 
         break
 
 
-    return chipID
+    return bytes.fromhex(chipID)
 
 #-----------------------------------------------------------------------------
 # Return numeric codes for a given board
@@ -155,14 +154,6 @@ def get_board_code(args):
 def fuse_process(args):
 
 
-    # get the ID of the connected board
-
-    chipID = getESPChipID(args.port)
-
-    if len(chipID) == 0:
-        print("Unable to determine board id number - is a DataLogger attached to this system?")
-        return
-
     # get the board code
     boardCode = get_board_code(args)
 
@@ -170,33 +161,60 @@ def fuse_process(args):
         print("Invalid board type specified: {0}".format(args.board))
         return
 
+    # get the ID of the connected board
+    chipID = getESPChipID(args.port)
 
-    #print("Board ID Number: {0}".format(chipID))
+    if len(chipID) == 0:
+        print("Unable to determine board id number - is a DataLogger attached to this system?")
+        return
 
-    # random ints for padding  - we want a 32 byte value (256 bits)
-    r1 = int(random.random() * 1000000000)
-    r2 = int(random.random() * 1000000000)
+    print("Board ID: {0}, len: {1}".format(chipID.hex().upper(), len(chipID)))
 
-    # Build our ID string - limit to 32 chars long or encrypt will dork
-    sID = "{:002X}{:002X}00{:<12.12s}{:006X}{:006X}".format(boardCode[0], boardCode[1], chipID, r1, r2)[:32]
+    ## Testing - convert to byte array
+    bID = boardCode[0].to_bytes(1, 'big') + boardCode[1].to_bytes(1, 'big') + (0).to_bytes(1, 'big') + chipID
 
-    print("ID IS: {0} - {1}".format(sID, len(sID)))
+    print("Binary ID is 0x{0}, len: {1}".format(bID.hex().upper(), len(bID)))
+
+    bID_pad = pad(bID, AES.block_size * (2 if AES.block_size == 16 else 1 ))
+
+    print("Binary Padded ID is {0}, len: {1}".format(bID_pad.hex().upper(), len(bID_pad)))
 
     # encrypt the ID string  - IV - a 1 padded chip ID
-    iv = bytes("1111"+chipID, 'ascii')
+
+    sIV  = '1111' + chipID.hex().upper()
+
+    iv = bytes(sIV, 'ascii')
+    print("IV: {0}".format(sIV))
+
     keyb = bytes(test_key, 'utf-8')
+
     cipher = AES.new(keyb, AES.MODE_CBC, iv)
+    enc_ID = cipher.encrypt(bID_pad)
 
-    enc_SID = b64encode(cipher.encrypt(sID.encode('utf-8')))
-
-    print("Encoded ID: {0}".format(enc_SID))
+    print("After Encrypt: {0}, type: {1}, len: {2}".format(enc_ID.hex().upper(), type(enc_ID), len(enc_ID)))
 
     ## testing - check the decode of this for now.
     cipher2 = AES.new(keyb, AES.MODE_CBC, iv)
-    denc_SID = cipher2.decrypt(b64decode(enc_SID))
-    print("Decoded ID: {0}".format(denc_SID.decode('utf-8')))
+    denc_SID = cipher2.decrypt(enc_ID)
+    print("Decoded ID: {0}".format(denc_SID.hex().upper()))
 
     #end testing
+    # pad the data to 32 - which is needed for
+    # write the key to a temporary file
+    tmp_name = ''
+    # with tempfile.NamedTemporaryFile(delete=False) as f_tmp:
+    #     tmp_name = f_tmp.name
+
+    # if len(tmp_name) == 0 :
+    #     print("Error creating key data file. Unable to  continue")
+    #     return
+
+    tmp_name = 'test.bin'
+    f_tmp = open(tmp_name, 'wb')
+
+    f_tmp.write(enc_ID)
+    f_tmp.close()
+    print("FILENAME: {0}".format(tmp_name))
 
 #-----------------------------------------------------------------------------
 def main(argv=None):
