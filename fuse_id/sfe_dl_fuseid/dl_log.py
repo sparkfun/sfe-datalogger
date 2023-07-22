@@ -14,6 +14,8 @@
 # logging
 import logging
 import logging.handlers
+import os
+from pathlib import Path
 
 from .dl_prefs import dlPrefs
 
@@ -39,7 +41,7 @@ def init_logging():
 	if _s_msg != None:
 		return
 		
-	# note - we name our logger off ouf our package name 
+	# note - we name our logger off our package name
 	myLogger = logging.getLogger(dlPrefs['package_name'])
 	
 	if dlPrefs["debug"]:
@@ -69,7 +71,12 @@ def init_logging():
 
 	# define a Handler which writes INFO messages or higher to the syslog
 	if dlPrefs["log_file"]:
-		s_logFile = logging.handlers.TimedRotatingFileHandler(dlPrefs['log_filename'], when='midnight', interval=1, backupCount=4)
+		# determine location of log file
+		logFilePath = str(Path.home()) + os.path.sep + 'Documents'
+		if not os.path.exists(logFilePath):
+			logFilePath = str(Path.home())
+		logFileName = logFilePath + os.path.sep + dlPrefs['package_name'] + '.log'
+		s_logFile = logging.handlers.TimedRotatingFileHandler(logFileName, when='midnight', interval=1, backupCount=4)
 		formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
 		s_logFile.setFormatter(formatter)
 		
