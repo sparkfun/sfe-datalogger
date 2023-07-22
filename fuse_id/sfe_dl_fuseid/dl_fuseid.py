@@ -98,7 +98,7 @@ def getESPChipID(port=None):
     # Make the call to esptool.py -- capture output
 
     args = ['esptool.py']
-    if port != None:
+    if port != None and len(port) > 0:
         args.append("--port")
         args.append(port)
     args.append("chip_id")
@@ -148,26 +148,26 @@ def getESPChipID(port=None):
 # Return numeric codes for a given board
 #
 # Return None for uknown board
-def get_board_code(args):
+def get_board_code():
 
-    if args.board in _supported_boards:
-        return _supported_boards[args.board]
+    if dlPrefs['fuse_board'] in _supported_boards:
+        return _supported_boards[dlPrefs['fuse_board']]
 
     return None
 
 #-----------------------------------------------------------------------------
-def fuseid_process(args):
+def fuseid_process():
 
 
     # get the board code
-    boardCode = get_board_code(args)
+    boardCode = get_board_code()
 
     if boardCode == None:
-        error("Invalid board type specified: {0}".format(args.board))
+        error("Invalid board type specified: {0}".format(dlPrefs['fuse_board']))
         return
 
     # get the ID of the connected board
-    chipID = getESPChipID(args.port)
+    chipID = getESPChipID(dlPrefs['fuse_port'])
 
     if len(chipID) == 0:
         error("Unable to determine board id number - is a DataLogger attached to this system?")
@@ -249,7 +249,7 @@ def dl_fuseid():
     parser.add_argument(
         '--board', '-b', dest='board',
         help="Board type name", choices=list(_supported_boards),
-        default="DLBASE", type=str)
+        default=None, type=str)
 
     parser.add_argument(
         '--version', '-v', help="Print version", action='store_true')
@@ -267,7 +267,13 @@ def dl_fuseid():
         dlPrefs['debug'] = True
         set_debug(True)
 
-    fuseid_process(args)
+    if args.port != None:
+        dlPrefs['fuse_port'] = args.port
+
+    if args.board != None:
+        dlPrefs['fuse_board'] = args.board
+
+    fuseid_process()
 
 #-----------------------------------------------------------------------------
 def _main():
