@@ -48,11 +48,16 @@ else:
 
 	# To make this simple and cross platform - look for config file in home directory
 
-	sysSettings = str(Path.home()) + os.path.sep + "dl_fuse.conf"
+	sysSettings = str(Path.home()) + os.path.sep + "dl_fuseid.conf"
 	if os.path.isfile(sysSettings):
 		dlPrefs = configobj.ConfigObj(sysSettings, configspec=defaultsFile)
 	else:
-		dlPrefs = configobj.ConfigObj(configspec=defaultsFile)
+		# unix?
+		sysSettings = str(Path.home()) + os.path.sep + ".dl_fuseid"
+		if os.path.isfile(sysSettings):
+			dlPrefs = configobj.ConfigObj(sysSettings, configspec=defaultsFile)
+		else:
+			dlPrefs = configobj.ConfigObj(configspec=defaultsFile)
 
 	# validate the defaults
 	valr = validate.Validator()
@@ -90,4 +95,7 @@ else:
 dlPrefs['version'] = VERSION
 
 dlPrefs['dl_fuseid_home'] = dl_Home
+
+dlPrefs['app_name'] = 'dl_fuseid'
+
 # at this point, we should be good 
