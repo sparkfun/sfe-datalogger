@@ -156,7 +156,7 @@ def get_board_code(args):
     return None
 
 #-----------------------------------------------------------------------------
-def fuse_process(args):
+def fuseid_process(args):
 
 
     # get the board code
@@ -267,7 +267,7 @@ def dl_fuseid():
         dlPrefs['debug'] = True
         set_debug(True)
 
-    fuse_process(args)
+    fuseid_process(args)
 
 #-----------------------------------------------------------------------------
 def _main():
