@@ -1,0 +1,1 @@
+The sfe_dl_fuseid package is an internal SparkFun tool to write data to the eFuse BLOCK3 memory of a DataLogger.
