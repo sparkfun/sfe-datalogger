@@ -90,7 +90,7 @@ _supported_boards = {
 # Parameters:
 #   port    - port the board is connected to
 #
-def getESPChipID(port=None):
+def get_esp_chip_id(port=None):
 
 
     chipID = bytes(0)
@@ -167,7 +167,7 @@ def fuseid_process():
         return
 
     # get the ID of the connected board
-    chipID = getESPChipID(dlPrefs['fuse_port'])
+    chipID = get_esp_chip_id(dlPrefs['fuse_port'])
 
     if len(chipID) == 0:
         error("Unable to determine board id number - is a DataLogger attached to this system?")
@@ -227,7 +227,7 @@ def fuseid_process():
 
     # done!
 
-    info("ID Fuse burn to board {0} completed".format(chipID.hex().upper()))
+    info("ID Fuse burned to board {0} completed".format(chipID.hex().upper()))
 
 
 #-----------------------------------------------------------------------------
