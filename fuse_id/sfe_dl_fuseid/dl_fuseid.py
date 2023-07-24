@@ -52,7 +52,6 @@ import subprocess
 import argparse
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
-from base64 import b64encode
 import tempfile
 
 
@@ -145,6 +144,41 @@ def get_esp_chip_id(port=None):
     return bytes.fromhex(chipID)
 
 #-----------------------------------------------------------------------------
+# burn_esp_chip_id()
+#
+# Burned to passed in ID to block3 of the efuse on the esp32
+#
+# Parameters:
+#   port        - port the board is connected to
+#
+#   idFilename  - the filename that contains the ID to burn..
+#
+def burn_esp_chip_id(port, idFilename):
+
+
+    # Make the call to esptool.py -- capture output
+
+    args = ['espefuse.py', '--port', port, 'summary']
+
+    #TODO - Enable Capture output
+    try:
+        results = subprocess.run(args, capture_output=False)
+
+    except Exception as err:
+        error("Error running {0}: {1}".format(args[0], str(err)))
+        return False
+
+    # The results
+    if results.returncode != 0:
+        error("Error running {0}: return code {1}".format(args[0], results.returncode))
+        return chipID
+
+    # # testing - just dump output
+    # print(str(results.stdout))
+
+    return True
+
+#-----------------------------------------------------------------------------
 # Return numeric codes for a given board
 #
 # Return None for uknown board
@@ -221,6 +255,8 @@ def fuseid_process():
     debug("FILENAME: {0}".format(tmp_name))
 
     ## TODO BURN!
+
+    status = burn_esp_chip_id(dlPrefs['fuse_port'], tmp_name)
 
     # delete our data file
     os.remove(tmp_name)
