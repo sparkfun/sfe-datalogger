@@ -368,7 +368,7 @@ class sfeDataLogger : public flxApplication
 
     bool _isValidMode;
 
-    uint16_t _modeFlags;
+    uint32_t _modeFlags;
     uint16_t _opFlags;
 
     // Fuel gauge 

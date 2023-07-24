@@ -5,7 +5,8 @@
 #include "sfeDLMode.h"
 #include <string.h>
 
-#include <Arduino.h>
+#include <Esp.h>
+#include <stdio.h>
 
 // for mode word check in board eFuse memory
 #include <soc/efuse_reg.h>
@@ -19,12 +20,21 @@ uint8_t key1[] = {51, 89, 51,  114, 79,  79, 68, 102, 72, 52, 68, 86, 53,  88, 1
 
 #define IV_PREABLE "1111"
 
+// For BLOCK 3 ID work
+#define _BLOCK3_ID_DL_IOT   0x1
+
+// BLOCK 3 BOARD CODES
+#define _BLOCK3_ID_DL_IOT_BASIC     0x01
+#define _BLOCK3_ID_DL_IOT_9DOF      0x02
+
 
 // what defines / IDs a IOT 9DOF board?
-#define SFE_DL_IOT_9DOF_MODE (DL_MODE_FLAG_IMU | DL_MODE_FLAG_MAG | DL_MODE_FLAG_FUEL)
+#define SFE_DL_IOT_9DOF_MODE_DEV (DL_MODE_FLAG_IMU | DL_MODE_FLAG_MAG | DL_MODE_FLAG_FUEL)
 
-// Our generic - bare-bones IOT Board - 
-#define SFE_DL_IOT_STD_MODE (DL_MODE_FLAG_FUEL | DL_MODE_FLAG_IOTSTD)
+// Define flags for supported boards. The mode word reserves bits 4->15 for this. 
+#define SFE_DL_IOT_VALID_MASK  (SFE_DL_IOT_STD_MODE|SFE_DL_IOT_9DOF_MODE)
+
+
 
 // define the boards we know about
 static struct mode_entry{
@@ -42,13 +52,9 @@ static struct mode_entry{
 // do we know about this thing
 bool dlModeCheckValid(uint32_t mode)
 {
-	// do we know about this board? 
-	for(int i = 0; i < sizeof(dlBoardInfo)/sizeof(struct mode_entry); i++)
-	{
-		if ( (dlBoardInfo[i].mode & mode) == dlBoardInfo[i].mode )
-			return true;
-	}
-	return false;
+    // it's a valid board if it has a bit in the valid Mask 
+    return (mode & SFE_DL_IOT_VALID_MASK) != 0;
+
 }
 
 //---------------------------------------------------------------------------------
@@ -78,15 +84,37 @@ bool dlModeCheckPrefix(uint32_t mode, char prefix[5])
 	return false;
 
 }
+//---------------------------------------------------------------------------------
+// dlModeCheckDeviceMode
+//
+// The original board used devices to determine if the board was valid. This really
+// didn't scale, but the firmware needs to support it.
+//
+// This method will set the appropiate mode bits if the devices for the 9DOF board
+// are present.
+//
+// Returns true if a 9DOF board and the mode needs to be updated
 
+bool dlModeCheckDevice9DOF(uint32_t inMode)
+{
+    if (dlModeCheckValid(inMode))
+        return false;
+    
+    // In valid board - do we have all the 9DOF devices on board? 
+    return ((SFE_DL_IOT_9DOF_MODE_DEV & inMode) == SFE_DL_IOT_9DOF_MODE_DEV);
+}
 //---------------------------------------------------------------------------------
 // dlModeCheckSystem()
 //
 // Determine what board we are running on - and if it's a valid board.
 //
 // TODO: In progress
+//
+// Return Value:
+//    0  - Zero of nothing is valid
+//       - Device Mode bit of the detected device.
 
-uint8_t dlModeCheckSystem(void)
+uint32_t dlModeCheckSystem(void)
 {
 
 	char szBuffer[64];
@@ -141,21 +169,34 @@ uint8_t dlModeCheckSystem(void)
     }
 
     // Valid board?  - Does  the board ID match what was flashed on the board in production
-    bool valid=true;
 
     for (int i=0; i < 6; i++)
     {
         if (output[3 + i] !=  pChipID[i])
         {
-            //Serial.printf("Invalid board ID: %d flashed: %x, board: %x\n\r", i, output[3+i], pChipID[i]);
-            valid = false;
-            break;
+            // Not valid - return 0
+            return 0;
+
         }
     }
 
-    // todo - Check board type - look at first bytes: output[0]  - DataLogger, output[1] - Board ID
+    // Okay , ID match is solid, check type flags - is it a Datalogger?
 
+    if ( output[0] & _BLOCK3_ID_DL_IOT != _BLOCK3_ID_DL_IOT)
+        return 0;
 
+    switch (output[1])
+    {
+        case _BLOCK3_ID_DL_IOT_BASIC:
+            return SFE_DL_IOT_STD_MODE;
 
+        case _BLOCK3_ID_DL_IOT_9DOF:
+            return SFE_DL_IOT_9DOF_MODE;
+
+        default:
+            break;
+    }
+
+    // if we are here, this is an unknown board. 
 	return 0;
 }

@@ -514,8 +514,15 @@ void sfeDataLogger::onButtonReleased(uint increment)
 // Called by the system before devices are loaded, and system initialized
 bool sfeDataLogger::onSetup()
 {
-    // Lets set the application name?!
-    setName("SparkFun DataLogger IoT", "(c) 2023 SparkFun Electronics");
+
+    // See if we can ID the board we're running on.
+    _modeFlags |= dlModeCheckSystem();
+
+    // Lets set the application name. If we recognize the board, we use it's name, otherwise
+    // we use something generic
+
+    setName( dlModeCheckValid(_modeFlags)  ? dlModeCheckName(_modeFlags) : "SparkFun DataLogger IoT", 
+                "(c) 2023 SparkFun Electronics");
 
     // Version info
     setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, kDLVersionDescriptor, BUILD_NUMBER);
@@ -634,17 +641,11 @@ void sfeDataLogger::onDeviceLoad()
         _fuelGauge = fuelGauge->at(0);
     }
 
-    // Check for a board ID.... 
-    // TODO  - probably move this into the mode logic file
-    uint16_t modeValue = analogReadMilliVolts(kDLModeSTDCheckPin);
-    Serial.printf("MODE VALUE IS: %u\n\r", modeValue);
-    // TODO FIX this range for DL standard release ...
-    if (modeValue > 200 && modeValue < 300)
-            _modeFlags |= DL_MODE_FLAG_IOTSTD;
+    // Spin up the SPI devices for the 9DOF board? Do this if:
+    //      - This a 9DOF board
+    //      - This is an unknown board (b/c of legacy detection methods)
 
-
-    // if we don't have a valid mode yet, let's try and load our SPI devices
-    if ( !dlModeCheckValid(_modeFlags))
+    if ( !dlModeCheckValid(_modeFlags) || dlModeIsDL9DOFBoard(_modeFlags))
     {
         // Load SPI devices
         // Note - framework is setting up the pins ...
@@ -656,6 +657,11 @@ void sfeDataLogger::onDeviceLoad()
         // Magnetometer
         if (_onboardMag.initialize(kAppOnBoardMAGCS))
             _modeFlags |= DL_MODE_FLAG_MAG;
+
+
+        // If this wasn't a known board, check if it is now?
+        if (!dlModeCheckValid(_modeFlags) && dlModeCheckDevice9DOF(_modeFlags))
+            _modeFlags |= SFE_DL_IOT_9DOF_MODE;
     }
 
 #ifdef ENABLE_OLED_DISPLAY
