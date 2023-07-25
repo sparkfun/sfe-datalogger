@@ -60,13 +60,6 @@ from .dl_log import info, warning, error, debug, init_logging, set_debug
 
 from .dl_prefs import dlPrefs
 
-test_key = '3Y3rOODfH4DV5XgpP/vkf6CHBZ2Rg3TI'
-
-#### END HACK
-
-#
-
-
 ## State and consts
 
 # Board Class and  types 
@@ -87,7 +80,8 @@ _supported_boards = {
 # Return the chip id of the attached ESP32 board as a string. If not found, an empty string is returned
 #
 # Parameters:
-#   port    - port the board is connected to
+#   port    - port the board is connected to. ESP tool seems to find the port on it's own
+#             so this is optional ....
 #
 def get_esp_chip_id(port=None):
 
@@ -141,6 +135,7 @@ def get_esp_chip_id(port=None):
         break
 
 
+    # return the value as bytes
     return bytes.fromhex(chipID)
 
 #-----------------------------------------------------------------------------
@@ -190,6 +185,10 @@ def get_board_code():
     return None
 
 #-----------------------------------------------------------------------------
+# fuseid_process()
+#
+# Build the ID and write to eFuse Block 3
+
 def fuseid_process():
 
 
@@ -207,38 +206,42 @@ def fuseid_process():
         error("Unable to determine board id number - is a DataLogger attached to this system?")
         return
 
-    debug("Board ID: {0}, len: {1}".format(chipID.hex().upper(), len(chipID)))
+    if dlPrefs['debug']:
+        debug("Board ID: {0}, len: {1}".format(chipID.hex().upper(), len(chipID)))
 
-    ## Testing - convert to byte array
+    ## Build the data to write to the board convert to byte array
     bID = boardCode[0].to_bytes(1, 'big') + boardCode[1].to_bytes(1, 'big') + (0).to_bytes(1, 'big') + chipID
 
-    debug("Binary ID is 0x{0}, len: {1}".format(bID.hex().upper(), len(bID)))
+    if dlPrefs['debug']:
+        debug("Binary ID is 0x{0}, len: {1}".format(bID.hex().upper(), len(bID)))
 
+    # pad the ID to 32 bits 
     bID_pad = pad(bID, AES.block_size * (2 if AES.block_size == 16 else 1 ))
 
-    debug("Binary Padded ID is {0}, len: {1}".format(bID_pad.hex().upper(), len(bID_pad)))
+    if dlPrefs['debug']:
+        debug("Binary Padded ID is {0}, len: {1}".format(bID_pad.hex().upper(), len(bID_pad)))
 
-    # encrypt the ID string  - IV - a 1 padded chip ID
-
+    # encrypt the ID string  - IV - a 1 padded chip ID. NOTE this preable pad needs
+    # to be the same in the C++ decode block in the firmware .
     sIV  = '1111' + chipID.hex().upper()
-
     iv = bytes(sIV, 'ascii')
-    debug("IV: {0}".format(sIV))
+    if dlPrefs['debug']:
+        debug("IV: {0}".format(sIV))
 
-    keyb = bytes(test_key, 'utf-8')
+    # take the encryption key and make sure it's a byte array
+    keyb = bytes(dlPrefs['fuse_key'], 'utf-8')
 
     cipher = AES.new(keyb, AES.MODE_CBC, iv)
     enc_ID = cipher.encrypt(bID_pad)
 
-    debug("After Encrypt: {0}, type: {1}, len: {2}".format(enc_ID.hex().upper(), type(enc_ID), len(enc_ID)))
+    if dlPrefs['debug']:
+        debug("After Encrypt: {0}, len: {1}".format(enc_ID.hex().upper(), len(enc_ID)))
 
-    ## testing - check the decode of this for now.
-    cipher2 = AES.new(keyb, AES.MODE_CBC, iv)
-    denc_SID = cipher2.decrypt(enc_ID)
-    debug("Decoded ID: {0}".format(denc_SID.hex().upper()))
+        ## testing - check the decode of this for now.
+        cipher2 = AES.new(keyb, AES.MODE_CBC, iv)
+        denc_SID = cipher2.decrypt(enc_ID)
+        debug("Decoded ID: {0}".format(denc_SID.hex().upper()))
 
-    #end testing
-    # pad the data to 32 - which is needed for
     # write the key to a temporary file
     tmp_name = ''
     with tempfile.NamedTemporaryFile(delete=False, suffix='.dat', prefix='dlfuse_') as f_tmp:
@@ -252,7 +255,9 @@ def fuseid_process():
 
     f_tmp.write(enc_ID)
     f_tmp.close()
-    debug("FILENAME: {0}".format(tmp_name))
+
+    if dlPrefs['debug']:
+        debug("FILENAME: {0}".format(tmp_name))
 
     ## TODO BURN!
 
@@ -260,9 +265,10 @@ def fuseid_process():
 
     # delete our data file
     os.remove(tmp_name)
+    if dlPrefs['debug']:
+        debug("Deleted temporary file: {0}".format(tmp_name))
 
     # done!
-
     info("ID Fuse burned to board {0} completed".format(chipID.hex().upper()))
 
 
@@ -288,9 +294,16 @@ def dl_fuseid():
         default=None, type=str)
 
     parser.add_argument(
+        '--key', '-k', dest='key',
+        help="Fuse encryption key",
+        default=None, type=str)
+
+    parser.add_argument(
         '--version', '-v', help="Print version", action='store_true')
 
     parser.add_argument("-d", "--debug", help='sets debug mode', action='store_true')
+
+    parser.add_argument("-t", "--testing", help='Uses the test key', action='store_true')    
 
     argv = sys.argv[1:]
     args = parser.parse_args(argv)
@@ -302,12 +315,35 @@ def dl_fuseid():
     if args.debug:
         dlPrefs['debug'] = True
         set_debug(True)
+    else:
+        dlPrefs['debug'] = False
 
     if args.port != None:
         dlPrefs['fuse_port'] = args.port
 
     if args.board != None:
         dlPrefs['fuse_board'] = args.board
+
+    if args.key != None:
+        dlPrefs['fuse_key'] = args.key
+
+    # use the testing/development key?
+    if args.testing:     
+        info("Testing mode - using the test key for data encryption")
+        dlPrefs['fuse_key'] = dlPrefs['fuse_test_key']
+
+    # valudates our inputs
+    if len(dlPrefs['fuse_key']) == 0:
+        error("No fuse ID key provided. Exiting")
+        sys.exit(1)
+
+    if len(dlPrefs['fuse_port']) == 0:
+        error("No serial port provided. Exiting")
+        sys.exit(1)
+
+    if len(dlPrefs['fuse_board']) == 0:
+        error("No board type provided. Valid values: {0}. Exiting.".format(', '.join(_supported_boards)))
+        sys.exit(1)
 
     fuseid_process()
 
