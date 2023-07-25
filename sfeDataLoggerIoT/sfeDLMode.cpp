@@ -119,16 +119,13 @@ uint32_t dlModeCheckSystem(void)
 
 	char szBuffer[64];
 
-	// Get the contents of eFuse memory - BLOCK 3
 	// Get the contents of eFuse BLOCK 3 - where the board info is flashed during production
     uint8_t data_buffer[32];
     int i = 0;
     for (int32_t block3Address = EFUSE_BLK3_RDATA0_REG; block3Address <= EFUSE_BLK3_RDATA7_REG; block3Address += 4)
     {
+    	// this is read in 4 byte chunks...
         uint32_t block = REG_GET_FIELD(block3Address, EFUSE_BLK3_DOUT0);
-
-        // sprintf(h, "%02X %02X %02X %02X ", block & 0xFF, block >> 8 & 0xFF, block >> 16 & 0xFF, block >> 24 & 0xFF);
-        // Serial.print(h);
 
         data_buffer[i++] = block & 0xFF;
         data_buffer[i++] = block >> 8 & 0xFF;
@@ -136,7 +133,7 @@ uint32_t dlModeCheckSystem(void)
         data_buffer[i++] = block >> 24 & 0xFF;
     }
 
-// get the board ID
+	// get the board ID
     uint64_t  chipID = ESP.getEfuseMac();
     uint8_t * pChipID = (uint8_t*)&chipID;
 
