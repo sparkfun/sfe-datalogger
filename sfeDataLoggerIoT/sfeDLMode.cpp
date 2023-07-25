@@ -13,10 +13,19 @@
 
 #include "mbedtls/aes.h"
 
-// TODO - Testing things
-uint8_t key[33] = "3Y3rOODfH4DV5XgpP/vkf6CHBZ2Rg3TI";
-uint8_t key1[] = {51, 89, 51,  114, 79,  79, 68, 102, 72, 52, 68, 86, 53,  88, 103, 112,
+// Our ID key - we have two keys - one used during development and one for production
+// 
+// When doing development, ID a board using the '-t' option to the id_fuseid command
+//
+
+//uint8_t key[33] = "3Y3rOODfH4DV5XgpP/vkf6CHBZ2Rg3TI";
+// If a key array is passed in via a #define, use that, otherwise use a default, dev key
+#ifdef DATALOGGER_IOT_ID_KEY
+static uint8_t _app_mode[] = DATALOGGER_IOT_ID_KEY;
+#else
+static uint8_t _app_mode[] = {51, 89, 51,  114, 79,  79, 68, 102, 72, 52, 68, 86, 53,  88, 103, 112,
                   80, 47, 118, 107, 102, 54, 67, 72,  66, 90, 50, 82, 103, 51, 84,  73};
+#endif
 
 #define IV_PREABLE "1111"
 
@@ -133,7 +142,7 @@ uint32_t dlModeCheckSystem(void)
         data_buffer[i++] = block >> 24 & 0xFF;
     }
 
-	// get the board ID
+	 // get the board ID
     uint64_t  chipID = ESP.getEfuseMac();
     uint8_t * pChipID = (uint8_t*)&chipID;
 
@@ -146,7 +155,7 @@ uint32_t dlModeCheckSystem(void)
 
     // Decrypt time
     mbedtls_aes_context ctxAES;
-    int rc = mbedtls_aes_setkey_dec(&ctxAES, key1, 256);
+    int rc = mbedtls_aes_setkey_dec(&ctxAES, _app_mode, 256);
     if (rc != 0)
     {
         //Serial.println("Error with key length");
