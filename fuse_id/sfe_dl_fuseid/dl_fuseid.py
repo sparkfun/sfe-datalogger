@@ -94,9 +94,8 @@ def get_esp_chip_id(port):
     args.append(port)
     args.append("chip_id")
 
-
     try:
-        results = subprocess.run(args, capture_output=True, shell=True)
+        results = subprocess.run(args, capture_output=True, shell=(os.name == 'nt'))
 
     except Exception as err:
         error("Error running esptool.py: {0}".format(str(err)))
@@ -157,7 +156,7 @@ def burn_esp_chip_id(port, idFilename):
 
     #TODO - Enable Capture output
     try:
-        results = subprocess.run(args, capture_output=False, shell=True)
+        results = subprocess.run(args, capture_output=False, shell=(os.name == 'nt'))
 
     except Exception as err:
         error("Error running {0}: {1}".format(args[0], str(err)))
