@@ -80,25 +80,23 @@ _supported_boards = {
 # Return the chip id of the attached ESP32 board as a string. If not found, an empty string is returned
 #
 # Parameters:
-#   port    - port the board is connected to. ESP tool seems to find the port on it's own
-#             so this is optional ....
+#   port    - port the board is connected to. 
 #
-def get_esp_chip_id(port=None):
+def get_esp_chip_id(port):
 
 
     chipID = bytes(0)
 
     # Make the call to esptool.py -- capture output
 
-    args = ['esptool.py']
-    if port != None and len(port) > 0:
-        args.append("--port")
-        args.append(port)
+    args = ['esptool'] if os.name == 'nt' else ['esptool.py']
+    args.append("--port")
+    args.append(port)
     args.append("chip_id")
 
 
     try:
-        results = subprocess.run(args, capture_output=True)
+        results = subprocess.run(args, capture_output=True, shell=True)
 
     except Exception as err:
         error("Error running esptool.py: {0}".format(str(err)))
@@ -111,11 +109,13 @@ def get_esp_chip_id(port=None):
 
     # The desired ID is part of the text output from the esptool command, so parse the results.
     # Note - we start from the last line of the output, and work back.
-
-    output = str(results.stdout).split("\\n")
+    
+    output = results.stdout.splitlines()
 
     for line in reversed(output):
 
+        # we need a normal line
+        line = str(line, 'ascii')
         idx = line.find("Chip ID:")
         if idx == -1:
             idx = line.find("MAC:")
@@ -129,11 +129,9 @@ def get_esp_chip_id(port=None):
         tmpID = tmpID.strip()  # cleanout whitespace
 
         # to match the ID we get at runtime, we need to - remove ":"
-
         chipID = ''.join(tmpID.split(':')).upper()
 
         break
-
 
     # return the value as bytes
     return bytes.fromhex(chipID)
@@ -152,12 +150,14 @@ def burn_esp_chip_id(port, idFilename):
 
 
     # Make the call to esptool.py -- capture output
-
-    args = ['espefuse.py', '--port', port, 'summary']
+    args = ['espefuse'] if os.name == 'nt' else ['espefuse.py']
+    args.append('--port')
+    args.append(port)
+    args.append('summary')
 
     #TODO - Enable Capture output
     try:
-        results = subprocess.run(args, capture_output=False)
+        results = subprocess.run(args, capture_output=False, shell=True)
 
     except Exception as err:
         error("Error running {0}: {1}".format(args[0], str(err)))
@@ -190,7 +190,6 @@ def get_board_code():
 # Build the ID and write to eFuse Block 3
 
 def fuseid_process():
-
 
     # get the board code
     boardCode = get_board_code()
