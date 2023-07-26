@@ -9,4 +9,4 @@
 # whatsoever is  prohibited without express written permission.
 #
 #--------------------------------------------------------------------------------
-VERSION =  "00.05.0"
+VERSION =  "0.5.0"
