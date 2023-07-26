@@ -5,7 +5,8 @@ from platform import system, machine
 import subprocess
 import sys
 
-
+# sub folder for our resource files
+_RESOURCE_DIRECTORY = "sfe_dl_fuseid"
 #https://stackoverflow.com/a/50914550
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -16,14 +17,14 @@ def get_version(rel_path: str) -> str:
     try: 
         with open(resource_path(rel_path), encoding='utf-8') as fp:
             for line in fp.read().splitlines():
-                if line.startswith("__version__"):
+                if line.startswith("VERSION"):
                     delim = '"' if '"' in line else "'"
                     return line.split(delim)[1]
             raise RuntimeError("Unable to find version string.")
     except:
         raise RuntimeError("Unable to find _version.py.")
 
-_APP_VERSION = get_version("_version.py")
+_APP_VERSION = get_version("dl_version.py")
 
 here = path.abspath(path.dirname(__file__))
 
@@ -99,7 +100,7 @@ setuptools.setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={}
+    package_data={},
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
