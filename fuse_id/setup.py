@@ -32,7 +32,7 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'DESCRIPTION.md'), encoding='utf-8') as f:
     long_description = f.read()
     
-install_deps = ['esptool', 'logging', 'configobj', 'validate','pycryptodome', 'tempfile']
+install_deps = ['esptool', 'logging', 'configobj','pycryptodome']
 
 
 setuptools.setup(
@@ -100,7 +100,9 @@ setuptools.setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={},
+    package_data={
+        'sfe_dl_fuseid':['_dl_fuseid_.conf']
+    },
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
