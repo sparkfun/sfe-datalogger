@@ -88,11 +88,7 @@ def get_esp_chip_id(port):
     chipID = bytes(0)
 
     # Make the call to esptool.py -- capture output
-
-    args = ['esptool'] if os.name == 'nt' else ['esptool.py']
-    args.append("--port")
-    args.append(port)
-    args.append("chip_id")
+    args = ['esptool' if os.name == 'nt' else 'esptool.py', "--port", port, "chip_id"]
 
     try:
         results = subprocess.run(args, capture_output=True, shell=(os.name == 'nt'))
@@ -147,16 +143,16 @@ def get_esp_chip_id(port):
 #
 def burn_esp_chip_id(port, idFilename):
 
+    if len(port) == 0 or not os.path.exists(idFilename):
+        error("burn - invalid parameters: port {0}, file {1}".format(port, idFilename))
+        return False
 
     # Make the call to esptool.py -- capture output
-    args = ['espefuse'] if os.name == 'nt' else ['espefuse.py']
-    args.append('--port')
-    args.append(port)
-    args.append('summary')
+    args = ['espefuse' if os.name == 'nt' else 'espefuse.py',  "--port", port, "burn_block_data",
+                "BLOCK3", idFilename, "--do-not-confirm"]
 
-    #TODO - Enable Capture output
     try:
-        results = subprocess.run(args, capture_output=False, shell=(os.name == 'nt'))
+        results = subprocess.run(args, capture_output=True, shell=(os.name == 'nt'))
 
     except Exception as err:
         error("Error running {0}: {1}".format(args[0], str(err)))
@@ -165,7 +161,7 @@ def burn_esp_chip_id(port, idFilename):
     # The results
     if results.returncode != 0:
         error("Error running {0}: return code {1}".format(args[0], results.returncode))
-        return chipID
+        return False
 
     # # testing - just dump output
     # print(str(results.stdout))
@@ -266,8 +262,12 @@ def fuseid_process():
     if dlPrefs['debug']:
         debug("Deleted temporary file: {0}".format(tmp_name))
 
-    # done!
-    info("ID Fuse burned to board {0} completed".format(chipID.hex().upper()))
+
+    # done - write out results
+    if status != True:
+        error("ID Fuse burn to board type: {0}, ID: {1} failed".format(dlPrefs['fuse_board'], chipID.hex().upper()))
+    else:
+        info("ID Fuse burned to board type: {0}, ID: {1} completed successfuly".format(dlPrefs['fuse_board'], chipID.hex().upper()))
 
 
 #-----------------------------------------------------------------------------
