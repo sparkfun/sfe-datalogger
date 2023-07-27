@@ -94,7 +94,7 @@ jobs:
        
       - uses: actions/upload-artifact@v3
         with:
-          name: Upload Python Package
+          name: Flash ID CLI Tool
           path: fuse_id/dist
           
       # - name: Compile Sketch
