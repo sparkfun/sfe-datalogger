@@ -33,8 +33,6 @@ _s_msg=None
 #
 # Returns our logger
 
-## TODO: Need to tap into the vlaues of prefs for console, levels and syslog
-
 def init_logging():
 	global s_console, s_syslog, _s_msg
 

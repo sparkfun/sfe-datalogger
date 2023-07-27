@@ -178,7 +178,7 @@ def burn_esp_chip_id(port, idFilename):
 #-----------------------------------------------------------------------------
 # Return numeric codes for a given board
 #
-# Return None for uknown board
+# Return None for unknown board
 def get_board_code():
 
     if dlPrefs['fuse_board'] in _supported_boards:
@@ -260,8 +260,6 @@ def fuseid_process():
     if dlPrefs['debug']:
         debug("FILENAME: {0}".format(tmp_name))
 
-    ## TODO BURN!
-
     status = burn_esp_chip_id(dlPrefs['fuse_port'], tmp_name)
 
     # delete our data file
@@ -278,13 +276,18 @@ def fuseid_process():
 
 
 #-----------------------------------------------------------------------------
-# do this...
+# Setup logging subsystem...
 
 init_logging()
 
 #-----------------------------------------------------------------------------
+# dl_fuseid()
+#
+# Entry point method
+
 def dl_fuseid():
 
+    # setup parameters, dispatch to processing routine
 
     parser = argparse.ArgumentParser(description='SparkFun DataLogger IoT ID fuse utility')
 
@@ -349,6 +352,8 @@ def dl_fuseid():
     if len(dlPrefs['fuse_board']) == 0:
         error("No board type provided. Valid values: {0}. Exiting.".format(', '.join(_supported_boards)))
         sys.exit(1)
+
+    # burn the ID
 
     fuseid_process()
 
