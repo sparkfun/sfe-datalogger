@@ -128,8 +128,15 @@ def get_esp_chip_id(port):
 
         break
 
+    results = bytes(0)
+    try:
+        results = bytes.fromhex(chipID)
+    except Exception as err:
+        error("Unable to determine the board ID - is a DataLogger board attached to the system?")
+        return results
+
     # return the value as bytes
-    return bytes.fromhex(chipID)
+    return results
 
 #-----------------------------------------------------------------------------
 # burn_esp_chip_id()
