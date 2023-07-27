@@ -22,7 +22,7 @@ def get_version(rel_path: str) -> str:
                     return line.split(delim)[1]
             raise RuntimeError("Unable to find version string.")
     except:
-        raise RuntimeError("Unable to find _version.py.")
+        raise RuntimeError("Unable to find dl_version.py.")
 
 _APP_VERSION = get_version("dl_version.py")
 
