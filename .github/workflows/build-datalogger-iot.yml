@@ -76,7 +76,26 @@ jobs:
           name: sfeDataLoggerIoT-build
           path: sfeDataLoggerIoT/build/esp32.esp32.esp32/sfeDataLoggerIoT.ino*.bin
 
-
+      # Now build the python fuse tool package
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      # Setup python packages
+      - name: Setup Python
+        run: |
+          pip3 install setuptools
+          
+      - name: Build Python Package 
+        run: |
+          cd fuse_id
+          python setup.py sdist
+       
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Flash ID CLI Tool
+          path: fuse_id/dist
           
       # - name: Compile Sketch
       #   run: arduino-cli compile --fqbn esp32:esp32:esp32 ./Firmware/RTK_Surveyor/RTK_Surveyor.ino
