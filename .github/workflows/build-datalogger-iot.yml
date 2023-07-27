@@ -95,7 +95,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: Upload Python Package
-          path: dist
+          path: fuse_id/dist
           
       # - name: Compile Sketch
       #   run: arduino-cli compile --fqbn esp32:esp32:esp32 ./Firmware/RTK_Surveyor/RTK_Surveyor.ino
