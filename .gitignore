@@ -1,0 +1,4 @@
+.venv
+sfeDataLoggerIoT/build/**/*.ino.*
+fuse_id/dist
+fuse_id/sfe_dl_fuseid.egg-info

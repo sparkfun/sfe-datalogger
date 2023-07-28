@@ -21,7 +21,7 @@
 #define kDLVersionNumberMinor		0
 
 // Point version number
-#define kDLVersionNumberPoint		3
+#define kDLVersionNumberPoint		4
 
 // Version string description
 #define kDLVersionDescriptor		""
