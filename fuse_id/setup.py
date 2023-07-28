@@ -32,7 +32,6 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'DESCRIPTION.md'), encoding='utf-8') as f:
     long_description = f.read()
     
-#install_deps = ['esptool', 'logging', 'configobj','pycryptodome']
 install_deps = ['esptool', 'configobj','pycryptodome']
 
 
