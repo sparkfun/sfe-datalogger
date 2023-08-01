@@ -109,6 +109,8 @@ setuptools.setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': ['dl_fuseid=sfe_dl_fuseid:dl_fuseid',
+                            'dl_fuseid_base=sfe_dl_fuseid:dl_fuseid_base',
+                            'dl_fuseid_9dof=sfe_dl_fuseid:dl_fuseid_9dof',
         ],
     },
 )

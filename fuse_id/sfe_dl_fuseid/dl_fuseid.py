@@ -353,13 +353,46 @@ def dl_fuseid():
     fuseid_process()
 
 #-----------------------------------------------------------------------------
-def _main():
-    #try:
-    main()
-    # except Exception as e:
-    #     print('\nA fatal error occurred: %s' % e)
-    #     sys.exit(2)
+#-----------------------------------------------------------------------------
+# Define entry points  - for use by the entry_point:console_scripts - to define
+# a board specific commands. 
+#
+#-----------------------------------------------------------------------------
+# _dl_add_board_parameter()
+#
+# Internal routine that addes the specified board arg to sys.argv.
+#
+# If a board arg is already present, it overrides the arg
+
+def _dl_add_board_parameter(board_type):
+
+    # does a board parameter already exist in argv?
+    iBoard = [i for i,x in enumerate(sys.argv) if x == '-b' or x == '--board']
+
+    # was a swtich provided?
+    if len(iBoard) == 0:
+        sys.argv.append('-b')
+        sys.argv.append(board_type)
+    else:
+        # swtich provided .. check value - if switch is at end of list, that's an issue
+        if len(sys.argv)-1 == iBoard[0]:
+            sys.argv.append(board_type)
+        else:
+            sys.argv[iBoard[0]+1] = board_type
+
+    # that's it, call our, main entry point
+    dl_fuseid()
 
 
-if __name__ == '__main__':
-    _main()
+#-----------------------------------------------------------------------------
+# Entry point for the standard datalogger IoT board
+
+def dl_fuseid_base():
+    _dl_add_board_parameter("DLBASE")
+
+
+#-----------------------------------------------------------------------------
+# Entry point for the 9DOF datalogger IoT board
+
+def dl_fuseid_9dof():
+    _dl_add_board_parameter("DL9DOF")
