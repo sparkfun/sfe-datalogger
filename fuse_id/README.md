@@ -4,7 +4,9 @@ This folder contains the DataLogger ID tool, `dl_fuseid`, which is used to write
 
 The `dl_fuseid` tool source is contained in this folder. Written in Python, is installed using the standard Python `pip` command.
 
-With the information is written to a DataLogger IoT eFuse memory, the DataLogger firmware can determine the board type at startup, and if the DataLogger Firmware is running on a SparkFun board. 
+With the information is written to a DataLogger IoT eFuse memory, the DataLogger firmware can determine the board type at startup, and if the DataLogger Firmware is running on a SparkFun board.
+
+To setup the SparkFun Production Environment, jump to [Setup SparkFun Production](#sparkfun-production-setup)
 
 ## Operation Overview
 
@@ -26,6 +28,12 @@ The tool installs like any standard Python package. As such, installation has th
 1. Make sure Python (v 3.10 or higher) is installed on the target system. Note, the method to do this depends on your system - visit the [Python Web Site](https://python.org) for more information. 
 2. Install the `setuptools` package - `pip install setuptools`
 3. Install the fuse id tool package `pip install sfe_dl_fuseid-0.5.0.tar.gz`
+
+The Package Install Command:
+
+```sh
+pip install sfe_dl_fuseid-0.5.0.tar.gz
+```
 
 At this point, the `dl_fuseid` is available at the command line. Note, the shell might need to be restarted or `rehash` (unix) called to have the command available. Some cases, Windows might need restarting (?).
 
@@ -52,6 +60,15 @@ options:
   -d, --debug           sets debug mode
   -t, --testing         Uses the test key
 ```
+
+### Short Cut Commands
+
+To simplify the use, the above package installs shortcut commands, which include the board type already set. These commands are:
+
+| Command Line | Description |
+|----------|--------------|
+dl_fuseid_base | The value of `--board` is automatically set to **DLBASE** |
+dl_fuseid_9dof | The value of `--board` is automatically set to **DL9DOF** |
 
 ## Command Use
 
@@ -150,3 +167,12 @@ To add additional boards to the system:
 * If the DataLogger Firmware, add the board ID to the macros in the file `sfeDLMode.h`, add entries to the board info array in `sfeDLMode.cpp` and add an entry to the type match logic at the end of the `dlModeCheckSystem()` function. 
 
 This could be easier to maintain - something for future releases. 
+
+## SparkFun Production Setup
+
+To setup this command for the SparkFun production environment, the following tasks are performed:
+
+1. Install the dl_fuseid python package as outlined above in this document
+2. From the current release of the DataLogger IoT firmware, download the production config file and install it in the home directory of the account that runs the production command. This file contains the production key used to encrypt the data written to the board
+3. Determine the port that the connected board appears at on the production board, and set that value for the key `fuse_port=` in the config file placed in the home directory in step 2. 
+4. If the appropriate short cut command is used for the board being tested/written to, the production team can just enter the board, no options required.
