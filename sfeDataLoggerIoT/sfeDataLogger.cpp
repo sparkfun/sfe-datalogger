@@ -868,8 +868,13 @@ void sfeDataLogger::onInit(void)
     theRate = theRate >= 1200 ? theRate : kDefaultTerminalBaudRate;
 
     Serial.begin(theRate);
-    while (!Serial)
-        ;
+
+    uint32_t baseMillis = millis();
+    while (!Serial) {
+        if ((millis() - baseMillis) > startupSerialDelay)
+            break;
+        delay(250);
+    }
 
     sfeLED.initialize();
     sfeLED.on(sfeLED.Green);

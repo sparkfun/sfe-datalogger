@@ -387,6 +387,8 @@ class sfeDataLogger : public flxApplication
     bool  _bSleepEnabled;
     sfeDLLoopEvent  _sleepEvent = {"SLEEP", kSystemSleepWakeSec*1000, 0};
 
+    uint32_t startupSerialDelay = 5000;
+
 #ifdef ENABLE_OLED_DISPLAY
     sfeDLDisplay  *_pDisplay;
 #endif
