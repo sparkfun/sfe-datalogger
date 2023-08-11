@@ -64,6 +64,10 @@ static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,
 // Button event increment
 #define kButtonPressedIncrement 5
 
+
+// Startup/Timeout for serial connection to init... 
+#define kSerialStartupDelayMS 5000 
+
 //---------------------------------------------------------
 // Valid platform check interface
 
@@ -868,8 +872,10 @@ void sfeDataLogger::onInit(void)
     theRate = theRate >= 1200 ? theRate : kDefaultTerminalBaudRate;
 
     Serial.begin(theRate);
-    while (!Serial)
-        ;
+
+    // Wait on serial - not sure if a timeout is needed ... but added for safety
+    for (uint32_t startMS = millis(); !Serial && millis() - startMS <= kSerialStartupDelayMS;)
+        delay(250);
 
     sfeLED.initialize();
     sfeLED.on(sfeLED.Green);
