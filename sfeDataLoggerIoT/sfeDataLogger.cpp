@@ -42,9 +42,9 @@ RTC_DATA_ATTR int boot_count = 0;
 
 // If a key array is passed in via a #define, use that, otherwise use a default, dev key
 #ifdef DATALOGGER_IOT_APP_KEY
-static uint8_t _app_jump[] = DATALOGGER_IOT_APP_KEY;
+static const uint8_t _app_jump[] = DATALOGGER_IOT_APP_KEY;
 #else
-static uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,  100, 55,  106, 56,
+static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,  100, 55,  106, 56,
                               78,  68, 69, 108, 98,  118, 51,  65, 90,  48,  51,  82,  111, 120, 56,
                               52,  49, 70, 76,  103, 77,  84,  49, 85,  99,  117, 66,  111, 61};
 #endif
@@ -318,6 +318,8 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     if (!useInfo)
         flxLog_N("");
 
+    // flxLog__(logLevel, "%cDEBUG: Free Heap: %d", pre_ch, ESP.getFreeHeap());
+
     if (_theSDCard.enabled())
     {
 
@@ -528,6 +530,8 @@ bool sfeDataLogger::onSetup()
     setName( dlModeCheckValid(_modeFlags)  ? dlModeCheckName(_modeFlags) : "SparkFun DataLogger IoT", 
                 "(c) 2023 SparkFun Electronics");
 
+    // flxLog_I("DEBUG: Free Heap: %d", ESP.getFreeHeap());
+
     // Version info
     setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, kDLVersionDescriptor, BUILD_NUMBER);
 
@@ -597,6 +601,8 @@ bool sfeDataLogger::onSetup()
     // Button events we're listening on
     _boardButton.on_buttonRelease.call(this, &sfeDataLogger::onButtonReleased);
     _boardButton.on_buttonPressed.call(this, &sfeDataLogger::onButtonPressed);
+
+    // flxLog_I("DEBUG: Free Heap: %d", ESP.getFreeHeap());
 
     return true;
 }
@@ -677,6 +683,7 @@ void sfeDataLogger::onDeviceLoad()
         _pDisplay->initialize(_microOLED, &_wifiConnection, _fuelGauge, &_theSDCard);
     }
 #endif
+    // flxLog_I("DEBUG: end onDeviceLoad() Free Heap: %d", ESP.getFreeHeap());    
 }
 //---------------------------------------------------------------------
 // onRestore()
@@ -906,6 +913,8 @@ void sfeDataLogger::checkOpMode()
 bool sfeDataLogger::onStart()
 {
 
+    // flxLog_I("DEBUG: onStart() - entry -  Free Heap: %d", ESP.getFreeHeap());
+
     // Waking up from a sleep (boot count isn't zero)
     if (boot_count != 0)
     {
@@ -1012,6 +1021,8 @@ bool sfeDataLogger::onStart()
 #endif
     sfeLED.off();
 
+    // flxLog_I("DEBUG: onStart() - exit -  Free Heap: %d", ESP.getFreeHeap());
+    
     return true;
 }
 

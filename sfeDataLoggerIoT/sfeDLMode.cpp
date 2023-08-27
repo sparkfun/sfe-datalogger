@@ -20,9 +20,9 @@
 
 // If a key array is passed in via a #define, use that, otherwise use a default, dev key
 #ifdef DATALOGGER_IOT_ID_KEY
-static uint8_t _app_mode[] = {DATALOGGER_IOT_ID_KEY};
+static const uint8_t _app_mode[] = {DATALOGGER_IOT_ID_KEY};
 #else
-static uint8_t _app_mode[] = {51, 89, 51,  114, 79,  79, 68, 102, 72, 52, 68, 86, 53,  88, 103, 112,
+static const uint8_t _app_mode[] = {51, 89, 51,  114, 79,  79, 68, 102, 72, 52, 68, 86, 53,  88, 103, 112,
                   80, 47, 118, 107, 102, 54, 67, 72,  66, 90, 50, 82, 103, 51, 84,  73};
 #endif
 
