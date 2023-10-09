@@ -404,6 +404,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("%c    %-20s  : %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %-20s  : %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %-20s  : %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");
+    flxLog_N("%c    %-20s  : %s", pre_ch, _iotArduinoIoT.name(), _iotArduinoIoT.enabled() ? "enabled" : "disabled");
 
     flxLog_N("");
 
