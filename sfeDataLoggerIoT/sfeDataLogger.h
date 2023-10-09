@@ -55,12 +55,12 @@ static const uint8_t kAppOnBoardMAGCS = 27;
 static const uint8_t kAppBioHubReset = 17; // Use the TXD pin as the bio hub reset pin
 static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfio pin
 
-
 // Fuel gauge
 #include <Flux/flxDevMAX17048.h>
 
 // IoT Client Includes
 #include <Flux/flxIoTAWS.h>
+#include <Flux/flxIoTArduino.h>
 #include <Flux/flxIoTAzure.h>
 #include <Flux/flxIoTHTTP.h>
 #include <Flux/flxIoTMachineChat.h>
@@ -90,27 +90,28 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 
 #define kAppNTPStartupDelaySecs 5
 
-
 // Battery check interval (90 seconds)
-#define kBatteryCheckInterval  90000
+#define kBatteryCheckInterval 90000
 
 // Default Sleep Periods
-#define kSystemSleepSleepSec   60
-#define kSystemSleepWakeSec    120
-
+#define kSystemSleepSleepSec 60
+#define kSystemSleepWakeSec 120
 
 //-----------------------------------------------------------------
 // Helper class for loop events - unifies the idea of calling a method
 // after a specific time ...
-class sfeDLLoopEvent {
+class sfeDLLoopEvent
+{
 
-public:
-    sfeDLLoopEvent(const char *label): name{label}, delta{0}, last{0} {}
+  public:
+    sfeDLLoopEvent(const char *label) : name{label}, delta{0}, last{0}
+    {
+    }
 
-    sfeDLLoopEvent(const char *label, uint32_t in_delta, uint32_t in_last) : sfeDLLoopEvent(label) 
+    sfeDLLoopEvent(const char *label, uint32_t in_delta, uint32_t in_last) : sfeDLLoopEvent(label)
     {
         delta = in_delta;
-        last =  in_last;
+        last = in_last;
     }
 
     // what method to call when time expried
@@ -122,18 +123,17 @@ public:
     }
 
     // handler
-    std::function<void()>   handler;
+    std::function<void()> handler;
 
     // Time delta in MS
-    uint32_t                delta;
+    uint32_t delta;
 
     // Last time checked im MS;
-    uint32_t                last;
+    uint32_t last;
 
-    // Event name = helpful 
-    const char             *name;
+    // Event name = helpful
+    const char *name;
 };
-
 
 /////////////////////////////////////////////////////////////////////////
 // Define our application class for the data logger
@@ -231,7 +231,7 @@ class sfeDataLogger : public flxApplication
     void set_sleepEnabled(bool);
 
     uint get_sleepWakePeriod(void);
-    void set_sleepWakePeriod(uint);    
+    void set_sleepWakePeriod(uint);
 
   public:
     //---------------------------------------------------------------------------
@@ -264,7 +264,8 @@ class sfeDataLogger : public flxApplication
 
     // System sleep properties
     flxPropertyUint<sfeDataLogger> sleepInterval = {5, 86400};
-    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_sleepWakePeriod, &sfeDataLogger::set_sleepWakePeriod> wakeInterval = {60, 86400};
+    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_sleepWakePeriod, &sfeDataLogger::set_sleepWakePeriod>
+        wakeInterval = {60, 86400};
     flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_sleepEnabled, &sfeDataLogger::set_sleepEnabled> sleepEnabled;
 
     // Display LED Enabled?
@@ -295,11 +296,11 @@ class sfeDataLogger : public flxApplication
 
     // Board button callbacks
     void onButtonPressed(uint);
-    void onButtonReleased(uint);    
+    void onButtonReleased(uint);
 
     // battery level checks
     void checkBatteryLevels(void);
-    
+
     // Class members -- that make up the application structure
 
     // WiFi and NTP
@@ -357,6 +358,9 @@ class sfeDataLogger : public flxApplication
     // machine chat Iot
     flxIoTMachineChat _iotMachineChat;
 
+    // Arduino IoT
+    flxIoTArduino _iotArduinoIoT;
+
     // Our firmware Update/Reset system
     flxSysFirmware _sysUpdate;
 
@@ -371,23 +375,23 @@ class sfeDataLogger : public flxApplication
     uint32_t _modeFlags;
     uint16_t _opFlags;
 
-    // Fuel gauge 
-    flxDevMAX17048 *_fuelGauge; 
+    // Fuel gauge
+    flxDevMAX17048 *_fuelGauge;
 
-    // oled 
+    // oled
     flxDevMicroOLED *_microOLED;
 
     // loop event things
-    std::vector<sfeDLLoopEvent*>  _loopEventList;
+    std::vector<sfeDLLoopEvent *> _loopEventList;
 
     // battery check event
-    sfeDLLoopEvent        _batteryEvent = {"BATTERY", kBatteryCheckInterval, 0};
+    sfeDLLoopEvent _batteryEvent = {"BATTERY", kBatteryCheckInterval, 0};
 
     // sleep things - is enabled storage, sleep event
-    bool  _bSleepEnabled;
-    sfeDLLoopEvent  _sleepEvent = {"SLEEP", kSystemSleepWakeSec*1000, 0};
+    bool _bSleepEnabled;
+    sfeDLLoopEvent _sleepEvent = {"SLEEP", kSystemSleepWakeSec * 1000, 0};
 
 #ifdef ENABLE_OLED_DISPLAY
-    sfeDLDisplay  *_pDisplay;
+    sfeDLDisplay *_pDisplay;
 #endif
 };

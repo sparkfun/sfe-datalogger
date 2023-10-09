@@ -45,8 +45,8 @@ RTC_DATA_ATTR int boot_count = 0;
 static const uint8_t _app_jump[] = DATALOGGER_IOT_APP_KEY;
 #else
 static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,  100, 55,  106, 56,
-                              78,  68, 69, 108, 98,  118, 51,  65, 90,  48,  51,  82,  111, 120, 56,
-                              52,  49, 70, 76,  103, 77,  84,  49, 85,  99,  117, 66,  111, 61};
+                                    78,  68, 69, 108, 98,  118, 51,  65, 90,  48,  51,  82,  111, 120, 56,
+                                    52,  49, 70, 76,  103, 77,  84,  49, 85,  99,  117, 66,  111, 61};
 #endif
 
 // The datalogger firmware OTA manifest  URL
@@ -64,9 +64,8 @@ static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 11
 // Button event increment
 #define kButtonPressedIncrement 5
 
-
-// Startup/Timeout for serial connection to init... 
-#define kSerialStartupDelayMS 5000 
+// Startup/Timeout for serial connection to init...
+#define kSerialStartupDelayMS 5000
 
 //---------------------------------------------------------
 // Valid platform check interface
@@ -103,7 +102,8 @@ sfeDataLogger::sfeDataLogger()
     : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}, _isValidMode{false},
       _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _microOLED{nullptr}, _bSleepEnabled{false}
 #ifdef ENABLE_OLED_DISPLAY
-      , _pDisplay{nullptr}
+      ,
+      _pDisplay{nullptr}
 #endif
 {
 
@@ -118,6 +118,7 @@ sfeDataLogger::sfeDataLogger()
     sdCardLogType.setTitle("Output");
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
+
     // Terminal Serial Baud Rate
     flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart");
     _terminalBaudRate = kDefaultTerminalBaudRate;
@@ -231,6 +232,10 @@ bool sfeDataLogger::setupIoTClients()
     _iotMachineChat.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotMachineChat);
 
+    // Arduino IoT
+    _iotArduinoIoT.setNetwork(&_wifiConnection);
+    _fmtJSON.add(_iotArduinoIoT);
+
     return true;
 }
 
@@ -318,7 +323,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     if (!useInfo)
         flxLog_N("");
 
-    // flxLog__(logLevel, "%cDEBUG: Free Heap: %d", pre_ch, ESP.getFreeHeap());
+    // flxLog__(logLevel, "%cDEBUG: info Page -  Free Heap: %d", pre_ch, ESP.getFreeHeap());
 
     if (_theSDCard.enabled())
     {
@@ -343,7 +348,10 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         {
             IPAddress addr = _wifiConnection.localIP();
             uint rating = _wifiConnection.rating();
-            const char *szRSSI = rating == kWiFiLevelExcellent ? "Excellent" : rating == kWiFiLevelGood ? "Good" : rating == kWiFiLevelFair? "Fair" : "Weak";
+            const char *szRSSI = rating == kWiFiLevelExcellent ? "Excellent"
+                                 : rating == kWiFiLevelGood    ? "Good"
+                                 : rating == kWiFiLevelFair    ? "Fair"
+                                                               : "Weak";
 
             flxLog__(logLevel, "%cWiFi - Connected  SSID: %s  IP Address: %d.%d.%d.%d  Signal: %s", pre_ch,
                      _wifiConnection.connectedSSID().c_str(), addr[0], addr[1], addr[2], addr[3], szRSSI);
@@ -527,10 +535,10 @@ bool sfeDataLogger::onSetup()
     // Lets set the application name. If we recognize the board, we use it's name, otherwise
     // we use something generic
 
-    setName( dlModeCheckValid(_modeFlags)  ? dlModeCheckName(_modeFlags) : "SparkFun DataLogger IoT", 
-                "(c) 2023 SparkFun Electronics");
+    setName(dlModeCheckValid(_modeFlags) ? dlModeCheckName(_modeFlags) : "SparkFun DataLogger IoT",
+            "(c) 2023 SparkFun Electronics");
 
-    // flxLog_I("DEBUG: Free Heap: %d", ESP.getFreeHeap());
+    // flxLog_I("DEBUG: onSetup() enter - Free Heap: %d", ESP.getFreeHeap());
 
     // Version info
     setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, kDLVersionDescriptor, BUILD_NUMBER);
@@ -602,7 +610,7 @@ bool sfeDataLogger::onSetup()
     _boardButton.on_buttonRelease.call(this, &sfeDataLogger::onButtonReleased);
     _boardButton.on_buttonPressed.call(this, &sfeDataLogger::onButtonPressed);
 
-    // flxLog_I("DEBUG: Free Heap: %d", ESP.getFreeHeap());
+    // flxLog_I("DEBUG: onSetup() - exit - Free Heap: %d", ESP.getFreeHeap());
 
     return true;
 }
@@ -655,7 +663,7 @@ void sfeDataLogger::onDeviceLoad()
     //      - This a 9DOF board
     //      - This is an unknown board (b/c of legacy detection methods)
 
-    if ( !dlModeCheckValid(_modeFlags) || dlModeIsDL9DOFBoard(_modeFlags))
+    if (!dlModeCheckValid(_modeFlags) || dlModeIsDL9DOFBoard(_modeFlags))
     {
         // Load SPI devices
         // Note - framework is setting up the pins ...
@@ -668,7 +676,6 @@ void sfeDataLogger::onDeviceLoad()
         if (_onboardMag.initialize(kAppOnBoardMAGCS))
             _modeFlags |= DL_MODE_FLAG_MAG;
 
-
         // If this wasn't a known board, check if it is now?
         if (!dlModeCheckValid(_modeFlags) && dlModeCheckDevice9DOF(_modeFlags))
             _modeFlags |= SFE_DL_IOT_9DOF_MODE;
@@ -677,13 +684,14 @@ void sfeDataLogger::onDeviceLoad()
 #ifdef ENABLE_OLED_DISPLAY
     // OLED connected?
     auto oled = flux.get<flxDevMicroOLED>();
-    if (oled->size() > 0){
-        _microOLED = oled->at(0);    
+    if (oled->size() > 0)
+    {
+        _microOLED = oled->at(0);
         _pDisplay = new sfeDLDisplay();
         _pDisplay->initialize(_microOLED, &_wifiConnection, _fuelGauge, &_theSDCard);
     }
 #endif
-    // flxLog_I("DEBUG: end onDeviceLoad() Free Heap: %d", ESP.getFreeHeap());    
+    // flxLog_I("DEBUG: end onDeviceLoad() Free Heap: %d", ESP.getFreeHeap());
 }
 //---------------------------------------------------------------------
 // onRestore()
@@ -894,8 +902,8 @@ void sfeDataLogger::onInit(void)
 void sfeDataLogger::checkOpMode()
 {
     _isValidMode = dlModeCheckValid(_modeFlags);
-   
-   // DO we need to nag? If so, add nag event to loop
+
+    // DO we need to nag? If so, add nag event to loop
     if (!_isValidMode)
     {
         // Create a loop event for the nag message
@@ -1022,7 +1030,7 @@ bool sfeDataLogger::onStart()
     sfeLED.off();
 
     // flxLog_I("DEBUG: onStart() - exit -  Free Heap: %d", ESP.getFreeHeap());
-    
+
     return true;
 }
 
@@ -1099,7 +1107,7 @@ bool sfeDataLogger::loop()
 {
 
     unsigned long ticks = millis();
-    
+
     // Loop over loop Events - if limit reached, call event handler
     for (sfeDLLoopEvent *pEvent : _loopEventList)
     {
