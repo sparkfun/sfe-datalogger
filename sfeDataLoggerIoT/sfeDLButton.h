@@ -26,6 +26,7 @@ class sfeDLButton : public flxActionType<sfeDLButton>
   public:
     sfeDLButton() : _pressIncrement{5}, _userButtonPressed{false}, _pressEventTime{0}, _currentInc{0}
     {
+        setName("DataLogger Button", "Manage DataLogger Button Events");
         setHidden();
     }
 
