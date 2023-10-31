@@ -116,11 +116,17 @@ The above property values must be set in the DataLogger Arduino IoT driver befor
 
 ## Operation
 
+On startup, when the first values are written from the DataLogger IoT, the connection to the Arduino IoT Cloud is made. During this connection, the system connects to the specified *Thing* and variables are mapped between the DataLogger Device values and Arduino Cloud Variables. If needed, variables are created in the cloud.
+
+While this initial setup takes seconds to complete, once connected updates to the values on the Arduino Cloud are rapid.
+
+### Viewing Values
+
 Once the DataLogger IoT device is configured and running, updates in Arduino IoT are listed in the ***Things*** tab of the Arduino IoT page. Clicking the target Thing provides access to the current variable values.
 
 ![Cloud Variables](images/aiot_cloud_vars.png)
 
-### Create a Dashboard
+#### Create a Dashboard
 
 With the data now available in the Arduino IoT Cloud as variables, its a simple step create a dashboard that plots the data values.
 
