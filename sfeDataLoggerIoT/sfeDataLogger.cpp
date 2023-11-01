@@ -305,6 +305,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     memset(szBuffer, '\0', sizeof(szBuffer));
     strftime(szBuffer, sizeof(szBuffer), "%G-%m-%dT%T", tmLocal);
     flxLog__(logLevel, "%cTime:\t%s", pre_ch, szBuffer);
+    flxLog__(logLevel, "%cTime Zone:\t%s", pre_ch, flxClock.timeZone().c_str());
 
     // uptime
     uint32_t days, hours, minutes, secs, mills;
