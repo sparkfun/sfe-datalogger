@@ -233,6 +233,9 @@ class sfeDataLogger : public flxApplication
     uint get_sleepWakePeriod(void);
     void set_sleepWakePeriod(uint);
 
+    uint get_jsonBufferSize(void);
+    void set_jsonBufferSize(uint);
+
   public:
     //---------------------------------------------------------------------------
 
@@ -262,6 +265,10 @@ class sfeDataLogger : public flxApplication
          {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
          {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
 
+
+    // JSON output buffer size
+    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_jsonBufferSize, &sfeDataLogger::set_jsonBufferSize> jsonBuferSize = {100, 5000};
+
     // System sleep properties
     flxPropertyUint<sfeDataLogger> sleepInterval = {5, 86400};
     flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_sleepWakePeriod, &sfeDataLogger::set_sleepWakePeriod>
@@ -276,6 +283,7 @@ class sfeDataLogger : public flxApplication
         serialBaudRate = {1200, 500000};
 
     flxParameterInVoid<sfeDataLogger, &sfeDataLogger::about_app_status> aboutApplication;
+
 
   private:
     void enterSleepMode(void);

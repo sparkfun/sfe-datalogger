@@ -118,6 +118,7 @@ sfeDataLogger::sfeDataLogger()
     sdCardLogType.setTitle("Output");
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
+    flxRegister(jsonBuferSize, "JSON Buffer Size", "Output buffer size in bytes");
 
     // Terminal Serial Baud Rate
     flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart");
@@ -772,6 +773,21 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
         _fmtCSV.add(flxSerial());
     else if (_logTypeSer == kAppLogTypeJSON)
         _fmtJSON.add(flxSerial());
+}
+
+
+//---------------------------------------------------------------------------
+// json Buffer Size
+
+uint sfeDataLogger::get_jsonBufferSize(void)
+{
+    return _fmtJSON.bufferSize();
+}
+
+
+void sfeDataLogger::set_jsonBufferSize(uint new_size)
+{
+    _fmtJSON.setBufferSize(new_size);
 }
 
 //---------------------------------------------------------------------------
