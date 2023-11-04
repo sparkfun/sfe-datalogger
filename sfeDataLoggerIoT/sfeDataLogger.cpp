@@ -385,7 +385,8 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
     flxLog__(logLevel, "%cSerial Output:  %s", pre_ch, kLogFormatNames[serialLogType()]);
-    flxLog_N("%c    Baud Rate:  %d", pre_ch, serialBaudRate());
+    flxLog_N("%c    Baud Rate:         %d", pre_ch, serialBaudRate());
+    flxLog_N("%c    JSON Buffer Size:  %d (bytes)", pre_ch, jsonBuferSize());    
     flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
 
     // at startup, useInfo == true, the file isn't known, so skip output
