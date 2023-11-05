@@ -27,6 +27,8 @@
 #include <Flux/flxDevGNSS.h>
 #include <Flux/flxDevMAX17048.h>
 #include <Flux/flxDevRV8803.h>
+#include <Flux/flxDevENS160.h>
+#include <Flux/flxDevBME280.h>
 #include <Flux/flxUtils.h>
 
 RTC_DATA_ATTR int boot_count = 0;
@@ -730,6 +732,28 @@ void sfeDataLogger::setupBioHub()
 }
 
 //---------------------------------------------------------------------------
+void sfeDataLogger::setupENS160(void)
+{
+
+    // do we have one attached?
+    auto ens160Devices = flux.get<flxDevENS160>();
+    if (ens160Devices->size() == 0 )
+        return;
+
+    flxDevENS160 *pENS160 = ens160Devices->at(0);
+
+    auto bmeDevices = flux.get<flxDevBME280>();
+    if (bmeDevices->size() > 0 )
+    {
+        flxDevBME280 *pBME = bmeDevices->at(0);
+
+        pENS160->setTemperatureCompParameter(pBME->temperatureC);
+        pENS160->setHumidityCompParameter(pBME->humidity);        
+
+    }
+
+}
+//---------------------------------------------------------------------------
 uint8_t sfeDataLogger::get_logTypeSD(void)
 {
     return _logTypeSD;
@@ -1016,9 +1040,12 @@ bool sfeDataLogger::onStart()
     // Setup the Bio Hub
     setupBioHub();
 
+    // setup the ENS160 
+    setupENS160();
+
     // Check time devices
     if (!setupTime())
-        flxLog_W("Time reference setup failed.");
+        flxLog_W(F("Time reference setup failed."));
 
     flxLog_N("");
 

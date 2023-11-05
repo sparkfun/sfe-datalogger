@@ -189,6 +189,9 @@ class sfeDataLogger : public flxApplication
     //---------------------------------------------------------------------
     void setupBioHub(void);
 
+    //---------------------------------------------------------------------
+    void setupENS160(void);
+
     //------------------------------------------
     // For controlling the log output types
 
