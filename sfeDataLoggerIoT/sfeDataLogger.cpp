@@ -29,6 +29,7 @@
 #include <Flux/flxDevRV8803.h>
 #include <Flux/flxDevENS160.h>
 #include <Flux/flxDevBME280.h>
+#include <Flux/flxDevSHTC3.h>
 #include <Flux/flxUtils.h>
 
 RTC_DATA_ATTR int boot_count = 0;
@@ -749,7 +750,17 @@ void sfeDataLogger::setupENS160(void)
 
         pENS160->setTemperatureCompParameter(pBME->temperatureC);
         pENS160->setHumidityCompParameter(pBME->humidity);        
+        return;
+    }
+    // do we have a SHTC3 attatched
+    auto shtc3Devices = flux.get<flxDevSHTC3>();
+    if (shtc3Devices->size() > 0 )
+    {
+        flxDevSHTC3 *pSHTC3 = shtc3Devices->at(0);
 
+        pENS160->setTemperatureCompParameter(pSHTC3->temperatureC);
+        pENS160->setHumidityCompParameter(pSHTC3->humidity);        
+        return;
     }
 
 }
