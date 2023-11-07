@@ -8,7 +8,7 @@ November 15th, 2023
 ### New Features
 
 * Support for the Arduino IoT Cloud, enabling data posting to this IoT platform natively from a DataLogger IoT.
-* Support for th SparkFun Indoor Air Quality Sensor - ENS160
+* Support for the SparkFun Indoor Air Quality Sensor - ENS160
 * Support for the SparkFun Photoacoustic Spectroscopy CO2 Sensor - PASCO2V01
 * Support for the SparkFun Human Presence and Motion Sensor - STHS34PF80
 
