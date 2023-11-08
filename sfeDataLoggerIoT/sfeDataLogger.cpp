@@ -24,11 +24,11 @@
 
 // for our time setup
 #include <Flux/flxClock.h>
+#include <Flux/flxDevBME280.h>
+#include <Flux/flxDevENS160.h>
 #include <Flux/flxDevGNSS.h>
 #include <Flux/flxDevMAX17048.h>
 #include <Flux/flxDevRV8803.h>
-#include <Flux/flxDevENS160.h>
-#include <Flux/flxDevBME280.h>
 #include <Flux/flxDevSHTC3.h>
 #include <Flux/flxUtils.h>
 
@@ -389,7 +389,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
     flxLog__(logLevel, "%cSerial Output:  %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog_N("%c    Baud Rate:         %d", pre_ch, serialBaudRate());
-    flxLog_N("%c    JSON Buffer Size:  %d (bytes)", pre_ch, jsonBuferSize());    
+    flxLog_N("%c    JSON Buffer Size:  %d (bytes)", pre_ch, jsonBuferSize());
     flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
 
     // at startup, useInfo == true, the file isn't known, so skip output
@@ -738,31 +738,34 @@ void sfeDataLogger::setupENS160(void)
 
     // do we have one attached?
     auto ens160Devices = flux.get<flxDevENS160>();
-    if (ens160Devices->size() == 0 )
+    if (ens160Devices->size() == 0)
         return;
 
     flxDevENS160 *pENS160 = ens160Devices->at(0);
 
     auto bmeDevices = flux.get<flxDevBME280>();
-    if (bmeDevices->size() > 0 )
+    if (bmeDevices->size() > 0)
     {
         flxDevBME280 *pBME = bmeDevices->at(0);
 
         pENS160->setTemperatureCompParameter(pBME->temperatureC);
-        pENS160->setHumidityCompParameter(pBME->humidity);        
+        pENS160->setHumidityCompParameter(pBME->humidity);
+
+        flxLog_I(F("%s: compensation values applied from %s"), pENS160->name(), pBME->name());
         return;
     }
     // do we have a SHTC3 attatched
     auto shtc3Devices = flux.get<flxDevSHTC3>();
-    if (shtc3Devices->size() > 0 )
+    if (shtc3Devices->size() > 0)
     {
         flxDevSHTC3 *pSHTC3 = shtc3Devices->at(0);
 
         pENS160->setTemperatureCompParameter(pSHTC3->temperatureC);
-        pENS160->setHumidityCompParameter(pSHTC3->humidity);        
+        pENS160->setHumidityCompParameter(pSHTC3->humidity);
+
+        flxLog_I(F("%s: compensation values applied from %s"), pENS160->name(), pSHTC3->name());
         return;
     }
-
 }
 //---------------------------------------------------------------------------
 uint8_t sfeDataLogger::get_logTypeSD(void)
@@ -811,7 +814,6 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
         _fmtJSON.add(flxSerial());
 }
 
-
 //---------------------------------------------------------------------------
 // json Buffer Size
 
@@ -819,7 +821,6 @@ uint sfeDataLogger::get_jsonBufferSize(void)
 {
     return _fmtJSON.bufferSize();
 }
-
 
 void sfeDataLogger::set_jsonBufferSize(uint new_size)
 {
@@ -1051,7 +1052,7 @@ bool sfeDataLogger::onStart()
     // Setup the Bio Hub
     setupBioHub();
 
-    // setup the ENS160 
+    // setup the ENS160
     setupENS160();
 
     // Check time devices
