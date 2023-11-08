@@ -11,6 +11,7 @@ November 15th, 2023
 * Support for the SparkFun Indoor Air Quality Sensor - ENS160
 * Support for the SparkFun Photoacoustic Spectroscopy CO2 Sensor - PASCO2V01
 * Support for the SparkFun Human Presence and Motion Sensor - STHS34PF80
+* Support for the SparkFun Tristimulus Color Sensor - OPT4048DTSR
 
 ### Enhancements
 
