@@ -139,6 +139,9 @@ sfeDataLogger::sfeDataLogger()
     flxRegister(sleepInterval, "Sleep Interval (sec)", "The interval the system will sleep for");
     flxRegister(wakeInterval, "Wake Interval (sec)", "The interval the system will operate between sleep period");
 
+    verboseDevNames.setTitle("Advanced");
+    flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
+
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
     aboutApplication.prompt = false; // no prompt needed before execution
@@ -825,6 +828,20 @@ uint sfeDataLogger::get_jsonBufferSize(void)
 void sfeDataLogger::set_jsonBufferSize(uint new_size)
 {
     _fmtJSON.setBufferSize(new_size);
+}
+
+
+//---------------------------------------------------------------------------
+// device names 
+//---------------------------------------------------------------------------
+bool sfeDataLogger::get_verbose_dev_name(void)
+{
+    return flux.verboseDevNames();
+}
+
+void sfeDataLogger::set_verbose_dev_name(bool enable)
+{
+    flux.setVerboseDevNames(enable);
 }
 
 //---------------------------------------------------------------------------

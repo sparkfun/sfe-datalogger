@@ -237,7 +237,10 @@ class sfeDataLogger : public flxApplication
     void set_sleepWakePeriod(uint);
 
     uint get_jsonBufferSize(void);
-    void set_jsonBufferSize(uint);
+    void set_jsonBufferSize(uint); 
+
+    bool get_verbose_dev_name(void);
+    void set_verbose_dev_name(bool);
 
   public:
     //---------------------------------------------------------------------------
@@ -285,6 +288,9 @@ class sfeDataLogger : public flxApplication
     flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_termBaudRate, &sfeDataLogger::set_termBaudRate>
         serialBaudRate = {1200, 500000};
 
+    // Verbose Device Names
+    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_verbose_dev_name, &sfeDataLogger::set_verbose_dev_name> verboseDevNames;
+    
     flxParameterInVoid<sfeDataLogger, &sfeDataLogger::about_app_status> aboutApplication;
 
 
