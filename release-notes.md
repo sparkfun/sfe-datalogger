@@ -18,6 +18,7 @@ November 15th, 2023
 * Update to reference clock management - Timezone support is at the clock level, not tied to NTP
 * The JSON output buffer size is now user configurable via the settings menu
 * The ADS1015 driver now has configurable output data types.
+* Device address values can now be added to a device name if desired.
 
 ### Bug Fixes
 
@@ -25,6 +26,7 @@ November 15th, 2023
 * Improved runtime memory (ram) management.
 * Resolved issue with device name collision. Now, if a device name already exists, the address of the new devices is added to its name, providing a unique name value.
 * Save/Restore of settings to a JSON file could overflow the internal JSON buffer. The JSON data buffer for fallback settings save/restore is now user settable.
+* Improvements to the JSON document posted to Machinechat servers.
 
 ## Version 1.0.4
 
