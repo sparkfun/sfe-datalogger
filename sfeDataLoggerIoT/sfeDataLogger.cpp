@@ -423,8 +423,13 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     // Loop over the device list - note that it is iterable.
     for (auto device : myDevices)
-        flxLog_N("%c    %-20s  - %s  {%s}", pre_ch, device->name(), device->description(),
-                 device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
+    {
+        flxLog_N_(F("%c    %-20s  - %s  {"), pre_ch, device->name(), device->description());
+        if (device->getKind() == flxDeviceKindI2C)
+            flxLog_N("%s x%x}", "qwiic", device->address());
+        else
+            flxLog_N("%s p%u}", "SPI", device->address());
+    }
 
     flxLog_N("");
 }
@@ -1059,8 +1064,13 @@ bool sfeDataLogger::onStart()
         flxLog_N(F("%d devices detected"), loadedDevices.size());
         for (auto device : loadedDevices)
         {
-            flxLog_N(F("    %-20s  - %s  {%s}"), device->name(), device->description(),
-                     device->getKind() == flxDeviceKindI2C ? "qwiic" : "SPI");
+            // output the connected devices ... include device type/address
+            flxLog_N_(F("    %-20s  - %s  {"), device->name(), device->description());
+            if (device->getKind() == flxDeviceKindI2C)
+                flxLog_N("%s x%x}", "qwiic", device->address());
+            else
+                flxLog_N("%s p%u}", "SPI", device->address());
+
             if (device->nOutputParameters() > 0)
                 _logger.add(device);
         }
