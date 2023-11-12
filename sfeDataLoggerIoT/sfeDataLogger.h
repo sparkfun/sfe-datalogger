@@ -242,6 +242,9 @@ class sfeDataLogger : public flxApplication
     bool get_verbose_dev_name(void);
     void set_verbose_dev_name(bool);
 
+    std::string get_local_name(void);
+    void set_local_name(std::string name);
+
   public:
     //---------------------------------------------------------------------------
 
@@ -292,6 +295,9 @@ class sfeDataLogger : public flxApplication
     flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_verbose_dev_name, &sfeDataLogger::set_verbose_dev_name> verboseDevNames;
     
     flxParameterInVoid<sfeDataLogger, &sfeDataLogger::about_app_status> aboutApplication;
+
+    // board user set name
+    flxPropertyRWString<sfeDataLogger, &sfeDataLogger::get_local_name, &sfeDataLogger::set_local_name> localBoardName;
 
 
   private:

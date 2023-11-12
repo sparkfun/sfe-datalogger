@@ -118,6 +118,9 @@ sfeDataLogger::sfeDataLogger()
     // our the menu timeout property to our props/menu system entries
     addProperty(_serialSettings.menuTimeout);
 
+    // user defined board name
+    flxRegister(localBoardName, "Board Name", "A specific name for this DataLogger");
+
     sdCardLogType.setTitle("Output");
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
@@ -322,14 +325,13 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cUptime:\t%u days, %02u:%02u:%02u.%u", pre_ch, days, hours, minutes, secs, mills);
     flxLog__(logLevel, "%cExternal Time Source: %s", pre_ch, flxClock.referenceClock().c_str());
 
-    if (!useInfo)
-        flxLog_N("");
+    flxLog_N("");
 
-    flxLog__(logLevel, "%cBoard Name: %s", pre_ch, dlModeCheckName(_modeFlags));
+    flxLog__(logLevel, "%cBoard Type: %s", pre_ch, dlModeCheckName(_modeFlags));
+    flxLog__(logLevel, "%cBoard Name: %s", pre_ch, flux.localName().c_str());
     flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
 
-    if (!useInfo)
-        flxLog_N("");
+    flxLog_N("");
 
     // flxLog__(logLevel, "%cDEBUG: info Page -  Free Heap: %d", pre_ch, ESP.getFreeHeap());
 
@@ -835,9 +837,8 @@ void sfeDataLogger::set_jsonBufferSize(uint new_size)
     _fmtJSON.setBufferSize(new_size);
 }
 
-
 //---------------------------------------------------------------------------
-// device names 
+// device names
 //---------------------------------------------------------------------------
 bool sfeDataLogger::get_verbose_dev_name(void)
 {
@@ -950,6 +951,20 @@ uint sfeDataLogger::getTerminalBaudRate(void)
 
     return status ? theRate : kDefaultTerminalBaudRate;
 }
+
+//---------------------------------------------------------------------------
+// local/board name things
+std::string sfeDataLogger::get_local_name(void)
+{
+    return flux.localName();
+}
+//---------------------------------------------------------------------------
+
+void sfeDataLogger::set_local_name(std::string name)
+{
+    flux.setLocalName(name);
+}
+
 //---------------------------------------------------------------------------
 // onInit()
 //
