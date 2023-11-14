@@ -4,6 +4,14 @@ The following table lists the devices/boards supported by the DataLogger IoT Boa
 
 ## Version 1.1
 
+* [SparkFun Indoor Air Quality Sensor - ENS160](https://www.sparkfun.com/products/20844)
+* [SparkFun Photoacoustic Spectroscopy CO2 Sensor - PASCO2V01](https://www.sparkfun.com/products/22956)
+* [SparkFun Human Presence and Motion Sensor - STHS34PF80](https://www.sparkfun.com/products/22494)
+* [SparkFun Tristimulus Color Sensor - OPT4048DTSR](https://www.sparkfun.com/products/22638)
+* [SparkFun Triad Spectroscopy Sensor - AS7265x](https://www.sparkfun.com/products/15050)
+
+## Version 1.0
+
 * [ACS37800 Power Meter](https://www.sparkfun.com/products/17873)
 * [SparkFun Qwiic 12 Bit ADC - 4 Channel (ADS1015)](https://www.sparkfun.com/products/15334)
 * [Qwiic PT100 - ADS122C04](https://www.sparkfun.com/products/16770)
@@ -55,11 +63,7 @@ The following table lists the devices/boards supported by the DataLogger IoT Boa
 * [Ambient Light Sensor - VEML7700 (Qwiic)](https://www.sparkfun.com/products/18981)
 * [SparkFun Distance Sensor Breakout - 4 Meter, VL53L1X (Qwiic)](https://www.sparkfun.com/products/14722)
 * [SparkFun Qwiic ToF Imager - VL53L5CX](https://www.sparkfun.com/products/18642)
-* [SparkFun Indoor Air Quality Sensor - ENS160](https://www.sparkfun.com/products/20844)
-* [SparkFun Photoacoustic Spectroscopy CO2 Sensor - PASCO2V01](https://www.sparkfun.com/products/22956)
-* [SparkFun Human Presence and Motion Sensor - STHS34PF80](https://www.sparkfun.com/products/22494)
-* [SparkFun Tristimulus Color Sensor - OPT4048DTSR](https://www.sparkfun.com/products/22638)
-* [SparkFun Triad Spectroscopy Sensor - AS7265x](https://www.sparkfun.com/products/15050)
+
 
 
 
