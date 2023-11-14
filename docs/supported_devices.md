@@ -4,6 +4,8 @@ The following table lists the devices/boards supported by the DataLogger IoT Boa
 
 ## Version 1.1
 
+Added Sensors:
+
 * [SparkFun Indoor Air Quality Sensor - ENS160](https://www.sparkfun.com/products/20844)
 * [SparkFun Photoacoustic Spectroscopy CO2 Sensor - PASCO2V01](https://www.sparkfun.com/products/22956)
 * [SparkFun Human Presence and Motion Sensor - STHS34PF80](https://www.sparkfun.com/products/22494)
