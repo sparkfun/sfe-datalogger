@@ -24,7 +24,7 @@
 #define kDLVersionNumberPoint		0
 
 // Version string description
-#define kDLVersionDescriptor		"rc2"
+#define kDLVersionDescriptor		""
 
 
 // app name/class ID string
