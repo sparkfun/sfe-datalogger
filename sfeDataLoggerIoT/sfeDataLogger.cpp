@@ -552,8 +552,12 @@ bool sfeDataLogger::onSetup()
     // Lets set the application name. If we recognize the board, we use it's name, otherwise
     // we use something generic
 
-    setName(dlModeCheckValid(_modeFlags) ? dlModeCheckName(_modeFlags) : "SparkFun DataLogger IoT",
-            "(c) 2023 SparkFun Electronics");
+    if (dlModeCheckValid(_modeFlags))
+        setName(dlModeCheckName(_modeFlags));
+    else
+        setName(dlModeCheckName(SFE_DL_IOT_9DOF_MODE)); // probably an original board
+
+    setDescription(kDLVersionBoardDesc);
 
     // flxLog_I("DEBUG: onSetup() enter - Free Heap: %d", ESP.getFreeHeap());
 
@@ -695,7 +699,10 @@ void sfeDataLogger::onDeviceLoad()
 
         // If this wasn't a known board, check if it is now?
         if (!dlModeCheckValid(_modeFlags) && dlModeCheckDevice9DOF(_modeFlags))
+        {
             _modeFlags |= SFE_DL_IOT_9DOF_MODE;
+            setName(dlModeCheckName(_modeFlags)); // fix name
+        }
     }
 
 #ifdef ENABLE_OLED_DISPLAY
