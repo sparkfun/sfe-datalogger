@@ -21,7 +21,7 @@
 #define kDLVersionNumberMinor		1
 
 // Point version number
-#define kDLVersionNumberPoint		0
+#define kDLVersionNumberPoint		1
 
 // Version string description
 #define kDLVersionDescriptor		""
@@ -36,3 +36,4 @@
 #define BUILD_NUMBER 0
 #endif
 
+#define kDLVersionBoardDesc 		"(c) 2023 SparkFun Electronics"

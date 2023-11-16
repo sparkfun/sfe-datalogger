@@ -13,6 +13,7 @@ November 15th, 2023
 * Support for the SparkFun Human Presence and Motion Sensor - STHS34PF80
 * Support for the SparkFun Tristimulus Color Sensor - OPT4048DTSR
 * Support for the SparkFun Triad Spectroscopy Sensor - AS7265x
+* Support for the SparkFun 6DoF IMU Breakout - BMI270
 
 ### Enhancements
 
@@ -20,7 +21,7 @@ November 15th, 2023
 * The JSON output buffer size is now user configurable via the settings menu
 * The ADS1015 driver now has configurable output data types.
 * Device address values can now be added to a device name if desired.
-* The ablity to include board information to the output log stream
+* The ability to include board information to the output log stream
 
 ### Bug Fixes
 
