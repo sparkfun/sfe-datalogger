@@ -21,10 +21,10 @@
 #define kDLVersionNumberMinor		1
 
 // Point version number
-#define kDLVersionNumberPoint		1
+#define kDLVersionNumberPoint		2
 
 // Version string description
-#define kDLVersionDescriptor		""
+#define kDLVersionDescriptor		"dev"
 
 
 // app name/class ID string
