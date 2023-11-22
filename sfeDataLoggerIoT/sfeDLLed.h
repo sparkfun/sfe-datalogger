@@ -73,6 +73,8 @@ class _sfeLED
   private:
     _sfeLED();
 
+    void popState(void);
+    bool pushState(sfeLEDColor_t);
     void update(void);
     void start_blink(void);
     void stop_blink(void);

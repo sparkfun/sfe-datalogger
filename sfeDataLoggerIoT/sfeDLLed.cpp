@@ -24,6 +24,13 @@ static EventGroupHandle_t hEventGroup = NULL;
 // task handle
 static TaskHandle_t hTaskLED = NULL;
 
+// Binary semaphore/mutex to manage stack access
+SemaphoreHandle_t  hMutex = NULL;
+
+// mutex wait times
+#define kMutexPeriod 10
+#define kMutexPeriodFast 1
+
 // Time for flashing the LED
 xTimerHandle hTimer;
 #define kTimerPeriod 100
@@ -102,6 +109,16 @@ bool _sfeLED::initialize(void)
     if (!hEventGroup)
         return false;
 
+    // create mutex
+    hMutex = xSemaphoreCreateBinary();
+    if (!hMutex)
+    {
+        Serial.println("[ERROR] - LED start lock failure");
+        return false;
+    }
+    // make the mutex avaialble
+    xSemaphoreGive(hMutex);
+
     // Event processing task
     BaseType_t xReturnValue = xTaskCreate(_sfeLED_TaskProcessing, // Event processing task functoin
                                           "eventProc",            // String with name of task.
@@ -171,13 +188,53 @@ void _sfeLED::update(void)
     if (!_isInitialized || _disabled)
         return;
 
+    // get access to the stack
+    if (xSemaphoreTake(hMutex, kMutexPeriod/portTICK_RATE_MS) != pdTRUE)
+        return;// no joy on take
+
     _theLED = _colorStack[_current].color;
     FastLED.show();
 
     if (_colorStack[_current].ticks > 0)
         start_blink();
+
+    xSemaphoreGive(hMutex);
 }
 
+//---------------------------------------------------------
+void _sfeLED::popState(void)
+{
+    // get access to the stack
+    if (xSemaphoreTake(hMutex, kMutexPeriod/portTICK_RATE_MS) != pdTRUE)
+        return; // no joy on take
+
+    if (_current >  0)
+    {
+        if (_colorStack[_current].ticks > 0)
+            stop_blink();
+
+        _current--;
+    }
+    xSemaphoreGive(hMutex);
+}
+//---------------------------------------------------------
+bool _sfeLED::pushState(sfeLEDColor_t color)
+{
+    bool status = false;
+    // get access to the stack
+    if (xSemaphoreTake(hMutex, kMutexPeriodFast/portTICK_RATE_MS) != pdTRUE)
+        return false; // no joy on take
+
+    if (_current < kStackSize - 1)
+    {
+        _current++;
+        _colorStack[_current] = {color, 0};
+        status = true;
+    }         
+    xSemaphoreGive(hMutex);
+
+    return status;
+}
 //---------------------------------------------------------
 // public
 //---------------------------------------------------------
@@ -187,29 +244,18 @@ void _sfeLED::flash(sfeLEDColor_t color)
     if (_disabled)
         return;
 
-    if (_current > kStackSize - 2)
-    {
-        Serial.println("LED - Color Stack Overflow");
-        return;
-    }
-
-    _current++;
-    _colorStack[_current] = {color, 0};
-
-    // just do event driven
-    xEventGroupSetBits(hEventGroup, kEventActvity);
+    // push new color, set activity 
+    if ( pushState(color) )
+        xEventGroupSetBits(hEventGroup, kEventActvity);
 }
 
 //---------------------------------------------------------
 void _sfeLED::off(void)
 {
-    if (_current == 0 || _disabled)
+    if ( _disabled)
         return;
 
-    if (_colorStack[_current].ticks > 0)
-        stop_blink();
-
-    _current--;
+    popState();
     update();
 }
 
@@ -220,30 +266,25 @@ void _sfeLED::on(sfeLEDColor_t color)
     if (_disabled)
         return;
 
-    if (_current > kStackSize - 2)
-    {
-        Serial.println("LED - Color Stack Overflow");
-        return;
-    }
-
-    _current++;
-    _colorStack[_current] = {color, 0};
-
-    update();
+    if (pushState(color))
+        update();
 }
 
 //---------------------------------------------------------
 void _sfeLED::blink(uint timeout)
 {
     // at off state?
-    if (_current == 0 || !_isInitialized || _disabled)
-        return;
+    if (xSemaphoreTake(hMutex, kMutexPeriodFast/portTICK_RATE_MS) != pdTRUE)
+        return; // no joy on take
 
-    _colorStack[_current].ticks = timeout;
+    if (_current > 0 && _isInitialized && !_disabled)
+    {
+        _colorStack[_current].ticks = timeout;
+        _blinkOn = true;
+        start_blink();
+    }
+    xSemaphoreGive(hMutex);
 
-    _blinkOn = true;
-
-    start_blink();
 }
 //---------------------------------------------------------
 void _sfeLED::blink(sfeLEDColor_t color, uint timeout)
