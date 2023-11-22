@@ -108,7 +108,9 @@ bool _sfeLED::initialize(void)
     hTimer = xTimerCreate("ledtimer", kTimerPeriod / portTICK_RATE_MS, pdTRUE, (void *)0, _sfeLED_TimerCallback);
     if (hTimer == NULL)
     {
+        // no timer - whoa
         Serial.println("[WARNING] - failed to create LED timer");
+        return false;
     }
 
     hCmdQueue = xQueueCreate(kLEDCmdQueueSize, sizeof(cmdStruct_t));
@@ -122,7 +124,7 @@ bool _sfeLED::initialize(void)
     }
 
     // Event processing task
-    BaseType_t xReturnValue = xTaskCreate(_sfeLED_TaskProcessing, // Event processing task functoin
+    BaseType_t xReturnValue = xTaskCreate(_sfeLED_TaskProcessing, // Event processing task function
                                           "eventProc",            // String with name of task.
                                           kStackSize,             // Stack size in 32 bit words.
                                           NULL,                   // Parameter passed as input of the task

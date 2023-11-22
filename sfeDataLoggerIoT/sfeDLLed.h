@@ -18,7 +18,7 @@
 #define FASTLED_INTERNAL
 #include <FastLED.h>
 
-// This are Handy Flash levels...
+// Some Handy Flash levels...
 #define kLEDFlashSlow 600
 #define kLEDFlashMedium 200
 #define kLEDFlashFast 80
