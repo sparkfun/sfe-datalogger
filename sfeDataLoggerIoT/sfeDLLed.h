@@ -52,6 +52,31 @@ class _sfeLED
     static constexpr sfeLEDColor_t White = 0xFFFFFF;
     static constexpr sfeLEDColor_t Purple = 0x80008;
 
+    typedef struct
+    {
+        sfeLEDColor_t color;
+        uint32_t ticks;
+    } colorState_t;
+
+    // Command Type
+    typedef enum
+    {
+        kCmdNone = 0,
+        kCmdOn = (1 << 0),
+        kCmdOff = (1 << 1),
+        kCmdFlash = (1 << 2),
+        kCmdBlink = (1 << 3),
+        kCmdReset = (1 << 4),
+        kCmdUpdate = (1 << 5)
+    } cmdType_t;
+
+    // Command struct
+    typedef struct
+    {
+        cmdType_t type;
+        colorState_t data;
+    } cmdStruct_t;
+
     bool initialize(void);
     void on(sfeLEDColor_t color);
     void off(void);
@@ -59,9 +84,10 @@ class _sfeLED
     void blink(sfeLEDColor_t, uint32_t);
     void stop(bool off = true);
     void flash(sfeLEDColor_t color);
+    void refresh(void);
 
     void _timerCB(void);
-    void _eventCB(uint32_t);
+    void _eventCB(cmdStruct_t &);
 
     void setDisabled(bool bDisable);
 
@@ -74,16 +100,9 @@ class _sfeLED
     _sfeLED();
 
     void popState(void);
-    bool pushState(sfeLEDColor_t);
+    bool pushState(colorState_t &);
     void update(void);
-    void start_blink(void);
-    void stop_blink(void);
-
-    typedef struct
-    {
-        uint32_t color;
-        uint32_t ticks;
-    } colorState_t;
+    void queueCommand(cmdType_t command, sfeLEDColor_t color = 0, uint32_t ticks = 0);
 
     static constexpr uint16_t kStackSize = 10;
     colorState_t _colorStack[kStackSize];
