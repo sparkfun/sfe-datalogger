@@ -661,7 +661,7 @@ void sfeDataLogger::checkBatteryLevels(void)
 
 bool sfeDataLogger::loop()
 {
-
+    // Event things ...
     unsigned long ticks = millis();
 
     // Loop over loop Events - if limit reached, call event handler
@@ -674,5 +674,19 @@ bool sfeDataLogger::loop()
         }
     }
 
+    // key press at Serial Console? What to do??
+    if (Serial.available())
+    {
+        // start an editing session
+        sfeLEDColor_t color;
+        int status = _serialSettings.editSettings();
+        if (status == -1)
+            color = sfeLED.Red;
+        else if (status == 1)
+            color = sfeLED.Green;
+        else
+            color = sfeLED.Yellow;
+        sfeLED.flash(color);
+    }
     return false;
 }
