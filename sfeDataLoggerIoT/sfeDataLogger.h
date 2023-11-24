@@ -97,6 +97,9 @@ static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfi
 #define kSystemSleepSleepSec 60
 #define kSystemSleepWakeSec 120
 
+// What is the out of the box baud rate ..
+#define kDefaultTerminalBaudRate 115200
+
 //-----------------------------------------------------------------
 // Helper class for loop events - unifies the idea of calling a method
 // after a specific time ...
@@ -134,6 +137,15 @@ class sfeDLLoopEvent
     // Event name = helpful
     const char *name;
 };
+
+// Operation mode flags
+#define kDataLoggerOpEditing (1 << 0)
+#define kDataLoggerOpStartup (1 << 1)
+#define kDataLoggerOpPendingRestart (1 << 2)
+
+#define inOpMode(__mode__) ((_opFlags & __mode__) == __mode__)
+#define setOpMode(__mode__) _opFlags |= __mode__
+#define clearOpMode(__mode__) _opFlags &= ~__mode__
 
 /////////////////////////////////////////////////////////////////////////
 // Define our application class for the data logger

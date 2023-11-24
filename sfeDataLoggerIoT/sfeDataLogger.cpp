@@ -24,12 +24,9 @@
 
 // for our time setup
 #include <Flux/flxClock.h>
-#include <Flux/flxDevBME280.h>
-#include <Flux/flxDevENS160.h>
-#include <Flux/flxDevGNSS.h>
+
 #include <Flux/flxDevMAX17048.h>
-#include <Flux/flxDevRV8803.h>
-#include <Flux/flxDevSHTC3.h>
+
 #include <Flux/flxUtils.h>
 
 RTC_DATA_ATTR int boot_count = 0;
@@ -61,9 +58,6 @@ static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 11
 #define kDataLoggerOTAManifestURL                                                                                      \
     "https://raw.githubusercontent.com/sparkfun/SparkFun_DataLogger/main/firmware/manifest/sfe-dl-manifest.json"
 
-// What is the out of the box baud rate ..
-#define kDefaultTerminalBaudRate 115200
-
 // Button event increment
 #define kButtonPressedIncrement 5
 
@@ -82,23 +76,16 @@ static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 11
 #define kLNagTimeSecs (kLNagTimeMins * 60)
 #define kLNagTimesMSecs (kLNagTimeSecs * 1000)
 
-static char *kLNagMessage =
+static const char *kLNagMessage =
     "This firmware is designed to run on a SparkFun DataLogger IoT board. Purchase one at www.sparkfun.com";
-
-// Operation mode flags
-#define kDataLoggerOpEditing (1 << 0)
-#define kDataLoggerOpStartup (1 << 1)
-#define kDataLoggerOpPendingRestart (1 << 2)
-
-#define inOpMode(__mode__) ((_opFlags & __mode__) == __mode__)
-#define setOpMode(__mode__) _opFlags |= __mode__
-#define clearOpMode(__mode__) _opFlags &= ~__mode__
 
 #define kBatteryNoBatterySOC 110.
 
 constexpr char *sfeDataLogger::kLogFormatNames[];
+
 //---------------------------------------------------------------------------
 // Constructor
+//---------------------------------------------------------------------------
 //
 
 sfeDataLogger::sfeDataLogger()
@@ -161,304 +148,6 @@ sfeDataLogger::sfeDataLogger()
 }
 
 //---------------------------------------------------------------------------
-// setupSDCard()
-//
-// Set's up the SD card subsystem and the objects/systems that use it.
-bool sfeDataLogger::setupSDCard(void)
-{
-    // setup output to the SD card
-    if (_theSDCard.initialize())
-    {
-
-        _theOutputFile.setName("Data File", "Output file rotation manager");
-
-        // SD card is available - lets setup output for it
-        // Add the filesystem to the file output/rotation object
-        _theOutputFile.setFileSystem(_theSDCard);
-
-        // setup our file rotation parameters
-        _theOutputFile.filePrefix = "sfe";
-        _theOutputFile.startNumber = 1;
-        _theOutputFile.rotatePeriod(24); // one day
-
-        // add the file output to the CSV output.
-        //_fmtCSV.add(_theOutputFile);
-
-        // have the CSV formatter listen to the new file event. This
-        // will cause a header to be written next cycle.
-        _fmtCSV.listenNewFile(_theOutputFile.on_newFile);
-
-        return true;
-    }
-    return false;
-}
-
-//---------------------------------------------------------------------
-// Setup the IOT clients
-bool sfeDataLogger::setupIoTClients()
-{
-
-    // Add title for this section
-    _mqttClient.setTitle("IoT Services");
-    // setup the network connection for the mqtt
-    _mqttClient.setNetwork(&_wifiConnection);
-    // add mqtt to JSON
-    _fmtJSON.add(_mqttClient);
-
-    // setup the network connection for the mqtt
-    _mqttSecureClient.setNetwork(&_wifiConnection);
-    // add mqtt to JSON
-    _fmtJSON.add(_mqttSecureClient);
-
-    // AWS
-    _iotAWS.setName("AWS IoT", "Connect to an AWS Iot Thing");
-    _iotAWS.setNetwork(&_wifiConnection);
-
-    // Add the filesystem to load certs/keys from the SD card
-    _iotAWS.setFileSystem(&_theSDCard);
-    _fmtJSON.add(_iotAWS);
-
-    // Thingspeak driver
-    _iotThingSpeak.setNetwork(&_wifiConnection);
-
-    // Add the filesystem to load certs/keys from the SD card
-    _iotThingSpeak.setFileSystem(&_theSDCard);
-    _fmtJSON.add(_iotThingSpeak);
-
-    // Azure IoT
-    _iotAzure.setNetwork(&_wifiConnection);
-
-    // Add the filesystem to load certs/keys from the SD card
-    _iotAzure.setFileSystem(&_theSDCard);
-    _fmtJSON.add(_iotAzure);
-
-    // general HTTP / URL logger
-    _iotHTTP.setNetwork(&_wifiConnection);
-    _iotHTTP.setFileSystem(&_theSDCard);
-    _fmtJSON.add(_iotHTTP);
-
-    // Machine Chat
-    _iotMachineChat.setNetwork(&_wifiConnection);
-    _iotMachineChat.setFileSystem(&_theSDCard);
-    _fmtJSON.add(_iotMachineChat);
-
-    // Arduino IoT
-    _iotArduinoIoT.setNetwork(&_wifiConnection);
-    _fmtJSON.add(_iotArduinoIoT);
-
-    return true;
-}
-
-//---------------------------------------------------------------------------
-// setupTime()
-//
-// Setup any time sources/sinks. Called after devices are loaded
-
-bool sfeDataLogger::setupTime()
-{
-
-    // what is our clock - as setup from init/prefs
-    std::string refClock = flxClock.referenceClock();
-
-    flxClock.addReferenceClock(&_ntpClient, _ntpClient.name());
-
-    // Any GNSS devices attached?
-    auto allGNSS = flux.get<flxDevGNSS>();
-    for (auto gnss : *allGNSS)
-        flxClock.addReferenceClock(gnss, gnss->name());
-
-    // RTC clock?
-    auto allRTC8803 = flux.get<flxDevRV8803>();
-    for (auto rtc8803 : *allRTC8803)
-    {
-        flxClock.addReferenceClock(rtc8803, rtc8803->name());
-        flxClock.addConnectedClock(rtc8803);
-    }
-
-    // Now that clocks are loaded, set the ref clock to what was started with.
-    flxClock.referenceClock = refClock;
-
-    // update the system clock to the reference clock
-    flxClock.updateClock();
-
-    return true;
-}
-
-//---------------------------------------------------------------------------
-// output things
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-// "about"
-void sfeDataLogger::displayAppStatus(bool useInfo)
-{
-
-    // type of output to use?
-    flxLogLevel_t logLevel;
-    char pre_ch;
-    if (useInfo)
-    {
-        logLevel = flxLogInfo;
-        pre_ch = ' ';
-    }
-    else
-    {
-        logLevel = flxLogNone;
-        pre_ch = '\t';
-    }
-
-    time_t t_now;
-    time(&t_now);
-    struct tm *tmLocal = localtime(&t_now);
-
-    char szBuffer[64];
-    memset(szBuffer, '\0', sizeof(szBuffer));
-    strftime(szBuffer, sizeof(szBuffer), "%G-%m-%dT%T", tmLocal);
-    flxLog__(logLevel, "%cTime: %s", pre_ch, szBuffer);
-    flxLog__(logLevel, "%cTime Zone: %s", pre_ch, flxClock.timeZone().c_str());
-
-    // uptime
-    uint32_t days, hours, minutes, secs, mills;
-
-    flx_utils::uptime(days, hours, minutes, secs, mills);
-
-    flxLog__(logLevel, "%cUptime: %u days, %02u:%02u:%02u.%u", pre_ch, days, hours, minutes, secs, mills);
-    flxLog__(logLevel, "%cExternal Time Source: %s", pre_ch, flxClock.referenceClock().c_str());
-
-    flxLog_N("");
-
-    flxLog__(logLevel, "%cBoard Type: %s", pre_ch, dlModeCheckName(_modeFlags));
-    flxLog__(logLevel, "%cBoard Name: %s", pre_ch, flux.localName().c_str());
-    flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
-
-    flxLog_N("");
-
-    if (_theSDCard.enabled())
-    {
-
-        char szSize[32];
-        char szCap[32];
-        char szAvail[32];
-
-        flx_utils::formatByteString(_theSDCard.size(), 2, szSize, sizeof(szSize));
-        flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));
-        flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
-
-        flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)", pre_ch, _theSDCard.type(),
-                 szSize, szCap, szAvail, 100. - (_theSDCard.used() / (float)_theSDCard.total() * 100.));
-    }
-    else
-        flxLog__(logLevel, "%cSD card not available", pre_ch);
-
-    // show heap level
-    flxLog__(logLevel, "%cSystem Heap - Total: %dB Free: %dB (%.1f%%)", pre_ch, ESP.getHeapSize(), ESP.getFreeHeap(),
-             (float)ESP.getFreeHeap() / (float)ESP.getHeapSize() * 100.);
-
-    if (_wifiConnection.enabled())
-    {
-        if (_wifiConnection.isConnected())
-        {
-            IPAddress addr = _wifiConnection.localIP();
-            uint rating = _wifiConnection.rating();
-            const char *szRSSI = rating == kWiFiLevelExcellent ? "Excellent"
-                                 : rating == kWiFiLevelGood    ? "Good"
-                                 : rating == kWiFiLevelFair    ? "Fair"
-                                                               : "Weak";
-
-            flxLog__(logLevel, "%cWiFi - Connected  SSID: %s  IP Address: %d.%d.%d.%d  Signal: %s", pre_ch,
-                     _wifiConnection.connectedSSID().c_str(), addr[0], addr[1], addr[2], addr[3], szRSSI);
-        }
-        else
-            flxLog__(logLevel, "%cWiFi - Not Connected", pre_ch);
-    }
-    else
-        flxLog__(logLevel, "%cWiFi not enabled", pre_ch);
-
-    // Battery fuel gauge available?
-    if (_fuelGauge != nullptr)
-    {
-        // Output if a) we have a batter connected, and if so the % charge, and if it's charging
-        float batterySOC = _fuelGauge->getSOC();
-        // Is a battery connected - look at SOC
-        if (batterySOC < kBatteryNoBatterySOC)
-            flxLog__(logLevel, "%cBattery - Level: %c%.1f%%", pre_ch, _fuelGauge->getChangeRate() > 0 ? '+' : ' ',
-                     batterySOC);
-        else
-            flxLog__(logLevel, "%cBattery - Not Connected", pre_ch);
-    }
-    flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
-    flxLog_N("%c    Sleep Interval: %d seconds", pre_ch, sleepInterval());
-    flxLog_N("%c    Wake Interval: %d seconds", pre_ch, wakeInterval());
-
-    flxLog_N("");
-
-    flxLog__(logLevel, "%cLogging Interval: %u (ms)", pre_ch, _timer.interval());
-
-    // Run rate metric
-    flxLog_N_("%c    Measured rate: ", pre_ch);
-    if (useInfo || !_logger.enabledLogRate())
-        flxLog_N("%s", (_logger.enabledLogRate() ? "<enabled>" : "<disabled>"));
-    else
-        flxLog_N("%.2f (ms)", _logger.getLogRate());
-
-    flxLog__(logLevel, "%cJSON Buffer - Size: %dB Max Used: %dB", pre_ch, jsonBufferSize(), _fmtJSON.getMaxSizeUsed());
-    flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
-    flxLog_N("%c    Baud Rate: %d", pre_ch, serialBaudRate());
-    flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
-
-    // at startup, useInfo == true, the file isn't known, so skip output
-    if (!useInfo)
-        flxLog_N("%c    Current Filename: \t%s", pre_ch,
-                 _theOutputFile.currentFilename().length() == 0 ? "<none>" : _theOutputFile.currentFilename().c_str());
-    flxLog_N("%c    Rotate Period: %d Hours", pre_ch, _theOutputFile.rotatePeriod());
-
-    flxLog_N("");
-
-    flxLog__(logLevel, "%cIoT Services:", pre_ch);
-
-    flxLog_N("%c    %-20s  : %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _mqttSecureClient.name(),
-             _mqttSecureClient.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotArduinoIoT.name(), _iotArduinoIoT.enabled() ? "enabled" : "disabled");
-
-    flxLog_N("");
-
-    // connected devices...
-    flxDeviceContainer myDevices = flux.connectedDevices();
-    flxLog__(logLevel, "%cConnected Devices [%d]:", pre_ch, myDevices.size());
-
-    // Loop over the device list - note that it is iterable.
-    for (auto device : myDevices)
-    {
-        flxLog_N_(F("%c    %-20s  - %s  {"), pre_ch, device->name(), device->description());
-        if (device->getKind() == flxDeviceKindI2C)
-            flxLog_N("%s x%x}", "qwiic", device->address());
-        else
-            flxLog_N("%s p%u}", "SPI", device->address());
-    }
-
-    flxLog_N("");
-}
-
-//---------------------------------------------------------------------------
-void sfeDataLogger::displayAppAbout()
-{
-
-    char szBuffer[128];
-    flux.versionString(szBuffer, sizeof(szBuffer), true);
-
-    flxLog_N("\n\r\t%s   %s", flux.name(), flux.description());
-    flxLog_N("\tVersion: %s\n\r", szBuffer);
-
-    displayAppStatus(false);
-}
-
-//---------------------------------------------------------------------------
 // Event callbacks
 //---------------------------------------------------------------------------
 // Display things during firmware loading
@@ -475,6 +164,7 @@ void sfeDataLogger::listenForFirmwareLoad(flxSignalBool &theEvent)
 {
     theEvent.call(this, &sfeDataLogger::onFirmwareLoad);
 }
+
 //---------------------------------------------------------------------------
 // Display things during settings edits
 //---------------------------------------------------------------------------
@@ -548,6 +238,9 @@ void sfeDataLogger::onButtonReleased(uint increment)
     if (increment > 0)
         sfeLED.off();
 }
+
+//---------------------------------------------------------------------------
+// Flux flxApplication LifeCycle Method
 //---------------------------------------------------------------------------
 // onSetup()
 //
@@ -645,35 +338,9 @@ bool sfeDataLogger::onSetup()
     return true;
 }
 
-//---------------------------------------------------------------------
-// Check if we have a NFC reader available -- for use with WiFi credentials
-//
-// Call after autoload
-void sfeDataLogger::setupNFDevice(void)
-{
-    // do we have a NFC device connected?
-    auto nfcDevices = flux.get<flxDevST25DV>();
-
-    if (nfcDevices->size() == 0)
-        return;
-
-    // We have an NFC device. Create a credentials action and connect to the NFC device
-    // and WiFi.
-    flxSetWifiCredentials *pCreds = new flxSetWifiCredentials;
-
-    if (!pCreds)
-        return;
-
-    flxDevST25DV *pNFC = nfcDevices->at(0);
-    flxLog_I(F("%s: WiFi credentials via NFC enabled"), pNFC->name());
-
-    pCreds->setCredentialSource(pNFC);
-    pCreds->setWiFiDevice(&_wifiConnection);
-
-    // Change the name on the action
-    pCreds->setName("WiFi Login From NFC", "Set the devices WiFi Credentials from an attached NFC source.");
-}
-
+//---------------------------------------------------------------------------
+// Flux flxApplication LifeCycle Method
+//---------------------------------------------------------------------------
 //---------------------------------------------------------------------
 // onDeviceLoad()
 //
@@ -747,240 +414,9 @@ void sfeDataLogger::resetDevice(void)
     _sysUpdate.restartDevice();
 }
 
-//---------------------------------------------------------------------
-void sfeDataLogger::setupBioHub()
-{
-    if (_bioHub.initialize(kAppBioHubReset,
-                           kAppBioHubMFIO)) // Initialize the bio hub using the reset and mfio pins,
-    {
-        flxLog_I(F("%s is enabled"), _bioHub.name());
-        _logger.add(_bioHub);
-    }
-}
-
 //---------------------------------------------------------------------------
-void sfeDataLogger::setupENS160(void)
-{
-
-    // do we have one attached?
-    auto ens160Devices = flux.get<flxDevENS160>();
-    if (ens160Devices->size() == 0)
-        return;
-
-    flxDevENS160 *pENS160 = ens160Devices->at(0);
-
-    auto bmeDevices = flux.get<flxDevBME280>();
-    if (bmeDevices->size() > 0)
-    {
-        flxDevBME280 *pBME = bmeDevices->at(0);
-
-        pENS160->setTemperatureCompParameter(pBME->temperatureC);
-        pENS160->setHumidityCompParameter(pBME->humidity);
-
-        flxLog_I(F("%s: compensation values applied from %s"), pENS160->name(), pBME->name());
-        return;
-    }
-    // do we have a SHTC3 attatched
-    auto shtc3Devices = flux.get<flxDevSHTC3>();
-    if (shtc3Devices->size() > 0)
-    {
-        flxDevSHTC3 *pSHTC3 = shtc3Devices->at(0);
-
-        pENS160->setTemperatureCompParameter(pSHTC3->temperatureC);
-        pENS160->setHumidityCompParameter(pSHTC3->humidity);
-
-        flxLog_I(F("%s: compensation values applied from %s"), pENS160->name(), pSHTC3->name());
-        return;
-    }
-}
+// Flux flxApplication LifeCycle Method
 //---------------------------------------------------------------------------
-uint8_t sfeDataLogger::get_logTypeSD(void)
-{
-    return _logTypeSD;
-}
-//---------------------------------------------------------------------------
-void sfeDataLogger::set_logTypeSD(uint8_t logType)
-{
-    if (logType == _logTypeSD)
-        return;
-
-    if (_logTypeSD == kAppLogTypeCSV)
-        _fmtCSV.remove(&_theOutputFile);
-    else if (_logTypeSD == kAppLogTypeJSON)
-        _fmtJSON.remove(&_theOutputFile);
-
-    _logTypeSD = logType;
-
-    if (_logTypeSD == kAppLogTypeCSV)
-        _fmtCSV.add(&_theOutputFile);
-    else if (_logTypeSD == kAppLogTypeJSON)
-        _fmtJSON.add(&_theOutputFile);
-}
-//---------------------------------------------------------------------------
-uint8_t sfeDataLogger::get_logTypeSer(void)
-{
-    return _logTypeSer;
-}
-//---------------------------------------------------------------------------
-void sfeDataLogger::set_logTypeSer(uint8_t logType)
-{
-    if (logType == _logTypeSer)
-        return;
-
-    if (_logTypeSer == kAppLogTypeCSV)
-        _fmtCSV.remove(flxSerial());
-    else if (_logTypeSer == kAppLogTypeJSON)
-        _fmtJSON.remove(flxSerial());
-
-    _logTypeSer = logType;
-
-    if (_logTypeSer == kAppLogTypeCSV)
-        _fmtCSV.add(flxSerial());
-    else if (_logTypeSer == kAppLogTypeJSON)
-        _fmtJSON.add(flxSerial());
-}
-
-//---------------------------------------------------------------------------
-// json Buffer Size
-
-uint sfeDataLogger::get_jsonBufferSize(void)
-{
-    return _fmtJSON.bufferSize();
-}
-
-void sfeDataLogger::set_jsonBufferSize(uint new_size)
-{
-    _fmtJSON.setBufferSize(new_size);
-}
-
-//---------------------------------------------------------------------------
-// device names
-//---------------------------------------------------------------------------
-bool sfeDataLogger::get_verbose_dev_name(void)
-{
-    return flux.verboseDevNames();
-}
-
-void sfeDataLogger::set_verbose_dev_name(bool enable)
-{
-    flux.setVerboseDevNames(enable);
-}
-
-//---------------------------------------------------------------------------
-// Sleep
-//---------------------------------------------------------------------------
-bool sfeDataLogger::get_sleepEnabled(void)
-{
-    return _bSleepEnabled;
-}
-
-//---------------------------------------------------------------------------
-void sfeDataLogger::set_sleepEnabled(bool enabled)
-{
-    if (_bSleepEnabled == enabled)
-        return;
-
-    _bSleepEnabled = enabled;
-
-    // manage our event -- if enabled, add to loop events, else remove it
-    // Is it in the loop event list ?
-    auto it = std::find(_loopEventList.begin(), _loopEventList.end(), &_sleepEvent);
-
-    if (_bSleepEnabled)
-    {
-        _sleepEvent.last = millis();
-
-        // just to be safe - check for dups
-        if (it == _loopEventList.end())
-            _loopEventList.push_back(&_sleepEvent);
-    }
-    else
-    {
-        if (it != _loopEventList.end()) // need to remove this
-            _loopEventList.erase(it);
-    }
-}
-
-//---------------------------------------------------------------------------
-// Wake interval - get/set in secs; stored in our sleep event as MSecs
-uint sfeDataLogger::get_sleepWakePeriod(void)
-{
-    return _sleepEvent.delta / 1000;
-}
-//---------------------------------------------------------------------------
-// set period -- in secs
-void sfeDataLogger::set_sleepWakePeriod(uint period)
-{
-    _sleepEvent.delta = period * 1000;
-}
-
-//---------------------------------------------------------------------------
-// LED
-//---------------------------------------------------------------------------
-bool sfeDataLogger::get_ledEnabled(void)
-{
-    return !sfeLED.disabled();
-}
-//---------------------------------------------------------------------------
-void sfeDataLogger::set_ledEnabled(bool enabled)
-{
-    sfeLED.setDisabled(!enabled);
-}
-
-//---------------------------------------------------------------------------
-// Terminal Baudrate things
-//---------------------------------------------------------------------------
-uint sfeDataLogger::get_termBaudRate(void)
-{
-    return _terminalBaudRate;
-}
-//---------------------------------------------------------------------------
-void sfeDataLogger::set_termBaudRate(uint newRate)
-{
-    // no change?
-    if (newRate == _terminalBaudRate)
-        return;
-
-    _terminalBaudRate = newRate;
-
-    // Was this done during an edit session?
-    if (inOpMode(kDataLoggerOpEditing))
-    {
-        flxLog_N(F("\n\r\n\r\t[The new baud rate of %u takes effect when this device is restarted]"), newRate);
-        delay(700);
-        setOpMode(kDataLoggerOpPendingRestart);
-    }
-}
-//---------------------------------------------------------------------------
-uint sfeDataLogger::getTerminalBaudRate(void)
-{
-    // Do we have this block in storage? And yes, a little hacky with name :)
-    flxStorageBlock *stBlk = _sysStorage.getBlock(((flxObject *)this)->name());
-
-    if (!stBlk)
-        return kDefaultTerminalBaudRate;
-
-    uint theRate = 0;
-    bool status = stBlk->read(serialBaudRate.name(), theRate);
-
-    _sysStorage.endBlock(stBlk);
-
-    return status ? theRate : kDefaultTerminalBaudRate;
-}
-
-//---------------------------------------------------------------------------
-// local/board name things
-std::string sfeDataLogger::get_local_name(void)
-{
-    return flux.localName();
-}
-//---------------------------------------------------------------------------
-
-void sfeDataLogger::set_local_name(std::string name)
-{
-    flux.setLocalName(name);
-}
-
 //---------------------------------------------------------------------------
 // onInit()
 //
@@ -1022,6 +458,10 @@ void sfeDataLogger::checkOpMode()
     // at this point we know the board we're running on. Set the name...
     setName(dlModeCheckName(_modeFlags));
 }
+
+//---------------------------------------------------------------------------
+// Flux flxApplication LifeCycle Method
+//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 // onStart()
 //
@@ -1180,7 +620,7 @@ void sfeDataLogger::enterSleepMode()
 //---------------------------------------------------------------------------
 void sfeDataLogger::outputVMessage()
 {
-    _logger.logMessage("INVALID PLATFORM", kLNagMessage);
+    _logger.logMessage("INVALID PLATFORM", (char *)kLNagMessage);
 
     // if not logging to the serial console, dump out a message
 
