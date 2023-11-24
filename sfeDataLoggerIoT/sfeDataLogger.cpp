@@ -124,7 +124,7 @@ sfeDataLogger::sfeDataLogger()
     sdCardLogType.setTitle("Output");
     flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
-    flxRegister(jsonBuferSize, "JSON Buffer Size", "Output buffer size in bytes");
+    flxRegister(jsonBufferSize, "JSON Buffer Size", "Output buffer size in bytes");
 
     // Terminal Serial Baud Rate
     flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart");
@@ -314,15 +314,15 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     char szBuffer[64];
     memset(szBuffer, '\0', sizeof(szBuffer));
     strftime(szBuffer, sizeof(szBuffer), "%G-%m-%dT%T", tmLocal);
-    flxLog__(logLevel, "%cTime:\t%s", pre_ch, szBuffer);
-    flxLog__(logLevel, "%cTime Zone:\t%s", pre_ch, flxClock.timeZone().c_str());
+    flxLog__(logLevel, "%cTime: %s", pre_ch, szBuffer);
+    flxLog__(logLevel, "%cTime Zone: %s", pre_ch, flxClock.timeZone().c_str());
 
     // uptime
     uint32_t days, hours, minutes, secs, mills;
 
     flx_utils::uptime(days, hours, minutes, secs, mills);
 
-    flxLog__(logLevel, "%cUptime:\t%u days, %02u:%02u:%02u.%u", pre_ch, days, hours, minutes, secs, mills);
+    flxLog__(logLevel, "%cUptime: %u days, %02u:%02u:%02u.%u", pre_ch, days, hours, minutes, secs, mills);
     flxLog__(logLevel, "%cExternal Time Source: %s", pre_ch, flxClock.referenceClock().c_str());
 
     flxLog_N("");
@@ -332,8 +332,6 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
 
     flxLog_N("");
-
-    // flxLog__(logLevel, "%cDEBUG: info Page -  Free Heap: %d", pre_ch, ESP.getFreeHeap());
 
     if (_theSDCard.enabled())
     {
@@ -346,11 +344,15 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));
         flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
 
-        flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s", pre_ch, _theSDCard.type(), szSize,
-                 szCap, szAvail);
+        flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)", pre_ch, _theSDCard.type(),
+                 szSize, szCap, szAvail, 100. - (_theSDCard.used() / (float)_theSDCard.total() * 100.));
     }
     else
         flxLog__(logLevel, "%cSD card not available", pre_ch);
+
+    // show heap level
+    flxLog__(logLevel, "%cSystem Heap - Total: %dB Free: %dB (%.1f%%)", pre_ch, ESP.getHeapSize(), ESP.getFreeHeap(),
+             (float)ESP.getFreeHeap() / (float)ESP.getHeapSize() * 100.);
 
     if (_wifiConnection.enabled())
     {
@@ -384,24 +386,23 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         else
             flxLog__(logLevel, "%cBattery - Not Connected", pre_ch);
     }
-
     flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
-    flxLog_N("%c    Sleep Interval:  %d seconds", pre_ch, sleepInterval());
-    flxLog_N("%c    Wake Interval:   %d seconds", pre_ch, wakeInterval());
+    flxLog_N("%c    Sleep Interval: %d seconds", pre_ch, sleepInterval());
+    flxLog_N("%c    Wake Interval: %d seconds", pre_ch, wakeInterval());
 
     flxLog_N("");
 
     flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
-    flxLog__(logLevel, "%cSerial Output:  %s", pre_ch, kLogFormatNames[serialLogType()]);
-    flxLog_N("%c    Baud Rate:         %d", pre_ch, serialBaudRate());
-    flxLog_N("%c    JSON Buffer Size:  %d (bytes)", pre_ch, jsonBuferSize());
+    flxLog__(logLevel, "%cJSON Buffer - Size: %dB Max Used: %dB", pre_ch, jsonBufferSize(), _fmtJSON.getMaxSizeUsed());
+    flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
+    flxLog_N("%c    Baud Rate: %d", pre_ch, serialBaudRate());
     flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
 
     // at startup, useInfo == true, the file isn't known, so skip output
     if (!useInfo)
         flxLog_N("%c    Current Filename: \t%s", pre_ch,
                  _theOutputFile.currentFilename().length() == 0 ? "<none>" : _theOutputFile.currentFilename().c_str());
-    flxLog_N("%c    Rotate Period: \t%d Hours", pre_ch, _theOutputFile.rotatePeriod());
+    flxLog_N("%c    Rotate Period: %d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
     flxLog_N("");
 
