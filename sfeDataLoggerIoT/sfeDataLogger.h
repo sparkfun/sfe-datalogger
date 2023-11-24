@@ -237,7 +237,7 @@ class sfeDataLogger : public flxApplication
     void set_sleepWakePeriod(uint);
 
     uint get_jsonBufferSize(void);
-    void set_jsonBufferSize(uint); 
+    void set_jsonBufferSize(uint);
 
     bool get_verbose_dev_name(void);
     void set_verbose_dev_name(bool);
@@ -274,9 +274,9 @@ class sfeDataLogger : public flxApplication
          {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
          {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
 
-
     // JSON output buffer size
-    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_jsonBufferSize, &sfeDataLogger::set_jsonBufferSize> jsonBuferSize = {100, 5000};
+    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_jsonBufferSize, &sfeDataLogger::set_jsonBufferSize>
+        jsonBufferSize = {100, 5000};
 
     // System sleep properties
     flxPropertyUint<sfeDataLogger> sleepInterval = {5, 86400};
@@ -292,13 +292,13 @@ class sfeDataLogger : public flxApplication
         serialBaudRate = {1200, 500000};
 
     // Verbose Device Names
-    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_verbose_dev_name, &sfeDataLogger::set_verbose_dev_name> verboseDevNames;
-    
+    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_verbose_dev_name, &sfeDataLogger::set_verbose_dev_name>
+        verboseDevNames;
+
     flxParameterInVoid<sfeDataLogger, &sfeDataLogger::about_app_status> aboutApplication;
 
     // board user set name
     flxPropertyRWString<sfeDataLogger, &sfeDataLogger::get_local_name, &sfeDataLogger::set_local_name> localBoardName;
-
 
   private:
     void enterSleepMode(void);
