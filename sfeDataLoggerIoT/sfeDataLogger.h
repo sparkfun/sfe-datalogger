@@ -114,7 +114,7 @@ class sfeDLLoopEvent
         last = in_last;
     }
 
-    // what method to call when time expried
+    // what method to call when time expired
     template <typename T> void call(T *inst, void (T::*func)())
     {
         handler = [=]() { // uses a lambda for the callback

@@ -392,7 +392,15 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     flxLog_N("");
 
-    flxLog__(logLevel, "%cLogging Interval (ms): %u", pre_ch, _timer.interval());
+    flxLog__(logLevel, "%cLogging Interval: %u (ms)", pre_ch, _timer.interval());
+
+    // Run rate metric
+    flxLog_N_("%c    Measured rate: ", pre_ch);
+    if (useInfo || !_logger.enabledLogRate())
+        flxLog_N("%s", (_logger.enabledLogRate() ? "<enabled>" : "<disabled>"));
+    else
+        flxLog_N("%.2f (ms)", _logger.getLogRate());
+
     flxLog__(logLevel, "%cJSON Buffer - Size: %dB Max Used: %dB", pre_ch, jsonBufferSize(), _fmtJSON.getMaxSizeUsed());
     flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog_N("%c    Baud Rate: %d", pre_ch, serialBaudRate());
