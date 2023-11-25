@@ -22,6 +22,11 @@
 #include <Flux/flxDevGNSS.h>
 #include <Flux/flxDevRV8803.h>
 #include <Flux/flxDevSHTC3.h>
+
+// Biometric Hub -- requires pins to be set on startup
+static const uint8_t kAppBioHubReset = 17; // Use the TXD pin as the bio hub reset pin
+static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfio pin
+
 //---------------------------------------------------------------------------
 // setupSDCard()
 //

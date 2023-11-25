@@ -16,6 +16,7 @@
  */
 
 #include "sfeDataLogger.h"
+#include "sfeDLCommands.h"
 #include "sfeDLLed.h"
 #include "sfeDLMode.h"
 #include "sfeDLVersion.h"
@@ -25,9 +26,15 @@
 // for our time setup
 #include <Flux/flxClock.h>
 #include <Flux/flxDevMAX17048.h>
-#include <Flux/flxSerialField.h>
 
 #include <Flux/flxUtils.h>
+
+// SPI Devices
+// The onboard IMU
+static const uint8_t kAppOnBoardIMUCS = 5;
+
+// The onboard Magnetometer
+static const uint8_t kAppOnBoardMAGCS = 27;
 
 RTC_DATA_ATTR int boot_count = 0;
 
@@ -681,15 +688,9 @@ bool sfeDataLogger::loop()
         uint8_t chIn = Serial.read();
         if (chIn == '!')
         {
-            // The data editor we're using - serial field
-            flxSerialField theDataEditor;
             Serial.write('!');
-            char szBuffer[64];
-            bool status = theDataEditor.editFieldCString(szBuffer, sizeof(szBuffer));
-            if (status)
-                flxLog_I("Bang command !%s", szBuffer);
-            else
-                flxLog_I("Escape");
+            sfeDLCommands cmdProcessor;
+            bool status = cmdProcessor.processCommand(this);
         }
         else // edit settings
         {
