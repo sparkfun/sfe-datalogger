@@ -24,8 +24,8 @@
 
 // for our time setup
 #include <Flux/flxClock.h>
-
 #include <Flux/flxDevMAX17048.h>
+#include <Flux/flxSerialField.h>
 
 #include <Flux/flxUtils.h>
 
@@ -677,16 +677,33 @@ bool sfeDataLogger::loop()
     // key press at Serial Console? What to do??
     if (Serial.available())
     {
-        // start an editing session
-        sfeLEDColor_t color;
-        int status = _serialSettings.editSettings();
-        if (status == -1)
-            color = sfeLED.Red;
-        else if (status == 1)
-            color = sfeLED.Green;
-        else
-            color = sfeLED.Yellow;
-        sfeLED.flash(color);
+        // Bang command?
+        uint8_t chIn = Serial.read();
+        if (chIn == '!')
+        {
+            // The data editor we're using - serial field
+            flxSerialField theDataEditor;
+            Serial.write(`!`);
+            char szBuffer[64];
+            bool status = theDataEditor.editFieldCString(szBuffer, sizeof(szBuffer));
+            if (status)
+                flxLog_I("Bang command !%s", szBuffer);
+            else
+                flxLog_I("Escape");
+        }
+        else // edit settings
+        {
+            // start an editing session
+            sfeLEDColor_t color;
+            int status = _serialSettings.editSettings();
+            if (status == -1)
+                color = sfeLED.Red;
+            else if (status == 1)
+                color = sfeLED.Green;
+            else
+                color = sfeLED.Yellow;
+            sfeLED.flash(color);
+        }
     }
     return false;
 }
