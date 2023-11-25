@@ -683,7 +683,7 @@ bool sfeDataLogger::loop()
         {
             // The data editor we're using - serial field
             flxSerialField theDataEditor;
-            Serial.write(`!`);
+            Serial.write('!');
             char szBuffer[64];
             bool status = theDataEditor.editFieldCString(szBuffer, sizeof(szBuffer));
             if (status)
