@@ -14,6 +14,7 @@
  * Spark Framework demo - logging
  *
  */
+#pragma once
 
 // Spark framework
 #include <Flux.h>
@@ -44,16 +45,12 @@
 // SPI Devices
 // The onboard IMU
 #include <Flux/flxDevISM330.h>
-static const uint8_t kAppOnBoardIMUCS = 5;
 
 // The onboard Magnetometer
 #include <Flux/flxDevMMC5983.h>
-static const uint8_t kAppOnBoardMAGCS = 27;
 
 // Biometric Hub -- requires pins to be set on startup
 #include <Flux/flxDevBioHub.h>
-static const uint8_t kAppBioHubReset = 17; // Use the TXD pin as the bio hub reset pin
-static const uint8_t kAppBioHubMFIO = 16;  // Use the RXD pin as the bio hub mfio pin
 
 // Fuel gauge
 #include <Flux/flxDevMAX17048.h>
@@ -192,6 +189,8 @@ class sfeDataLogger : public flxApplication
     void resetDevice(void);
 
   private:
+    friend class sfeDLCommands;
+
     //---------------------------------------------------------------------
     // Check if we have a NFC reader available -- for use with WiFi credentials
     //
@@ -362,7 +361,7 @@ class sfeDataLogger : public flxApplication
     // settings things
     flxStorageESP32Pref _sysStorage;
     flxSettingsSerial _serialSettings;
-    flxStorageJSONPref _jsonStorage;
+    flxStorageJSONPrefFile _jsonStorage;
 
     // the onboard IMU
     flxDevISM330_SPI _onboardIMU;
