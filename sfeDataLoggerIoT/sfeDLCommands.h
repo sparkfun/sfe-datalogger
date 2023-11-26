@@ -12,6 +12,7 @@
 #pragma once
 
 #include "sfeDataLogger.h"
+#include <ArduinoJson.h>
 
 #include <Flux/flxSerialField.h>
 
@@ -125,6 +126,35 @@ class sfeDLCommands
 
         return true;
     }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Reads JSON from the serial console - uses as input into the settings system
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool loadJSONSettings(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
+
+        // Create a JSON prefs serial object and read in the settings
+        flxStorageJSONPrefSerial prefsSerial(flxSettings.fallbackBuffer() > 0 ? flxSettings.fallbackBuffer() : 2000);
+
+        // restore the settings from serial
+        bool status = flxSettings.restoreObjectFromStorage(&flux, &prefsSerial);
+        if (!status)
+            return false;
+
+        flxLog_I_(F("Settings restored from serial..."));
+
+        // now save the new settings in primary storage
+        status = flxSettings.save(&flux, true);
+        if (status)
+            flxLog_N(F("saved locally"));
+
+        return status;
+    }
 
     //---------------------------------------------------------------------
     // our command map - command name to callback method
@@ -136,6 +166,7 @@ class sfeDLCommands
         {"clear-settings-forced", &sfeDLCommands::clearDeviceSettingsForced},
         {"restart", &sfeDLCommands::restartDevice},
         {"restart-forced", &sfeDLCommands::restartDeviceForced},
+        {"json-settings", &sfeDLCommands::loadJSONSettings},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
     };
