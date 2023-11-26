@@ -361,7 +361,7 @@ class sfeDataLogger : public flxApplication
     // settings things
     flxStorageESP32Pref _sysStorage;
     flxSettingsSerial _serialSettings;
-    flxStorageJSONPref _jsonStorage;
+    flxStorageJSONPrefFile _jsonStorage;
 
     // the onboard IMU
     flxDevISM330_SPI _onboardIMU;
