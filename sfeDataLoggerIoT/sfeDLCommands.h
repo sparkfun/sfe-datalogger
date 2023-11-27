@@ -15,6 +15,7 @@
 #include <ArduinoJson.h>
 
 #include <Flux/flxSerialField.h>
+#include <Flux/flxUtils.h>
 
 class sfeDLCommands
 {
@@ -155,7 +156,120 @@ class sfeDLCommands
 
         return status;
     }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Dumps out the current heap size/stats
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool heapStatus(sfeDataLogger *dlApp)
+    {
+        // just dump out the current heap
+        flxLog_I(F("System Heap - Total: %dB Free: %dB (%.1f%%)"), ESP.getHeapSize(), ESP.getFreeHeap(),
+                 (float)ESP.getFreeHeap() / (float)ESP.getHeapSize() * 100.);
+        return true;
+    }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Dumps out the current logging rate metric
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool logRateStats(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
 
+        // Run rate metric
+        flxLog_N_(F("Logging Rate - Set Interval: %u (ms)  Measured: "), dlApp->_timer.interval());
+        if (!dlApp->_logger.enabledLogRate())
+            flxLog_N("%s", "<disabled>");
+        else
+            flxLog_N("%.2f (ms)", dlApp->_logger.getLogRate());
+
+        return true;
+    }
+
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Toggles the state of current logging rate metric
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool logRateToggle(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
+
+        dlApp->_logger.logRateMetric = !dlApp->_logger.logRateMetric();
+        // Run rate metric
+        flxLog_N(F("Logging Rate Metric %s"), dlApp->_logger.enabledLogRate() ? "Enabled" : "Disabled");
+
+        return true;
+    }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Dumps out the current wifi stats
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool wifiStats(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
+
+        if (dlApp->_wifiConnection.enabled() && dlApp->_wifiConnection.isConnected())
+        {
+            IPAddress addr = dlApp->_wifiConnection.localIP();
+            uint rating = dlApp->_wifiConnection.rating();
+            const char *szRSSI = rating == kWiFiLevelExcellent ? "Excellent"
+                                 : rating == kWiFiLevelGood    ? "Good"
+                                 : rating == kWiFiLevelFair    ? "Fair"
+                                                               : "Weak";
+            flxLog_I(F("WiFi - Connected  SSID: %s  IP Address: %d.%d.%d.%d  Signal: %s"),
+                     dlApp->_wifiConnection.connectedSSID().c_str(), addr[0], addr[1], addr[2], addr[3], szRSSI);
+        }
+        else
+            flxLog_I(F("WiFi - Not Connected/Enabled"));
+
+        return true;
+    }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Dumps out the current sd card stats
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool sdCardStats(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
+
+        if (dlApp->_theSDCard.enabled())
+        {
+
+            char szSize[32];
+            char szCap[32];
+            char szAvail[32];
+
+            flx_utils::formatByteString(dlApp->_theSDCard.size(), 2, szSize, sizeof(szSize));
+            flx_utils::formatByteString(dlApp->_theSDCard.total(), 2, szCap, sizeof(szCap));
+            flx_utils::formatByteString(dlApp->_theSDCard.total() - dlApp->_theSDCard.used(), 2, szAvail,
+                                        sizeof(szAvail));
+
+            flxLog_I(F("SD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)"), dlApp->_theSDCard.type(), szSize,
+                     szCap, szAvail, 100. - (dlApp->_theSDCard.used() / (float)dlApp->_theSDCard.total() * 100.));
+        }
+        else
+            flxLog_I(F("SD card not available"));
+
+        return true;
+    }
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
@@ -167,6 +281,11 @@ class sfeDLCommands
         {"restart", &sfeDLCommands::restartDevice},
         {"restart-forced", &sfeDLCommands::restartDeviceForced},
         {"json-settings", &sfeDLCommands::loadJSONSettings},
+        {"log-rate", &sfeDLCommands::logRateStats},
+        {"log-rate-toggle", &sfeDLCommands::logRateToggle},
+        {"wifi", &sfeDLCommands::wifiStats},
+        {"sdcard", &sfeDLCommands::sdCardStats},
+        {"heap", &sfeDLCommands::heapStatus},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
     };
@@ -183,6 +302,9 @@ class sfeDLCommands
 
         if (!status)
             return false;
+
+        // cleanup string
+        sBuffer = flx_utils::strtrim(sBuffer);
 
         // Find our command
         commandMap_t::iterator it = _commandMap.find(sBuffer);
