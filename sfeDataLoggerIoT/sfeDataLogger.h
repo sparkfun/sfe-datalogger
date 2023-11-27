@@ -136,9 +136,20 @@ class sfeDLLoopEvent
 };
 
 // Operation mode flags
+#define kDataLoggerOpNone (0)
 #define kDataLoggerOpEditing (1 << 0)
 #define kDataLoggerOpStartup (1 << 1)
 #define kDataLoggerOpPendingRestart (1 << 2)
+
+// startup things
+#define kDataLoggerOpStartNoAutoload (1 << 3)
+#define kDataLoggerOpStartListDevices (1 << 4)
+#define kDataLoggerOpStartNoSettings (1 << 5)
+#define kDataLoggerOpStartNoWiFi (1 << 6)
+
+#define kDataLoggerOpStartAllFlags                                                                                     \
+    (kDataLoggerOpStartNoAutoload | kDataLoggerOpStartListDevices | kDataLoggerOpStartNoSettings |                     \
+     kDataLoggerOpStartNoWiFi)
 
 #define inOpMode(__mode__) ((_opFlags & __mode__) == __mode__)
 #define setOpMode(__mode__) _opFlags |= __mode__
@@ -255,6 +266,9 @@ class sfeDataLogger : public flxApplication
 
     std::string get_local_name(void);
     void set_local_name(std::string name);
+
+    // support for onInit
+    void onInitStartupCommands(void);
 
   public:
     //---------------------------------------------------------------------------
@@ -407,7 +421,7 @@ class sfeDataLogger : public flxApplication
     bool _isValidMode;
 
     uint32_t _modeFlags;
-    uint16_t _opFlags;
+    uint32_t _opFlags;
 
     // Fuel gauge
     flxDevMAX17048 *_fuelGauge;
