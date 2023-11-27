@@ -23,6 +23,7 @@ The following commands are available:
 |<nobr>!wifi</nobr>|Outputs the current statistics for the WiFi connection|
 |<nobr>!sdcard</nobr>|Outputs the current statistics of the SD Card |
 |<nobr>!devices</nobr>|Lists the currently connected devices|
+|<nobr>!save-settings</nobr>|Saves the current system settings to the preference system|
 |<nobr>!heap</nobr>|Outputs the current statistics of the system heap memory|
 |<nobr>!about</nobr>|Outputs the full *About* page of the DataLogger|
 |<nobr>!help</nobr>|Outputs the available *!* commands|

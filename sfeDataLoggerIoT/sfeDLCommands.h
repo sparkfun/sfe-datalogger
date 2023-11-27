@@ -158,6 +158,27 @@ class sfeDLCommands
     }
     //---------------------------------------------------------------------
     ///
+    /// @brief Saves the current system to preferences/Settings
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool saveSettings(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
+
+        // Just call save
+        bool status = flxSettings.save(&flux);
+        if (status)
+            flxLog_I(F("Saving System Settings."));
+        else
+            flxLog_E(F("Error saving settings"));
+
+        return status;
+    }
+    //---------------------------------------------------------------------
+    ///
     /// @brief Dumps out the current heap size/stats
     ///
     /// @param dlApp Pointer to the DataLogger App
@@ -315,6 +336,7 @@ class sfeDLCommands
         {"wifi", &sfeDLCommands::wifiStats},
         {"sdcard", &sfeDLCommands::sdCardStats},
         {"devices", &sfeDLCommands::listLoadedDevices},
+        {"save-settings", &sfeDLCommands::saveSettings},
         {"heap", &sfeDLCommands::heapStatus},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
