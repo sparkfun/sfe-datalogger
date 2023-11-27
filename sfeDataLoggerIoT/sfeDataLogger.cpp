@@ -340,7 +340,21 @@ bool sfeDataLogger::onSetup()
     _boardButton.on_buttonRelease.call(this, &sfeDataLogger::onButtonReleased);
     _boardButton.on_buttonPressed.call(this, &sfeDataLogger::onButtonPressed);
 
-    // flxLog_I("DEBUG: onSetup() - exit - Free Heap: %d", ESP.getFreeHeap());
+    // was device autoload disabled by startup commands?
+    if (inOpMode(kDataLoggerOpStartNoAutoload))
+        flux.setAutoload(false);
+
+    // was settings restore disabled by startup commands?
+    if (inOpMode(kDataLoggerOpStartNoSettings))
+        flux.setLoadSettings(false);
+
+    // was wifi startup disabled by startup commands?
+    if (inOpMode(kDataLoggerOpStartNoWiFi))
+        _wifiConnection.setDelayedStartup();
+
+    // was wifi startup disabled by startup commands?
+    if (inOpMode(kDataLoggerOpStartListDevices))
+        flux.dumpDeviceAutoLoadTable();
 
     return true;
 }
@@ -422,8 +436,65 @@ void sfeDataLogger::resetDevice(void)
 }
 
 //---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Flux flxApplication LifeCycle Method
 //---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+///
+/// @brief Checks for any before startup commands from the user
+///
+
+void sfeDataLogger::onInitStartupCommands(void)
+{
+
+    // Waking up from sleep?
+    if (boot_count > 0)
+        return;
+
+    // setup our commands...
+    // may a simple command table
+    typedef struct
+    {
+        char key;
+        uint16_t mode;
+        const char *name;
+    } startupCommand_t;
+    startupCommand_t commands[] = {{0, kDataLoggerOpNone, "normal-startup"},
+                                   {'a', kDataLoggerOpStartNoAutoload, "device-auto-load-disabled"},
+                                   {'l', kDataLoggerOpStartListDevices, "device-listing-enabled"},
+                                   {'w', kDataLoggerOpStartNoWiFi, "wifi-disabled"},
+                                   {'s', kDataLoggerOpStartNoSettings, "settings-restore-disabled"}};
+
+    char spinny[4] = {'\\', '|', '/', '-'};
+    Serial.printf("\n\rStartup:  %c", spinny[0]);
+    char chBS = 8; // backspace
+    for (int i = 1; i < 25; i++)
+    {
+        Serial.write(chBS);
+        Serial.write(spinny[i % 4]);
+        delay(70);
+    }
+    Serial.write(chBS);
+    int iCommand = 0;
+    if (Serial.available())
+    {
+        // code /key pressed
+        uint8_t chIn = Serial.read();
+
+        // any match
+        for (int i = 1; i < sizeof(commands) / sizeof(startupCommand_t); i++)
+        {
+            if (chIn == commands[i].key)
+            {
+                iCommand = i;
+                break;
+            }
+        }
+    }
+    // set the op mode
+    setOpMode(commands[iCommand].mode);
+    Serial.printf("%s\n\r", commands[iCommand].name);
+}
 //---------------------------------------------------------------------------
 // onInit()
 //
@@ -447,6 +518,8 @@ void sfeDataLogger::onInit(void)
     sfeLED.on(sfeLED.Green);
 
     setOpMode(kDataLoggerOpStartup);
+
+    onInitStartupCommands();
 }
 //---------------------------------------------------------------------------
 // Check our platform status
@@ -584,7 +657,9 @@ bool sfeDataLogger::onStart()
     if (!_isValidMode)
         outputVMessage();
 
+    // clear startup flags/mode
     clearOpMode(kDataLoggerOpStartup);
+    clearOpMode(kDataLoggerOpStartAllFlags);
 
 #ifdef ENABLE_OLED_DISPLAY
     if (_pDisplay)
