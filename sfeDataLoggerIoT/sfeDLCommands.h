@@ -270,6 +270,35 @@ class sfeDLCommands
 
         return true;
     }
+
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Lists loaded devices
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool listLoadedDevices(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
+
+        // connected devices...
+        flxDeviceContainer myDevices = flux.connectedDevices();
+        flxLog_I(F("Connected Devices [%d]:"), myDevices.size());
+
+        // Loop over the device list - note that it is iterable.
+        for (auto device : myDevices)
+        {
+            flxLog_N_(F("    %-20s  - %s  {"), device->name(), device->description());
+            if (device->getKind() == flxDeviceKindI2C)
+                flxLog_N("%s x%x}", "qwiic", device->address());
+            else
+                flxLog_N("%s p%u}", "SPI", device->address());
+        }
+
+        return true;
+    }
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
@@ -285,6 +314,7 @@ class sfeDLCommands
         {"log-rate-toggle", &sfeDLCommands::logRateToggle},
         {"wifi", &sfeDLCommands::wifiStats},
         {"sdcard", &sfeDLCommands::sdCardStats},
+        {"devices", &sfeDLCommands::listLoadedDevices},
         {"heap", &sfeDLCommands::heapStatus},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
