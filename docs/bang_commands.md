@@ -24,6 +24,9 @@ The following commands are available:
 |<nobr>!sdcard</nobr>|Outputs the current statistics of the SD Card |
 |<nobr>!devices</nobr>|Lists the currently connected devices|
 |<nobr>!save-settings</nobr>|Saves the current system settings to the preference system|
+|<nobr>!normal-output</nobr>|Enable the output of normal/standard messages. This is the normal mode for the DataLogger|
+|<nobr>!debug-output</nobr>|Enable the output of debug messages. This value is not persistent|
+|<nobr>!verbose-output</nobr>|Enable the output of verbose messages. This value is not persistent|
 |<nobr>!heap</nobr>|Outputs the current statistics of the system heap memory|
 |<nobr>!about</nobr>|Outputs the full *About* page of the DataLogger|
 |<nobr>!help</nobr>|Outputs the available *!* commands|
