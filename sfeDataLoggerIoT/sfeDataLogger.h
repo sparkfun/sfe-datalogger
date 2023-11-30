@@ -62,6 +62,7 @@
 #include <Flux/flxIoTHTTP.h>
 #include <Flux/flxIoTMachineChat.h>
 #include <Flux/flxIoTThingSpeak.h>
+#include <Flux/flxIoTWebServer.h>
 #include <Flux/flxMQTTESP32.h>
 
 // System Firmware update/reset
@@ -408,6 +409,10 @@ class sfeDataLogger : public flxApplication
 
     // Arduino IoT
     flxIoTArduino _iotArduinoIoT;
+
+    // KDB Testing
+    // Web Server
+    flxIoTWebServer _iotWebServer;
 
     // Our firmware Update/Reset system
     flxSysFirmware _sysUpdate;
