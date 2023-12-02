@@ -111,7 +111,7 @@ sfeDataLogger::sfeDataLogger()
 
     // our the menu timeout property to our props/menu system entries
     addProperty(_serialSettings.menuTimeout);
-    addProperty(_serialSettings.enableColorOutput); // use color?
+    flxRegister(colorTextOutput, "Color Output", "Use color output with the Serial console");
 
     // user defined board name
     flxRegister(localBoardName, "Board Name", "A specific name for this DataLogger");
@@ -617,7 +617,7 @@ bool sfeDataLogger::onStart()
         for (auto device : loadedDevices)
         {
             // output the connected devices ... include device type/address
-            flxLog_N_(F("    %-20s  - %s  {"), device->name(), device->description());
+            flxLog_N_(F("    %-20s  - %-40s  {"), device->name(), device->description());
             if (device->getKind() == flxDeviceKindI2C)
                 flxLog_N("%s x%x}", "qwiic", device->address());
             else

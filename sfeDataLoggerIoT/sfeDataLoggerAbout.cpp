@@ -15,9 +15,22 @@
  *
  */
 
-#include "sfeDataLogger.h"
-
 #include "sfeDLMode.h"
+#include "sfeDataLogger.h"
+#include <Flux/flxSerial.h>
+
+void sfeDataLogger::_displayAboutObjHelper(char pre_ch, const char *szName, bool enabled)
+{
+    flxLog_N_("%c    %-20s  : ", pre_ch, szName);
+    if (enabled)
+    {
+        flxSerial.textToYellow();
+        flxLog_N("enabled");
+        flxSerial.textToNormal();
+    }
+    else
+        flxLog_N("disabled");
+}
 //---------------------------------------------------------------------------
 // "about"
 void sfeDataLogger::displayAppStatus(bool useInfo)
@@ -37,6 +50,13 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         pre_ch = '\t';
     }
 
+    // header
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    Time:");
+        flxSerial.textToNormal();
+    }
     time_t t_now;
     time(&t_now);
     struct tm *tmLocal = localtime(&t_now);
@@ -56,13 +76,24 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cExternal Time Source: %s", pre_ch, flxClock.referenceClock().c_str());
 
     flxLog_N("");
-
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    Board:");
+        flxSerial.textToNormal();
+    }
     flxLog__(logLevel, "%cBoard Type: %s", pre_ch, dlModeCheckName(_modeFlags));
     flxLog__(logLevel, "%cBoard Name: %s", pre_ch, flux.localName().c_str());
     flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
 
     flxLog_N("");
 
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    System:");
+        flxSerial.textToNormal();
+    }
     if (_theSDCard.enabled())
     {
 
@@ -121,7 +152,12 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("%c    Wake Interval: %d seconds", pre_ch, wakeInterval());
 
     flxLog_N("");
-
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    Logging:");
+        flxSerial.textToNormal();
+    }
     flxLog__(logLevel, "%cLogging Interval: %u (ms)", pre_ch, _timer.interval());
 
     // Run rate metric
@@ -143,29 +179,41 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("%c    Rotate Period: %d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
     flxLog_N("");
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    IoT Services:");
+        flxSerial.textToNormal();
+    }
+    else
+        flxLog__(logLevel, "%cIoT Services:", pre_ch);
 
-    flxLog__(logLevel, "%cIoT Services:", pre_ch);
-
-    flxLog_N("%c    %-20s  : %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _mqttSecureClient.name(),
-             _mqttSecureClient.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotHTTP.name(), _iotHTTP.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotAWS.name(), _iotAWS.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotAzure.name(), _iotAzure.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled() ? "enabled" : "disabled");
-    flxLog_N("%c    %-20s  : %s", pre_ch, _iotArduinoIoT.name(), _iotArduinoIoT.enabled() ? "enabled" : "disabled");
+    _displayAboutObjHelper(pre_ch, _mqttClient.name(), _mqttClient.enabled());
+    _displayAboutObjHelper(pre_ch, _mqttSecureClient.name(), _mqttSecureClient.enabled());
+    _displayAboutObjHelper(pre_ch, _iotHTTP.name(), _iotHTTP.enabled());
+    _displayAboutObjHelper(pre_ch, _iotAWS.name(), _iotAWS.enabled());
+    _displayAboutObjHelper(pre_ch, _iotAzure.name(), _iotAzure.enabled());
+    _displayAboutObjHelper(pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled());
+    _displayAboutObjHelper(pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled());
+    _displayAboutObjHelper(pre_ch, _iotArduinoIoT.name(), _iotArduinoIoT.enabled());
 
     flxLog_N("");
 
     // connected devices...
     flxDeviceContainer myDevices = flux.connectedDevices();
-    flxLog__(logLevel, "%cConnected Devices [%d]:", pre_ch, myDevices.size());
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    Connected Devices:");
+        flxSerial.textToNormal();
+    }
+    else
+        flxLog__(logLevel, "%cConnected Devices [%d]:", pre_ch, myDevices.size());
 
     // Loop over the device list - note that it is iterable.
     for (auto device : myDevices)
     {
-        flxLog_N_(F("%c    %-20s  - %s  {"), pre_ch, device->name(), device->description());
+        flxLog_N_(F("%c    %-20s  - %-40s  {"), pre_ch, device->name(), device->description());
         if (device->getKind() == flxDeviceKindI2C)
             flxLog_N("%s x%x}", "qwiic", device->address());
         else
@@ -182,8 +230,10 @@ void sfeDataLogger::displayAppAbout()
     char szBuffer[128];
     flux.versionString(szBuffer, sizeof(szBuffer), true);
 
+    flxSerial.textToWhite();
     flxLog_N("\n\r\t%s   %s", flux.name(), flux.description());
     flxLog_N("\tVersion: %s\n\r", szBuffer);
+    flxSerial.textToNormal();
 
     displayAppStatus(false);
 }

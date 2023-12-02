@@ -268,6 +268,10 @@ class sfeDataLogger : public flxApplication
     std::string get_local_name(void);
     void set_local_name(std::string name);
 
+    // color text
+    bool get_color_text(void);
+    void set_color_text(bool);
+
     // support for onInit
     void onInitStartupCommands(void);
 
@@ -326,11 +330,16 @@ class sfeDataLogger : public flxApplication
     // board user set name
     flxPropertyRWString<sfeDataLogger, &sfeDataLogger::get_local_name, &sfeDataLogger::set_local_name> localBoardName;
 
+    // Color Text Output
+    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_color_text, &sfeDataLogger::set_color_text> colorTextOutput = {
+        true};
+
   private:
     void enterSleepMode(void);
     void outputVMessage(void);
     void checkOpMode(void);
 
+    void _displayAboutObjHelper(char, const char *, bool);
     void displayAppAbout(void);
     void displayAppStatus(bool useInfo = false);
 
