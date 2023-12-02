@@ -111,7 +111,7 @@ sfeDataLogger::sfeDataLogger()
 
     // our the menu timeout property to our props/menu system entries
     addProperty(_serialSettings.menuTimeout);
-    addProperty(_serialSettings.enableColorOutput); // use color?
+    flxRegister(colorTextOutput, "Color Output", "Use color output with the Serial console");
 
     // user defined board name
     flxRegister(localBoardName, "Board Name", "A specific name for this DataLogger");

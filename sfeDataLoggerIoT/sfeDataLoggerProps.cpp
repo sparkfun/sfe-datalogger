@@ -15,9 +15,9 @@
  *
  */
 
-#include "sfeDataLogger.h"
-
 #include "sfeDLLed.h"
+#include "sfeDataLogger.h"
+#include <Flux/flxSerial.h>
 
 //---------------------------------------------------------------------------
 // Property Callback methods for the application
@@ -56,16 +56,16 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
         return;
 
     if (_logTypeSer == kAppLogTypeCSV)
-        _fmtCSV.remove(flxSerial());
+        _fmtCSV.remove(flxSerial);
     else if (_logTypeSer == kAppLogTypeJSON)
-        _fmtJSON.remove(flxSerial());
+        _fmtJSON.remove(flxSerial);
 
     _logTypeSer = logType;
 
     if (_logTypeSer == kAppLogTypeCSV)
-        _fmtCSV.add(flxSerial());
+        _fmtCSV.add(flxSerial);
     else if (_logTypeSer == kAppLogTypeJSON)
-        _fmtJSON.add(flxSerial());
+        _fmtJSON.add(flxSerial);
 }
 
 //---------------------------------------------------------------------------
@@ -207,4 +207,17 @@ std::string sfeDataLogger::get_local_name(void)
 void sfeDataLogger::set_local_name(std::string name)
 {
     flux.setLocalName(name);
+}
+
+//---------------------------------------------------------------------------
+// Color text output
+bool sfeDataLogger::get_color_text(void)
+{
+    return flxSerial.colorEnabled();
+}
+//---------------------------------------------------------------------------
+
+void sfeDataLogger::set_color_text(bool enable)
+{
+    flxSerial.setColorEnabled(enable);
 }

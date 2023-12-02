@@ -15,9 +15,9 @@
  *
  */
 
-#include "sfeDataLogger.h"
-
 #include "sfeDLMode.h"
+#include "sfeDataLogger.h"
+#include <Flux/flxSerial.h>
 //---------------------------------------------------------------------------
 // "about"
 void sfeDataLogger::displayAppStatus(bool useInfo)
@@ -40,9 +40,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     // header
     if (!useInfo)
     {
-        _serialSettings.textToWhite();
+        flxSerial.textToWhite();
         flxLog_N("    Time:");
-        _serialSettings.textToNormal();
+        flxSerial.textToNormal();
     }
     time_t t_now;
     time(&t_now);
@@ -65,9 +65,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("");
     if (!useInfo)
     {
-        _serialSettings.textToWhite();
+        flxSerial.textToWhite();
         flxLog_N("    Board:");
-        _serialSettings.textToNormal();
+        flxSerial.textToNormal();
     }
     flxLog__(logLevel, "%cBoard Type: %s", pre_ch, dlModeCheckName(_modeFlags));
     flxLog__(logLevel, "%cBoard Name: %s", pre_ch, flux.localName().c_str());
@@ -77,9 +77,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     if (!useInfo)
     {
-        _serialSettings.textToWhite();
+        flxSerial.textToWhite();
         flxLog_N("    System:");
-        _serialSettings.textToNormal();
+        flxSerial.textToNormal();
     }
     if (_theSDCard.enabled())
     {
@@ -141,9 +141,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("");
     if (!useInfo)
     {
-        _serialSettings.textToWhite();
+        flxSerial.textToWhite();
         flxLog_N("    Logging:");
-        _serialSettings.textToNormal();
+        flxSerial.textToNormal();
     }
     flxLog__(logLevel, "%cLogging Interval: %u (ms)", pre_ch, _timer.interval());
 
@@ -168,9 +168,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("");
     if (!useInfo)
     {
-        _serialSettings.textToWhite();
+        flxSerial.textToWhite();
         flxLog_N("    IoT Services:");
-        _serialSettings.textToNormal();
+        flxSerial.textToNormal();
     }
     else
         flxLog__(logLevel, "%cIoT Services:", pre_ch);
@@ -191,9 +191,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxDeviceContainer myDevices = flux.connectedDevices();
     if (!useInfo)
     {
-        _serialSettings.textToWhite();
+        flxSerial.textToWhite();
         flxLog_N("    Connected Devices:");
-        _serialSettings.textToNormal();
+        flxSerial.textToNormal();
     }
     else
         flxLog__(logLevel, "%cConnected Devices [%d]:", pre_ch, myDevices.size());
@@ -218,10 +218,10 @@ void sfeDataLogger::displayAppAbout()
     char szBuffer[128];
     flux.versionString(szBuffer, sizeof(szBuffer), true);
 
-    _serialSettings.textToWhite();
+    flxSerial.textToWhite();
     flxLog_N("\n\r\t%s   %s", flux.name(), flux.description());
     flxLog_N("\tVersion: %s\n\r", szBuffer);
-    _serialSettings.textToNormal();
+    flxSerial.textToNormal();
 
     displayAppStatus(false);
 }
