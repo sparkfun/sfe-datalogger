@@ -338,6 +338,7 @@ class sfeDataLogger : public flxApplication
     void outputVMessage(void);
     void checkOpMode(void);
 
+    void _displayAboutObjHelper(char, const char *, bool);
     void displayAppAbout(void);
     void displayAppStatus(bool useInfo = false);
 
