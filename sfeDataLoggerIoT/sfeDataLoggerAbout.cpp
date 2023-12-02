@@ -37,6 +37,13 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         pre_ch = '\t';
     }
 
+    // header
+    if (!useInfo)
+    {
+        _serialSettings.textToWhite();
+        flxLog_N("    Time:");
+        _serialSettings.textToNormal();
+    }
     time_t t_now;
     time(&t_now);
     struct tm *tmLocal = localtime(&t_now);
@@ -56,13 +63,24 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cExternal Time Source: %s", pre_ch, flxClock.referenceClock().c_str());
 
     flxLog_N("");
-
+    if (!useInfo)
+    {
+        _serialSettings.textToWhite();
+        flxLog_N("    Board:");
+        _serialSettings.textToNormal();
+    }
     flxLog__(logLevel, "%cBoard Type: %s", pre_ch, dlModeCheckName(_modeFlags));
     flxLog__(logLevel, "%cBoard Name: %s", pre_ch, flux.localName().c_str());
     flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
 
     flxLog_N("");
 
+    if (!useInfo)
+    {
+        _serialSettings.textToWhite();
+        flxLog_N("    System:");
+        _serialSettings.textToNormal();
+    }
     if (_theSDCard.enabled())
     {
 
@@ -121,7 +139,12 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("%c    Wake Interval: %d seconds", pre_ch, wakeInterval());
 
     flxLog_N("");
-
+    if (!useInfo)
+    {
+        _serialSettings.textToWhite();
+        flxLog_N("    Logging:");
+        _serialSettings.textToNormal();
+    }
     flxLog__(logLevel, "%cLogging Interval: %u (ms)", pre_ch, _timer.interval());
 
     // Run rate metric
@@ -143,8 +166,14 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     flxLog_N("%c    Rotate Period: %d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
     flxLog_N("");
-
-    flxLog__(logLevel, "%cIoT Services:", pre_ch);
+    if (!useInfo)
+    {
+        _serialSettings.textToWhite();
+        flxLog_N("    IoT Services:");
+        _serialSettings.textToNormal();
+    }
+    else
+        flxLog__(logLevel, "%cIoT Services:", pre_ch);
 
     flxLog_N("%c    %-20s  : %s", pre_ch, _mqttClient.name(), _mqttClient.enabled() ? "enabled" : "disabled");
     flxLog_N("%c    %-20s  : %s", pre_ch, _mqttSecureClient.name(),
@@ -160,7 +189,14 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
 
     // connected devices...
     flxDeviceContainer myDevices = flux.connectedDevices();
-    flxLog__(logLevel, "%cConnected Devices [%d]:", pre_ch, myDevices.size());
+    if (!useInfo)
+    {
+        _serialSettings.textToWhite();
+        flxLog_N("    Connected Devices:");
+        _serialSettings.textToNormal();
+    }
+    else
+        flxLog__(logLevel, "%cConnected Devices [%d]:", pre_ch, myDevices.size());
 
     // Loop over the device list - note that it is iterable.
     for (auto device : myDevices)
@@ -182,8 +218,10 @@ void sfeDataLogger::displayAppAbout()
     char szBuffer[128];
     flux.versionString(szBuffer, sizeof(szBuffer), true);
 
+    _serialSettings.textToWhite();
     flxLog_N("\n\r\t%s   %s", flux.name(), flux.description());
     flxLog_N("\tVersion: %s\n\r", szBuffer);
+    _serialSettings.textToNormal();
 
     displayAppStatus(false);
 }
