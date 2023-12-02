@@ -617,7 +617,7 @@ bool sfeDataLogger::onStart()
         for (auto device : loadedDevices)
         {
             // output the connected devices ... include device type/address
-            flxLog_N_(F("    %-20s  - %s  {"), device->name(), device->description());
+            flxLog_N_(F("    %-20s  - %-40s  {"), device->name(), device->description());
             if (device->getKind() == flxDeviceKindI2C)
                 flxLog_N("%s x%x}", "qwiic", device->address());
             else

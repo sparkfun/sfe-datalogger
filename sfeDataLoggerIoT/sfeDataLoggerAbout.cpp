@@ -213,7 +213,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     // Loop over the device list - note that it is iterable.
     for (auto device : myDevices)
     {
-        flxLog_N_(F("%c    %-20s  - %s  {"), pre_ch, device->name(), device->description());
+        flxLog_N_(F("%c    %-20s  - %-40s  {"), pre_ch, device->name(), device->description());
         if (device->getKind() == flxDeviceKindI2C)
             flxLog_N("%s x%x}", "qwiic", device->address());
         else
