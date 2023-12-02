@@ -62,7 +62,6 @@
 #include <Flux/flxIoTHTTP.h>
 #include <Flux/flxIoTMachineChat.h>
 #include <Flux/flxIoTThingSpeak.h>
-#include <Flux/flxIoTWebServer.h>
 #include <Flux/flxMQTTESP32.h>
 
 // System Firmware update/reset
@@ -72,6 +71,7 @@
 #include <Flux/flxDevMicroOLED.h>
 
 #include "sfeDLButton.h"
+#include "sfeDLWebServer.h"
 
 #ifdef ENABLE_OLED_DISPLAY
 #include "sfeDLDisplay.h"
@@ -412,7 +412,7 @@ class sfeDataLogger : public flxApplication
 
     // KDB Testing
     // Web Server
-    flxIoTWebServer _iotWebServer;
+    sfeDLWebServer _iotWebServer;
 
     // Our firmware Update/Reset system
     flxSysFirmware _sysUpdate;
