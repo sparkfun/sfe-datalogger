@@ -27,7 +27,31 @@ static const char *_indexHTML = R"literal(
 <body>
  <h1>Available Log Files</h1>
  <script>
- const exampleSocket = new WebSocket( "ws://" + window.location.host + "/ws");
+
+  var theWS;
+
+  function getPage(p){
+    const r= {
+        type: "page",
+        page: p
+    };
+    theWS.send(JSON.stringify(r));
+  }
+
+  function setupWS(){
+    theWS = new WebSocket( "ws://" + window.location.host + "/ws");
+    theWS.onopen = (event) => {
+        getPage(0);
+    }
+    theWS.onmessage = (event) => {
+        console.log(event.data);
+    }
+  }
+ window.onload= function()
+ {
+    setupWS();
+ }
+ 
  </script>
  </body>
  </html>
@@ -111,6 +135,28 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
                         uint8_t *data, size_t len)
     {
         flxLog_I(F("In onEvent"));
+        if (type == WS_EVT_CONNECT)
+        {
+            flxLog_I("Web Socket Connected");
+        }
+        else if (type == WS_EVT_DATA)
+        {
+            flxLog_I("Web Socket Data");
+            AwsFrameInfo *info = (AwsFrameInfo *)arg;
+            if (info->final && info->index == 0 && info->len == len)
+            {
+                // the whole message is in a single frame and we got all of it's data
+                flxLog_I("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(),
+                         (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
+
+                if (info->opcode == WS_TEXT)
+                {
+                    data[len] = 0;
+                    flxLog_I("%s", (char *)data);
+                    client->text("message received");
+                }
+            }
+        }
     }
 
   public:
