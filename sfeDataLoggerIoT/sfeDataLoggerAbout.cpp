@@ -196,6 +196,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     _displayAboutObjHelper(pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled());
     _displayAboutObjHelper(pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled());
     _displayAboutObjHelper(pre_ch, _iotArduinoIoT.name(), _iotArduinoIoT.enabled());
+    _displayAboutObjHelper(pre_ch, _iotWebServer.name(), _iotWebServer.enabled());
 
     flxLog_N("");
 
