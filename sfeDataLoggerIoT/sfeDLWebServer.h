@@ -17,6 +17,8 @@
 #include <Flux/flxFlux.h>
 #include <Flux/flxNetwork.h>
 
+#include <ArduinoJson.h>
+
 // index.html file
 static const char *_indexHTML = R"literal(
 <!DOCTYPE html>
@@ -152,9 +154,20 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
                 if (info->opcode == WS_TEXT)
                 {
                     data[len] = 0;
-                    flxLog_I("%s", (char *)data);
-                    client->text("message received");
+                    flxLog_I("In Message: %s", (char *)data);
                 }
+                DynamicJsonDocument jDoc(2000);
+                int result = getFilesForPage(1, jDoc);
+                if (result > 0)
+                {
+                    std::string sBuffer;
+                    serializeJson(jDoc, sBuffer);
+                    client->text(sBuffer.c_str());
+                    flxLog_I("Output: %s", sBuffer.c_str());
+                }
+                else
+                    client->text("{\"count\":0}");
+                flxLog_I("Result from get files: %d", result);
             }
         }
     }
@@ -207,6 +220,8 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     flxNetwork *_theNetwork;
 
   private:
+    int getFilesForPage(uint nPage, DynamicJsonDocument &jDoc);
+
     bool _isEnabled;
     bool _canConnect;
 
