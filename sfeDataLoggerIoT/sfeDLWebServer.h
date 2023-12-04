@@ -19,45 +19,6 @@
 
 #include <ArduinoJson.h>
 
-// index.html file
-static const char *_indexHTML = R"literal(
-<!DOCTYPE html>
-<html>
-<head>
-  <title>SparkFun DataLogger IoT</title>
-</head>
-<body>
- <h1>Available Log Files</h1>
- <script>
-
-  var theWS;
-
-  function getPage(p){
-    const r= {
-        type: "page",
-        page: p
-    };
-    theWS.send(JSON.stringify(r));
-  }
-
-  function setupWS(){
-    theWS = new WebSocket( "ws://" + window.location.host + "/ws");
-    theWS.onopen = (event) => {
-        getPage(0);
-    }
-    theWS.onmessage = (event) => {
-        console.log(event.data);
-    }
-  }
- window.onload= function()
- {
-    setupWS();
- }
- 
- </script>
- </body>
- </html>
-)literal";
 // Testing
 #include <ESPAsyncWebSrv.h>
 
@@ -93,84 +54,9 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
         setupServer();
     }
-
-    bool setupServer(void)
-    {
-        flxLog_I("web server setup.");
-        if (_pWebServer)
-            return true;
-
-        _pWebServer = new AsyncWebServer(80);
-        if (!_pWebServer)
-        {
-            flxLog_E(F("%s: Failure to allocate web server"), name());
-            return false;
-        }
-        _pWebSocket = new AsyncWebSocket("/ws");
-        if (!_pWebSocket)
-        {
-            flxLog_E(F("%s: Failure to allocate web socket"), name());
-            delete _pWebServer;
-            _pWebServer = nullptr;
-            return false;
-        }
-        // hey, we have a web server - yay
-        _pWebSocket->onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
-                                    uint8_t *data,
-                                    size_t len) { return this->onEventDerived(server, client, type, arg, data, len); });
-
-        _pWebServer->addHandler(_pWebSocket);
-        // do a simple callback for now.
-
-        _pWebServer->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-            flxLog_I("%s: Home Page", name());
-
-            // request->send(200, "text/html", "Hello from the DataLogger");
-            request->send(200, "text/html", _indexHTML);
-        });
-
-        flxLog_I("Web server start");
-        _pWebServer->begin();
-        return true;
-    }
+    bool setupServer(void);
     void onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
-                        uint8_t *data, size_t len)
-    {
-        flxLog_I(F("In onEvent"));
-        if (type == WS_EVT_CONNECT)
-        {
-            flxLog_I("Web Socket Connected");
-        }
-        else if (type == WS_EVT_DATA)
-        {
-            flxLog_I("Web Socket Data");
-            AwsFrameInfo *info = (AwsFrameInfo *)arg;
-            if (info->final && info->index == 0 && info->len == len)
-            {
-                // the whole message is in a single frame and we got all of it's data
-                flxLog_I("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(),
-                         (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
-
-                if (info->opcode == WS_TEXT)
-                {
-                    data[len] = 0;
-                    flxLog_I("In Message: %s", (char *)data);
-                }
-                DynamicJsonDocument jDoc(2000);
-                int result = getFilesForPage(1, jDoc);
-                if (result > 0)
-                {
-                    std::string sBuffer;
-                    serializeJson(jDoc, sBuffer);
-                    client->text(sBuffer.c_str());
-                    flxLog_I("Output: %s", sBuffer.c_str());
-                }
-                else
-                    client->text("{\"count\":0}");
-                flxLog_I("Result from get files: %d", result);
-            }
-        }
-    }
+                        uint8_t *data, size_t len);
 
   public:
     sfeDLWebServer()
