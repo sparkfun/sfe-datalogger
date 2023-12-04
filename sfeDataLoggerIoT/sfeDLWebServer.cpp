@@ -35,7 +35,7 @@ static const char *_indexHTML = R"literal(
     color: #333;
   }
   table {
-    width: 85%;
+    width: 100%;
     border-collapse: collapse;
     border: 0px;
   }
@@ -60,7 +60,7 @@ static const char *_indexHTML = R"literal(
 .navbar {
   overflow: hidden;
   background-color: #333;
-  position: fixed;
+  position: relative;
   bottom: 0;
   width: 100%;
 }
@@ -89,15 +89,25 @@ static const char *_indexHTML = R"literal(
   padding: 16px;
   margin-bottom: 30px;
 }
+
+.parent {
+    overflow: hidden;
+    width: 80%;
+}
+.branding {
+    float: right;
+    width 20%;
+    font-size: 17px;
+    color: white;
+    padding: 14px 16px;
+}
  </style>
+ 
 </head>
 <body>
-<div class="navbar">
-  <a href="#home" class="active">Home</a>
-  <a href="#news">Previous</a>
-  <a href="#contact" id="next">Next</a>
-</div>
+
  <h1>Available Log Files</h1>
+ <div class="parent">
   <table id="tbl">
     <thead>
       <tr>
@@ -108,11 +118,16 @@ static const char *_indexHTML = R"literal(
     </thead>
     <tbody></tbody>
   </table>
+<div class="navbar">
+  <a href="#news" id="prev">Previous</a>
+  <a href="#contact" id="next">Next</a>
+  <div class="branding">SparkFun - DataLogger IoT</div>
+</div>
+</div>
  <script>
 
   var theWS;
   var _pg=0;
-
 
   function getPage(p){
         console.log('get page');
@@ -163,18 +178,21 @@ static const char *_indexHTML = R"literal(
         tbl.replaceChild(n_tb, o_tb);
         console.log('return page');
         console.log(res.page);
-        var _pg = res.page;
+        _pg = res.page;
     }
   }
  window.onload= function()
  {
-    var _pg = 0;
-    const bn = document.getElementById("next");
+    var bn = document.getElementById("next");
     bn.addEventListener("click", (event) => {
-        console.log("Page is ");
-        console.log(_pg);
-        getPage(_pg+1);
+        getPage(_pg + 1);
     });
+    bn = document.getElementById("prev");    
+    bn.addEventListener("click", (event) => {
+        if (_pg > 0){
+           getPage(_pg - 1);
+        }
+    });    
     setupWS();
  }
  
@@ -232,7 +250,6 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
     }
     else if (type == WS_EVT_DATA)
     {
-        flxLog_I("Web Socket Data");
         AwsFrameInfo *info = (AwsFrameInfo *)arg;
         if (info->final && info->index == 0 && info->len == len)
         {
