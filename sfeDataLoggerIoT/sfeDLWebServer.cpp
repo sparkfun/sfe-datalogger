@@ -105,7 +105,6 @@ static const char *_indexHTML = R"literal(
  
 </head>
 <body>
-
  <h1>Available Log Files</h1>
  <div class="parent">
   <table id="tbl">
@@ -340,7 +339,10 @@ int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
 
         // char * cast - so json copies string ...
         jEntry["name"] = (char *)nextFile.name();
-        jEntry["size"] = nextFile.size();
+        flx_utils::formatByteString(nextFile.size(), 1, szBuffer, sizeof(szBuffer));
+        jEntry["size"] = szBuffer;
+        tWrite = nextFile.getLastWrite();
+        flx_utils::timestampISO8601(tWrite, szBuffer, sizeof(szBuffer), false);
         jEntry["time"] = szBuffer;
 
         nextFile.close();
