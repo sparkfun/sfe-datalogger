@@ -15,6 +15,8 @@
 #include <Flux/flxUtils.h>
 #include <time.h>
 
+#include <ESPmDNS.h>
+
 #define kWebServerFilesPerPage 20
 
 // index.html file
@@ -238,6 +240,22 @@ bool sfeDLWebServer::setupServer(void)
 
     flxLog_I("Web server start");
     _pWebServer->begin();
+
+    // MDS Testing
+    if (mDNSEnabled())
+    {
+        if (mDNSName().length() == 0)
+            getMDNSDefaultName();
+
+        flxLog_W("mDNS name go: %s", mDNSName().c_str());
+        if (!MDNS.begin(mDNSName().c_str()))
+            flxLog_E("Error starting MDNS service");
+        else
+        {
+            flxLog_I("MDS Enabled: %s", mDNSName().c_str());
+            MDNS.addService("http", "tcp", 80);
+        }
+    }
     return true;
 }
 //---------------------------------------------------------------------------------------
@@ -349,4 +367,34 @@ int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
 
     jDoc["count"] = nFound;
     return nFound;
+}
+
+void sfeDLWebServer::getMDNSDefaultName(void)
+{
+    // make up a name
+    const char *pID = flux.deviceId();
+    size_t id_len = strlen(pID);
+    char szBuffer[48];
+    snprintf(szBuffer, sizeof(szBuffer), "datalogger%s", (pID ? (pID + id_len - 5) : "1"));
+    mDNSName = szBuffer;
+
+    flxLog_I("NAME is: %s", mDNSName().c_str());
+}
+// Enabled Property setter/getters
+void sfeDLWebServer::set_isMDNSEnabled(bool bEnabled)
+{
+    // Any changes?
+    if (_isMDNSEnabled == bEnabled)
+        return;
+
+    if (_isMDNSEnabled && mDNSName().length() == 0)
+        getMDNSDefaultName();
+
+    _isMDNSEnabled = bEnabled;
+}
+
+//----------------------------------------------------------------
+bool sfeDLWebServer::get_isMDNSEnabled(void)
+{
+    return _isMDNSEnabled;
 }

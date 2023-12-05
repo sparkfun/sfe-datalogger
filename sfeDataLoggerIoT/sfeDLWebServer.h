@@ -41,6 +41,10 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
         return _isEnabled;
     }
 
+    // mDNS Enabled Property setter/getters
+    void set_isMDNSEnabled(bool bEnabled);
+    bool get_isMDNSEnabled(void);
+
     // Event callback
     //----------------------------------------------------------------------------
     void onConnectionChange(bool bConnected)
@@ -60,12 +64,16 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
   public:
     sfeDLWebServer()
-        : _theNetwork{nullptr}, _isEnabled{false}, _canConnect{false}, _fileSystem{nullptr}, _pWebServer{nullptr},
-          _pWebSocket{nullptr}
+        : _theNetwork{nullptr}, _isEnabled{false}, _isMDNSEnabled{false}, _canConnect{false}, _fileSystem{nullptr},
+          _pWebServer{nullptr}, _pWebSocket{nullptr}
     {
-        flxRegister(enabled, "Enabled", "Enable or Disable the Web Server");
         setName("IoT Web Server", "Browse and Download log files on the SD Card");
 
+        flxRegister(enabled, "Enabled", "Enable or Disable the Web Server");
+
+        mDNSEnabled.setTitle("mDNS");
+        flxRegister(mDNSEnabled, "mDNS Support", "Enable a name for the web address this device");
+        flxRegister(mDNSName, "mDNS Name", "mDNS Name used for this devices address");
         flux.add(this);
     };
 
@@ -102,13 +110,20 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     // Enabled/Disabled
     flxPropertyRWBool<sfeDLWebServer, &sfeDLWebServer::get_isEnabled, &sfeDLWebServer::set_isEnabled> enabled;
 
+    flxPropertyRWBool<sfeDLWebServer, &sfeDLWebServer::get_isMDNSEnabled, &sfeDLWebServer::set_isMDNSEnabled>
+        mDNSEnabled = {false};
+
+    flxPropertyString<sfeDLWebServer> mDNSName;
+
   protected:
     flxNetwork *_theNetwork;
 
   private:
     int getFilesForPage(uint nPage, DynamicJsonDocument &jDoc);
+    void getMDNSDefaultName(void);
 
     bool _isEnabled;
+    bool _isMDNSEnabled;
     bool _canConnect;
 
     AsyncWebServer *_pWebServer;
