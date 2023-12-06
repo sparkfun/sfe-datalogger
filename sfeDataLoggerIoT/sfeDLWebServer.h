@@ -70,7 +70,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
   public:
     sfeDLWebServer()
         : _theNetwork{nullptr}, _isEnabled{false}, _isMDNSEnabled{false}, _canConnect{false}, _fileSystem{nullptr},
-          _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{nullptr}
+          _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{""}, _mdnsRunning{false}
     {
         setName("IoT Web Server", "Browse and Download log files on the SD Card");
 
@@ -110,6 +110,10 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
         _fileSystem = fs;
     }
 
+    bool mdnsRunning(void)
+    {
+        return _mdnsRunning;
+    }
     // Properties
 
     // Enabled/Disabled
@@ -120,12 +124,15 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
     flxPropertyRWString<sfeDLWebServer, &sfeDLWebServer::get_MDNSName, &sfeDLWebServer::set_MDNSName> mDNSName;
 
+
   protected:
     flxNetwork *_theNetwork;
 
   private:
     int getFilesForPage(uint nPage, DynamicJsonDocument &jDoc);
-    void getMDNSDefaultName(void);
+    bool startMDNS(void);
+    void shutdownMDNS(void);
+    void setupMDNSDefaultName(void);
 
     bool _isEnabled;
     bool _isMDNSEnabled;
@@ -137,5 +144,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     // Filesystem to load a file from
     flxIFileSystem *_fileSystem;
 
-    char *_mdnsName;
+    // char *_mdnsName;
+    std::string _mdnsName;
+    bool _mdnsRunning;
 };

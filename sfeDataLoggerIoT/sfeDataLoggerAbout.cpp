@@ -196,7 +196,20 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     _displayAboutObjHelper(pre_ch, _iotThingSpeak.name(), _iotThingSpeak.enabled());
     _displayAboutObjHelper(pre_ch, _iotMachineChat.name(), _iotMachineChat.enabled());
     _displayAboutObjHelper(pre_ch, _iotArduinoIoT.name(), _iotArduinoIoT.enabled());
+
+    flxLog_N("");
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    Preview:");
+        flxSerial.textToNormal();
+    }
+    else
+        flxLog__(logLevel, "%cPreview:", pre_ch);
     _displayAboutObjHelper(pre_ch, _iotWebServer.name(), _iotWebServer.enabled());
+    snprintf(szBuffer, sizeof(szBuffer), "mDNS - %s.local", _iotWebServer.mDNSName().c_str());
+    _displayAboutObjHelper(pre_ch, szBuffer, _iotWebServer.mDNSEnabled());    
+
 
     flxLog_N("");
 

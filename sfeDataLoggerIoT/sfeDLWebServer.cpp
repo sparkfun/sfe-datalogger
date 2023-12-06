@@ -12,6 +12,7 @@
 
 #include "sfeDLWebServer.h"
 #include <ArduinoJson.h>
+#include <Flux/flxSerial.h>
 #include <Flux/flxUtils.h>
 #include <time.h>
 
@@ -240,23 +241,12 @@ bool sfeDLWebServer::setupServer(void)
     flxLog_I("Web server start");
     _pWebServer->begin();
 
-    // MDS Testing
-    if (mDNSEnabled())
-    {
-        if (_mdnsName == nullptr)
-            getMDNSDefaultName();
+    // MDNS?
+    startMDNS();
 
-        flxLog_W("mDNS name go: %s", _mdnsName);
-        if (!MDNS.begin(_mdnsName))
-            flxLog_E("Error starting MDNS service");
-        else
-        {
-            flxLog_I("MDS Enabled: %s", mDNSName().c_str());
-            MDNS.addService("http", "tcp", 80);
-        }
-    }
     return true;
 }
+
 //---------------------------------------------------------------------------------------
 void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
                                     uint8_t *data, size_t len)
@@ -370,8 +360,52 @@ int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
     jDoc["count"] = nFound;
     return nFound;
 }
+//-------------------------------------------------------------------
 
-void sfeDLWebServer::getMDNSDefaultName(void)
+bool sfeDLWebServer::startMDNS(void)
+{
+    if (!mDNSEnabled() || !_isEnabled || !_pWebServer)
+        return false;
+
+    if (_mdnsRunning)
+        return true;
+
+    // make sure we have a name for the service --
+    if (_mdnsName.length() == 0)
+        setupMDNSDefaultName();
+
+    if (MDNS.begin(&_mdnsName[0]))
+    {
+        _mdnsRunning = MDNS.addService("http", "tcp", 80);
+        if (!_mdnsRunning)
+            MDNS.end();
+    }
+
+    if (!_mdnsRunning)
+        flxLog_E("Error starting MDNS service: %s", _mdnsName.c_str());
+    else
+    {
+        flxLog_I_(F("mDNS service started - server name: "));
+        flxSerial.textToWhite();
+        flxLog_N(F("%s.local"), _mdnsName.c_str());
+        flxSerial.textToNormal();
+    }
+
+    return _mdnsRunning;
+}
+
+//-------------------------------------------------------------------
+void sfeDLWebServer::shutdownMDNS(void)
+{
+    if (!_mdnsRunning)
+        return
+
+            MDNS.end();
+    _mdnsRunning = false;
+    flxLog_I(F("mDNS service shutdown"));
+}
+//-------------------------------------------------------------------
+void sfeDLWebServer::setupMDNSDefaultName(void)
 {
     // make up a name
     const char *pID = flux.deviceId();
@@ -379,9 +413,9 @@ void sfeDLWebServer::getMDNSDefaultName(void)
     char szBuffer[48];
     snprintf(szBuffer, sizeof(szBuffer), "datalogger%s", (pID ? (pID + id_len - 5) : "1"));
     mDNSName = szBuffer;
-
-    flxLog_I("NAME is: %s", mDNSName().c_str());
 }
+
+//-------------------------------------------------------------------
 // MDNS Enabled Property setter/getters
 void sfeDLWebServer::set_isMDNSEnabled(bool bEnabled)
 {
@@ -389,10 +423,17 @@ void sfeDLWebServer::set_isMDNSEnabled(bool bEnabled)
     if (_isMDNSEnabled == bEnabled)
         return;
 
-    if (_isMDNSEnabled && mDNSName().length() == 0)
-        getMDNSDefaultName();
-
     _isMDNSEnabled = bEnabled;
+
+    // if the service isn't running or enabled, move on
+    if (!_pWebServer || !_isEnabled)
+        return;
+
+    // was mDNS disabled?
+    if (!_isMDNSEnabled)
+        shutdownMDNS();
+    else
+        startMDNS();
 }
 
 //----------------------------------------------------------------
@@ -404,24 +445,14 @@ bool sfeDLWebServer::get_isMDNSEnabled(void)
 // Enabled Property setter/getters
 void sfeDLWebServer::set_MDNSName(std::string sName)
 {
-    char *pTmp = new char[sName.length() + 1];
-
-    if (!pTmp)
-    {
-        flxLog_E("Allocation error");
-        return;
-    }
-
-    if (_mdnsName != nullptr)
-        delete _mdnsName;
-
-    strncpy(pTmp, sName.c_str(), sName.length());
-    pTmp[sName.length()] = '\0';
-    _mdnsName = pTmp;
+    _mdnsName = sName;
 }
 
 //----------------------------------------------------------------
 std::string sfeDLWebServer::get_MDNSName(void)
 {
-    return std::string(_mdnsName == nullptr ? "" : _mdnsName);
+    if (_mdnsName.length() == 0)
+        setupMDNSDefaultName();
+
+    return _mdnsName;
 }
