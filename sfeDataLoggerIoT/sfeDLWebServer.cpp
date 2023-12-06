@@ -243,11 +243,11 @@ bool sfeDLWebServer::setupServer(void)
     // MDS Testing
     if (mDNSEnabled())
     {
-        if (mDNSName().length() == 0)
+        if (_mdnsName == nullptr)
             getMDNSDefaultName();
 
-        flxLog_W("mDNS name go: %s", mDNSName().c_str());
-        if (!MDNS.begin(mDNSName().c_str()))
+        flxLog_W("mDNS name go: %s", _mdnsName);
+        if (!MDNS.begin(_mdnsName))
             flxLog_E("Error starting MDNS service");
         else
         {
@@ -382,7 +382,7 @@ void sfeDLWebServer::getMDNSDefaultName(void)
 
     flxLog_I("NAME is: %s", mDNSName().c_str());
 }
-// Enabled Property setter/getters
+// MDNS Enabled Property setter/getters
 void sfeDLWebServer::set_isMDNSEnabled(bool bEnabled)
 {
     // Any changes?
@@ -399,4 +399,29 @@ void sfeDLWebServer::set_isMDNSEnabled(bool bEnabled)
 bool sfeDLWebServer::get_isMDNSEnabled(void)
 {
     return _isMDNSEnabled;
+}
+
+// Enabled Property setter/getters
+void sfeDLWebServer::set_MDNSName(std::string sName)
+{
+    char *pTmp = new char[sName.length() + 1];
+
+    if (!pTmp)
+    {
+        flxLog_E("Allocation error");
+        return;
+    }
+
+    if (_mdnsName != nullptr)
+        delete _mdnsName;
+
+    strncpy(pTmp, sName.c_str(), sName.length());
+    pTmp[sName.length()] = '\0';
+    _mdnsName = pTmp;
+}
+
+//----------------------------------------------------------------
+std::string sfeDLWebServer::get_MDNSName(void)
+{
+    return std::string(_mdnsName == nullptr ? "" : _mdnsName);
 }

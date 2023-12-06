@@ -45,6 +45,11 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     void set_isMDNSEnabled(bool bEnabled);
     bool get_isMDNSEnabled(void);
 
+    // Name Property setter/getters
+    void set_MDNSName(std::string sName);
+    std::string get_MDNSName(void);
+    //----------------------------------------------------------------
+
     // Event callback
     //----------------------------------------------------------------------------
     void onConnectionChange(bool bConnected)
@@ -65,7 +70,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
   public:
     sfeDLWebServer()
         : _theNetwork{nullptr}, _isEnabled{false}, _isMDNSEnabled{false}, _canConnect{false}, _fileSystem{nullptr},
-          _pWebServer{nullptr}, _pWebSocket{nullptr}
+          _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{nullptr}
     {
         setName("IoT Web Server", "Browse and Download log files on the SD Card");
 
@@ -113,7 +118,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     flxPropertyRWBool<sfeDLWebServer, &sfeDLWebServer::get_isMDNSEnabled, &sfeDLWebServer::set_isMDNSEnabled>
         mDNSEnabled = {false};
 
-    flxPropertyString<sfeDLWebServer> mDNSName;
+    flxPropertyRWString<sfeDLWebServer, &sfeDLWebServer::get_MDNSName, &sfeDLWebServer::set_MDNSName> mDNSName;
 
   protected:
     flxNetwork *_theNetwork;
@@ -131,4 +136,6 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
     // Filesystem to load a file from
     flxIFileSystem *_fileSystem;
+
+    char *_mdnsName;
 };
