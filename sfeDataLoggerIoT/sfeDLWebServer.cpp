@@ -163,7 +163,13 @@ static const char *_indexHTML = R"literal(
             var row = document.createElement("tr");
 
             var d1 = document.createElement("td");
-            d1.appendChild(document.createTextNode(val.name));
+            var lnk = document.createElement("a");
+            lnk.innerHTML = val.name;
+            lnk.href = "/dl/" + val.name;
+            lnk.download = val.name;
+            lnk.title = "Download " + val.name;
+
+            d1.appendChild(lnk);
             row.appendChild(d1);
             
             var d2 = document.createElement("td");
@@ -231,14 +237,35 @@ bool sfeDLWebServer::setupServer(void)
     _pWebServer->addHandler(_pWebSocket);
     // do a simple callback for now.
 
+    // for our home page - just send the home page text (above)
     _pWebServer->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        flxLog_I("%s: Home Page", name());
-
-        // request->send(200, "text/html", "Hello from the DataLogger");
         request->send(200, "text/html", _indexHTML);
     });
 
-    flxLog_I("Web server start");
+    // Setup the handler for downloading file
+    _pWebServer->on("/dl", HTTP_GET, [this](AsyncWebServerRequest *request) {
+
+        // get the file from the URL - move type to std.
+        std::string theURL = request->url().c_str();
+        std::string::size_type n = theURL.rfind('/');
+
+        if (n == theURL.npos)
+        {
+            flxLog_I("No file in URL");
+            request->send_P(404, "text/plain", "File not found");
+            return;
+        }
+
+        // send the file..
+        std::string theFile = theURL.substr(n);
+        //flxLog_I(F("URL: %s, File: %s"), theURL.c_str(), theFile.c_str());
+
+        FS theFS = _fileSystem->fileSystem();
+        request->send(theFS, theFile.c_str(), "text/plain", true);
+
+    });
+
+    flxLog_I(F("%s: Web server started"), name());
     _pWebServer->begin();
 
     // MDNS?
@@ -253,11 +280,12 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
 {
     if (type == WS_EVT_CONNECT)
     {
-        flxLog_I("Web Socket Connected");
+        flxLog_D(F("%s: Web Socket Connected"), name());
     }
     else if (type == WS_EVT_DATA)
     {
         AwsFrameInfo *info = (AwsFrameInfo *)arg;
+        
         if (info->final && info->index == 0 && info->len == len)
         {
             // the whole message is in a single frame and we got all of it's data
