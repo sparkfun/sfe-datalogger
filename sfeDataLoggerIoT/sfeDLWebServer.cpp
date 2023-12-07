@@ -130,28 +130,27 @@ static const char *_indexHTML = R"literal(
 </div>
 </div>
  <script>
-
   var theWS;
   var _pg=0;
-
   function getPage(p){
-        console.log('get page');
-        console.log(p);
 
+    if (theWS.readyState == 2 || theWS.readyState == 3){
+        _pg=p;
+        setupWS();
+        return;
+    }
     const r= {
         ty: 1,
         pg: p
     };
     theWS.send(JSON.stringify(r));
   }
-
   function setupWS(){
     theWS = new WebSocket( "ws://" + window.location.host + "/ws");
     theWS.onopen = (event) => {
         getPage(_pg);
     }
     theWS.onmessage = (event) => {
-
         var res;
         try {
             var res = JSON.parse(event.data);
@@ -159,36 +158,28 @@ static const char *_indexHTML = R"literal(
             console.log("results corrupt")
             return;
         }
-        console.log(res);
         var o_tb = document.querySelectorAll("tbody")[0];
         var n_tb = document.createElement('tbody');
         res.files.forEach( (val) => {
             var row = document.createElement("tr");
-
             var d1 = document.createElement("td");
             var lnk = document.createElement("a");
             lnk.innerHTML = val.name;
             lnk.href = "/dl/" + val.name;
             lnk.download = val.name;
             lnk.title = "Download " + val.name;
-
             d1.appendChild(lnk);
             row.appendChild(d1);
-            
             var d2 = document.createElement("td");
             d2.appendChild(document.createTextNode(val.size));
             row.appendChild(d2);
-            
             var d3 = document.createElement("td");
             d3.appendChild(document.createTextNode(val.time));
             row.appendChild(d3);
-            
             n_tb.append(row);
         });
         var tbl = document.getElementById("tbl");
         tbl.replaceChild(n_tb, o_tb);
-        console.log('return page');
-        console.log(res.page);
         _pg = res.page;
     }
   }
