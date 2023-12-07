@@ -117,6 +117,7 @@ bool sfeDataLogger::setupIoTClients()
     _iotWebServer.setTitle("Preview");
     _iotWebServer.setNetwork(&_wifiConnection);
     _iotWebServer.setFileSystem(&_theSDCard);
+    listenForSystemActivity(_iotWebServer.onActivity);
 
     return true;
 }

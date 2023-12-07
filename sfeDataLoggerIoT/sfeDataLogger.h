@@ -350,6 +350,10 @@ class sfeDataLogger : public flxApplication
     void onSettingsEdit(bool bLoading);
     void listenForSettingsEdit(flxSignalBool &theEvent);
 
+
+    void onSystemActivity(void);
+    void listenForSystemActivity(flxSignalVoid &theEvent);
+
     uint getTerminalBaudRate(void);
 
     // Board button callbacks

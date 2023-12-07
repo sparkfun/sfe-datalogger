@@ -124,6 +124,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
     flxPropertyRWString<sfeDLWebServer, &sfeDLWebServer::get_MDNSName, &sfeDLWebServer::set_MDNSName> mDNSName;
 
+    flxSignalVoid onActivity;
 
   protected:
     flxNetwork *_theNetwork;

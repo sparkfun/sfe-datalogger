@@ -209,6 +209,18 @@ void sfeDataLogger::listenForSettingsEdit(flxSignalBool &theEvent)
 }
 
 //---------------------------------------------------------------------------
+void sfeDataLogger::onSystemActivity(void)
+{
+    sfeLED.flash(sfeLED.Orange);
+
+}
+void sfeDataLogger::listenForSystemActivity(flxSignalVoid &theEvent)
+{
+    theEvent.call(this, &sfeDataLogger::onSystemActivity);
+}
+
+
+//---------------------------------------------------------------------------
 // Button Events - general handler
 //---------------------------------------------------------------------------
 //
