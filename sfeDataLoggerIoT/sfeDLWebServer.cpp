@@ -47,6 +47,9 @@ static const char *_indexHTML = R"literal(
     text-align: left;
     font-size: 16px;
   }
+  tr:hover{
+    background-color: #DCDCDC;
+  }
   th {
     padding: 10px 10px;
     text-align: left;
@@ -56,8 +59,8 @@ static const char *_indexHTML = R"literal(
   }
 
   a, a:visited, a:active {
-  color: #E0311D;
-  text-decoration: none;
+  color: #333;
+  text-decoration: underline;
   font-weight: normal;
  }
 .navbar {
@@ -240,11 +243,13 @@ bool sfeDLWebServer::setupServer(void)
     // for our home page - just send the home page text (above)
     _pWebServer->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
         request->send(200, "text/html", _indexHTML);
+        onActivity.emit();
     });
 
     // Setup the handler for downloading file
     _pWebServer->on("/dl", HTTP_GET, [this](AsyncWebServerRequest *request) {
 
+        onActivity.emit();
         // get the file from the URL - move type to std.
         std::string theURL = request->url().c_str();
         std::string::size_type n = theURL.rfind('/');
@@ -278,6 +283,9 @@ bool sfeDLWebServer::setupServer(void)
 void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
                                     uint8_t *data, size_t len)
 {
+
+    onActivity.emit();
+
     if (type == WS_EVT_CONNECT)
     {
         flxLog_D(F("%s: Web Socket Connected"), name());
