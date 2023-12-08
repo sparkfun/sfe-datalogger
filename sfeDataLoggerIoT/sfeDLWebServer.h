@@ -14,6 +14,7 @@
 
 #include <Flux/flxCoreInterface.h>
 #include <Flux/flxFS.h>
+#include <Flux/flxFileRotate.h>
 #include <Flux/flxFlux.h>
 #include <Flux/flxNetwork.h>
 
@@ -70,7 +71,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
   public:
     sfeDLWebServer()
         : _theNetwork{nullptr}, _isEnabled{false}, _isMDNSEnabled{false}, _canConnect{false}, _fileSystem{nullptr},
-          _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{""}, _mdnsRunning{false}
+          _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{""}, _mdnsRunning{false}, _sPrefix("sfe")
     {
         setName("IoT Web Server", "Browse and Download log files on the SD Card");
 
@@ -114,6 +115,14 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     {
         return _mdnsRunning;
     }
+
+    void setFilePrefix(std::string sPrefix)
+    {
+        if (sPrefix.length() == 0)
+            return;
+
+        _sPrefix = sPrefix;
+    }
     // Properties
 
     // Enabled/Disabled
@@ -130,6 +139,26 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     flxNetwork *_theNetwork;
 
   private:
+    inline bool validFileName(const char *szName)
+    {
+
+        // filenames should be <prefex><numbers>.txt
+        if (!szName || strlen(szName) < 5 || _sPrefix.length() == 0)
+            return false;
+
+        size_t slen = strlen(szName);
+
+        // start with prefix
+        if (strnstr(szName, _sPrefix.c_str(), slen) != szName)
+            return false;
+
+        char *szTmp = strnstr(szName, flxFileRotate::kLogFileSuffix, slen);
+
+        if (!szTmp || szTmp - szName + strlen(flxFileRotate::kLogFileSuffix) != slen)
+            return false;
+
+        return true;
+    }
     int getFilesForPage(uint nPage, DynamicJsonDocument &jDoc);
     bool startMDNS(void);
     void shutdownMDNS(void);
@@ -148,4 +177,5 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     // char *_mdnsName;
     std::string _mdnsName;
     bool _mdnsRunning;
+    std::string _sPrefix;
 };

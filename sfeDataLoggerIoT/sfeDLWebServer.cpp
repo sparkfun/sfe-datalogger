@@ -239,7 +239,6 @@ bool sfeDLWebServer::setupServer(void)
 
     // Setup the handler for downloading file
     _pWebServer->on("/dl", HTTP_GET, [this](AsyncWebServerRequest *request) {
-
         onActivity.emit();
         // get the file from the URL - move type to std.
         std::string theURL = request->url().c_str();
@@ -254,11 +253,10 @@ bool sfeDLWebServer::setupServer(void)
 
         // send the file..
         std::string theFile = theURL.substr(n);
-        //flxLog_I(F("URL: %s, File: %s"), theURL.c_str(), theFile.c_str());
+        // flxLog_I(F("URL: %s, File: %s"), theURL.c_str(), theFile.c_str());
 
         FS theFS = _fileSystem->fileSystem();
         request->send(theFS, theFile.c_str(), "text/plain", true);
-
     });
 
     flxLog_I(F("%s: Web server started"), name());
@@ -284,7 +282,7 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
     else if (type == WS_EVT_DATA)
     {
         AwsFrameInfo *info = (AwsFrameInfo *)arg;
-        
+
         if (info->final && info->index == 0 && info->len == len)
         {
             // the whole message is in a single frame and we got all of it's data
@@ -340,14 +338,17 @@ int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
     flxFSFile nextFile;
     // do we need to skip ahead?
 
-    for (int i = 0; i < nPage * kWebServerFilesPerPage; i++)
+    for (int i = 0; i < nPage * kWebServerFilesPerPage;)
     {
         nextFile = dirRoot.openNextFile();
+
         // have we run out of files? - this should be rare - no files on system, 1st page...
         if (!nextFile.isValid())
-        {
             return 0;
-        }
+
+        if (validFileName(nextFile.name()))
+            i++; // increment over the file.
+
         nextFile.close();
     }
 
@@ -366,6 +367,9 @@ int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
         // empty name == done
         if (!nextFile.isValid())
             break;
+
+        if (!validFileName(nextFile.name()))
+            continue;
 
         tWrite = nextFile.getLastWrite();
         flx_utils::timestampISO8601(tWrite, szBuffer, sizeof(szBuffer), false);
