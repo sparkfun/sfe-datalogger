@@ -13,22 +13,20 @@
 #include "sfeDLButton.h"
 #include "sfeDLBoard.h"
 
-
-#define kEventNone    0
+const uint8_t kEventNone = 0;
 
 // Button Event Types ...
-#define kEventButtonPress   1
-#define kEventButtonRelease 2
+const uint8_t kEventButtonPress = 1;
+const uint8_t kEventButtonRelease = 2;
 
 //---------------------------------------------------------------------------
-// for the button ISR 
+// for the button ISR
 static uint userButtonEvent = kEventNone;
 
 static void userButtonISR(void)
 {
     userButtonEvent = digitalRead(kDLBoardBootButton) == HIGH ? kEventButtonRelease : kEventButtonPress;
 }
-
 
 //---------------------------------------------------------------------------
 
@@ -71,18 +69,16 @@ bool sfeDLButton::loop(void)
         }
         userButtonEvent = kEventNone;
     }
-    // Is the button pressed ? 
+    // Is the button pressed ?
     else if (_userButtonPressed)
     {
         // go over the increment time?
-        if( (millis() - _incEventTime) / 1000 >= _pressIncrement )
+        if ((millis() - _incEventTime) / 1000 >= _pressIncrement)
         {
             _currentInc++;
             on_buttonPressed.emit(_currentInc);
             _incEventTime = millis();
         }
-
-
     }
 
     return false;

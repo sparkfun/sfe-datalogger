@@ -13,19 +13,16 @@
 // Board specific things for the DataLogger..
 #pragma once
 
-// Pins 
+// Pins
 
 // Das Boot button
-#define kDLBoardBootButton  0
+const uint8_t kDLBoardBootButton = 0;
 
 // 3v3 pin
-#define kDLBoardEn3v3_SW    32
+const uint8_t kDLBoardEn3v3_SW = 32;
 
 // LED Built in
-#define kDLBoardLEDBuiltin  25
+const uint8_t kDLBoardLEDBuiltin = 25;
 
-// RGB LED 
-#define kDLBoardLEDRGBBuiltin  26
-
-
-
+// RGB LED
+const uint8_t kDLBoardLEDRGBBuiltin = 26;
