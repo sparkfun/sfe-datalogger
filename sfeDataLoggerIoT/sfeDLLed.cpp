@@ -32,8 +32,8 @@ xTimerHandle hTimer;
 const uint16_t kTimerPeriod = 100;
 
 // A task needs a Stack - let's set that size
-const uint16_t kStackSize = 1024;
-const uint16_t kActivityDelay = 100;
+#define kStackSize 1024
+#define kActivityDelay 100
 
 #define kLedColorOrder GRB
 #define kLedChipset WS2812
