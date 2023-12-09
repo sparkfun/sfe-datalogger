@@ -139,10 +139,17 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     flxNetwork *_theNetwork;
 
   private:
+    /**
+     * @brief      Check if this is a valid log file name
+     *
+     * @param[in]  szName  The name
+     *
+     * @return     True if valid, false if not
+     */
     inline bool validFileName(const char *szName)
     {
 
-        // filenames should be <prefex><numbers>.txt
+        // filenames should be <prefix><numbers>.<kLogFileSuffix>
         if (!szName || strlen(szName) < 5 || _sPrefix.length() == 0)
             return false;
 
@@ -159,6 +166,9 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
         return true;
     }
+
+    static constexpr char *kDefaultMDNSServiceName = "datalogger";
+
     int getFilesForPage(uint nPage, DynamicJsonDocument &jDoc);
     bool startMDNS(void);
     void shutdownMDNS(void);

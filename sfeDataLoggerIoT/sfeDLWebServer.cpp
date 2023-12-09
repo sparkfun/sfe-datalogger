@@ -202,7 +202,13 @@ static const char *_indexHTML = R"literal(
  </body>
  </html>
 )literal";
-//---------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+/**
+ * @brief      Called to setup the internal web server
+ *
+ * @return     True on success
+ */
 bool sfeDLWebServer::setupServer(void)
 {
     flxLog_I("web server setup.");
@@ -268,7 +274,18 @@ bool sfeDLWebServer::setupServer(void)
     return true;
 }
 
-//---------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+/**
+ *
+ * @brief      OnEvent handler for the Asynch web server.
+ *
+ * @param      server  The web socket to the server
+ * @param      client  The web socket to client
+ * @param[in]  type    The event type
+ * @param      arg     The argument
+ * @param      data    The data to check
+ * @param[in]  len     The length of the data
+ */
 void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
                                     uint8_t *data, size_t len)
 {
@@ -309,12 +326,22 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
                 }
                 else
                     client->text("{\"count\":0}");
+
                 flxLog_I("Result from get files: %d", result);
             }
         }
     }
 }
 //---------------------------------------------------------------------------------------
+
+/**
+ * @brief      Gets the files for page.
+ *
+ * @param[in]  nPage  The page
+ * @param      jDoc   The JSON document
+ *
+ * @return     The number of items loaded
+ */
 int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
 {
     flxLog_I("Files for Page: %d", nPage);
@@ -376,7 +403,7 @@ int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
 
         jEntry = jaData.createNestedObject();
 
-        // char * cast - so json copies string ...
+        // char * cast - so JSON copies string ...
         jEntry["name"] = (char *)nextFile.name();
         flx_utils::formatByteString(nextFile.size(), 1, szBuffer, sizeof(szBuffer));
         jEntry["size"] = szBuffer;
@@ -393,6 +420,11 @@ int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
 }
 //-------------------------------------------------------------------
 
+/**
+ * @brief      Starts the mDNS service on the device
+ *
+ * @return     True on success
+ */
 bool sfeDLWebServer::startMDNS(void)
 {
     if (!mDNSEnabled() || !_isEnabled || !_pWebServer)
@@ -426,23 +458,32 @@ bool sfeDLWebServer::startMDNS(void)
 }
 
 //-------------------------------------------------------------------
+
+/**
+ * @brief      shutdown the mDNS service if it's running
+ */
 void sfeDLWebServer::shutdownMDNS(void)
 {
     if (!_mdnsRunning)
-        return
+        return;
 
-            MDNS.end();
+    MDNS.end();
     _mdnsRunning = false;
     flxLog_I(F("mDNS service shutdown"));
 }
+
 //-------------------------------------------------------------------
+
+/**
+ * @brief      Sets a default name for the mDSN service
+ */
 void sfeDLWebServer::setupMDNSDefaultName(void)
 {
     // make up a name
     const char *pID = flux.deviceId();
     size_t id_len = strlen(pID);
     char szBuffer[48];
-    snprintf(szBuffer, sizeof(szBuffer), "datalogger%s", (pID ? (pID + id_len - 5) : "1"));
+    snprintf(szBuffer, sizeof(szBuffer), "%s%s", kDefaultMDNSServiceName, (pID ? (pID + id_len - 5) : "1"));
     mDNSName = szBuffer;
 }
 
