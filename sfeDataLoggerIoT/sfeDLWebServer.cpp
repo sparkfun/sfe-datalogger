@@ -28,7 +28,7 @@ static const char *_indexHTML = R"literal(
   <title>SparkFun DataLogger IoT</title>
   <style>
     body {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: Helvetica, sans-serif;
     font-size: 12px;
     color: #333;
     background-color:#fff
@@ -47,7 +47,7 @@ static const char *_indexHTML = R"literal(
     text-align: left;
     font-size: 16px;
   }
-  tr:hover{
+  tbody tr:hover{
     background-color: #DCDCDC;
   }
   th {
@@ -71,7 +71,7 @@ static const char *_indexHTML = R"literal(
   width: 100%;
 }
 
-.navbar a {
+.navbtn {
   float: left;
   display: block;
   color: #f2f2f2;
@@ -79,17 +79,13 @@ static const char *_indexHTML = R"literal(
   padding: 14px 16px;
   text-decoration: none;
   font-size: 17px;
+  cursor: pointer;
+  border:none;
+  background-color: #333;
 }
-
-.navbar a:hover {
-  background: #f1f1f1;
-  color: black;
-}
-
-.navbar a.active {
-  background-color: #E0311D;
-  color: white;
-}
+.navbtn:hover {background: #f1f1f1;color: black;}
+.navbtn:active {background-color: #808080;color: white;}
+.navbtn:disabled {background-color: #333;color: #808080; cursor:not-allowed; pointer-events:none;}
 
 .main {
   padding: 16px;
@@ -124,8 +120,10 @@ static const char *_indexHTML = R"literal(
     <tbody></tbody>
   </table>
 <div class="navbar">
-  <a href="#news" id="prev">Previous</a>
-  <a href="#contact" id="next">Next</a>
+
+<div class="navbar">
+  <button class="navbtn" id="prev">Previous</button>
+  <button class="navbtn" id="next">Next</button>  
   <div class="branding">SparkFun - DataLogger IoT</div>
 </div>
 </div>
@@ -181,6 +179,9 @@ static const char *_indexHTML = R"literal(
         var tbl = document.getElementById("tbl");
         tbl.replaceChild(n_tb, o_tb);
         _pg = res.page;
+        document.getElementById("prev").disabled= (_pg == 0);
+        document.getElementById("next").disabled= (res.count == 0);        
+
     }
   }
  window.onload= function()
