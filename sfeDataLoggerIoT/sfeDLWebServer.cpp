@@ -20,6 +20,10 @@
 
 const int kWebServerFilesPerPage = 20;
 
+const uint32_t kWebServerLogoutInactivity = 300000;
+
+const char *kWebServerAuthRelm = "SFE-DataLogger";
+
 // index.html file
 static const char *_indexHTML = R"literal(
 <!DOCTYPE html>
@@ -180,7 +184,7 @@ static const char *_indexHTML = R"literal(
         tbl.replaceChild(n_tb, o_tb);
         _pg = res.page;
         document.getElementById("prev").disabled= (_pg == 0);
-        document.getElementById("next").disabled= (res.count == 0);        
+        document.getElementById("next").disabled= (res.count < 20);
 
     }
   }
@@ -205,6 +209,35 @@ static const char *_indexHTML = R"literal(
 )literal";
 
 //-------------------------------------------------------------------------
+
+/**
+ * @brief      Check if we need to ask for auth info from the browser
+ *
+ * @param      request  The request from the client
+ *
+ * @return     true on auth okay, false on auth check failed.
+ */
+bool sfeDLWebServer::checkAuthState(AsyncWebServerRequest *request)
+{
+    // do we have some auth setup
+    if (authUsername().length() > 0)
+    {
+        // Time to do auth - w
+        // do we need to request auth? First time setting up or our logout timer transpired?
+        if (!request->authenticate(authUsername().c_str(), authPassword().c_str(), kWebServerAuthRelm) || _bDoLogout)
+        {
+            _bDoLogout = false;
+            request->requestAuthentication(kWebServerAuthRelm);
+            return false;
+        }
+    }
+
+    // we had activity - update out watchdog point
+    _loginTicks = millis();
+    return true;
+}
+
+//-------------------------------------------------------------------------
 /**
  * @brief      Called to setup the internal web server
  *
@@ -212,7 +245,7 @@ static const char *_indexHTML = R"literal(
  */
 bool sfeDLWebServer::setupServer(void)
 {
-    flxLog_I("web server setup.");
+    flxLog_E("web server setup.");
     if (_pWebServer)
         return true;
 
@@ -230,22 +263,40 @@ bool sfeDLWebServer::setupServer(void)
         _pWebServer = nullptr;
         return false;
     }
-    // hey, we have a web server - yay
+    // hey, we have a web socket - yay
     _pWebSocket->onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
                                 uint8_t *data,
                                 size_t len) { return this->onEventDerived(server, client, type, arg, data, len); });
 
     _pWebServer->addHandler(_pWebSocket);
+
+    if (authUsername().length() > 0)
+        _pWebSocket->setAuthentication(authUsername().c_str(), authPassword().c_str());
+
     // do a simple callback for now.
 
     // for our home page - just send the home page text (above)
     _pWebServer->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        //
+        //
+        // Authorization check - if it fails return
+        if (!checkAuthState(request))
+            return;
+
+        // update activity/login ticks
+        _loginTicks = millis();
         request->send(200, "text/html", _indexHTML);
         onActivity.emit();
     });
 
     // Setup the handler for downloading file
     _pWebServer->on("/dl", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        //
+        //
+        //// Authorization check - if it fails return
+        if (!checkAuthState(request))
+            return;
+
         onActivity.emit();
         // get the file from the URL - move type to std.
         std::string theURL = request->url().c_str();
@@ -297,6 +348,15 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
     {
         flxLog_D(F("%s: Web Socket Connected"), name());
     }
+    else if (type == WS_EVT_DISCONNECT)
+    {
+        flxLog_D(F("%s: Web Socket Disconnect"));
+        if (_dirRoot.isValid())
+        {
+            _dirRoot.close();
+            _iCurrentFile = -1;
+        }
+    }
     else if (type == WS_EVT_DATA)
     {
         AwsFrameInfo *info = (AwsFrameInfo *)arg;
@@ -304,8 +364,8 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
         if (info->final && info->index == 0 && info->len == len)
         {
             // the whole message is in a single frame and we got all of it's data
-            flxLog_I("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(),
-                     (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
+            // flxLog_E("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(),
+            //          (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
             StaticJsonDocument<100> jMSG;
             if (info->opcode == WS_TEXT)
@@ -327,9 +387,9 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
                 }
                 else
                     client->text("{\"count\":0}");
-
-                flxLog_I("Result from get files: %d", result);
             }
+            // update activity...
+            _loginTicks = millis();
         }
     }
 }
@@ -381,8 +441,7 @@ bool sfeDLWebServer::resetFilePosition(void)
  */
 int sfeDLWebServer::getFilesForPage(int nPage, DynamicJsonDocument &jDoc)
 {
-    flxLog_I("Files for Page: %d", nPage);
-
+    // set parameters in our response doc.
     jDoc["count"] = 0;
     jDoc["page"] = nPage;
     if (!_fileSystem)
@@ -402,8 +461,6 @@ int sfeDLWebServer::getFilesForPage(int nPage, DynamicJsonDocument &jDoc)
         if (!resetFilePosition())
             return 0;
     }
-
-    // Do we need to move forward?
 
     flxFSFile nextFile;
 
@@ -435,6 +492,8 @@ int sfeDLWebServer::getFilesForPage(int nPage, DynamicJsonDocument &jDoc)
 
     while (nFound < kWebServerFilesPerPage)
     {
+
+        // grab *valid* files until the block is full, or we run out of files.
         nextFile = _dirRoot.openNextFile();
 
         // empty name == done
@@ -446,7 +505,7 @@ int sfeDLWebServer::getFilesForPage(int nPage, DynamicJsonDocument &jDoc)
             nextFile.close();
             continue;
         }
-
+        // we have a valid file -- inc position
         _iCurrentFile++;
 
         // move our file pointer up
@@ -579,4 +638,24 @@ std::string sfeDLWebServer::get_MDNSName(void)
         setupMDNSDefaultName();
 
     return _mdnsName;
+}
+
+//----------------------------------------------------------------
+
+/**
+ * @brief      loop() - system loop routine
+ *
+ * @return     use this to check for logout
+ */
+
+bool sfeDLWebServer::loop()
+{
+    // Are we checking auth and if so, did the timeout for inactivity expire?
+    if (_loginTicks > 0 && millis() - _loginTicks > kWebServerLogoutInactivity)
+    {
+        // Okay, we need to do an auth check next time the site is hit. flag this
+        _bDoLogout = true;
+        _loginTicks = 0;
+    }
+    return false;
 }
