@@ -29,106 +29,36 @@ static const char *_indexHTML = R"literal(
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SparkFun DataLogger IoT</title>
-  <style>
-    body {
-    font-family: Helvetica, sans-serif;
-    font-size: 12px;
-    color: #333;
-    background-color:#fff
-}
-  h1 {
-    text-align: left;
-    color: #333;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 0px;
-  }
-  td {
-    padding: 5px 5px;
-    text-align: left;
-    font-size: 16px;
-  }
-  tbody tr:hover{
-    background-color: #DCDCDC;
-  }
-  th {
-    padding: 10px 10px;
-    text-align: left;
-    border: 0px;
-    font-size: 20px;
-    font-weight: bold;
-  }
-
-  a, a:visited, a:active {
-  color: #333;
-  text-decoration: underline;
-  font-weight: normal;
- }
-.navbar {
-  overflow: hidden;
-  background-color: #333;
-  position: relative;
-  bottom: 0;
-  width: 100%;
-}
-
-.navbtn {
-  float: left;
-  display: block;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-  font-size: 17px;
-  cursor: pointer;
-  border:none;
-  background-color: #333;
-}
+<title>SparkFun DataLogger IoT</title>
+<style>
+body {font-family: Helvetica, sans-serif;font-size: 12px;color: #333;background-color:#fff}
+h1 {text-align: left;color: #333;}
+table {width: 100%;border-collapse: collapse;border: 0px;}
+td {padding: 5px 5px;text-align: left;font-size: 16px;}
+tbody tr:hover{background-color: #DCDCDC;}
+th {padding: 10px 10px;text-align: left;border: 0px;font-size: 20px;font-weight: bold;}
+a, a:visited, a:active {color: #333;text-decoration: underline;font-weight: normal;}
+.navbar {overflow: hidden;background-color: #333;position: relative;bottom: 0;width: 100%;}
+.navbtn {float: left;display: block;color: #f2f2f2;text-align: center;padding: 14px 16px;text-decoration: none;font-size: 17px;cursor: pointer;border:none;background-color: #333;}
 .navbtn:hover {background: #f1f1f1;color: black;}
 .navbtn:active {background-color: #808080;color: white;}
 .navbtn:disabled {background-color: #333;color: #808080; cursor:not-allowed; pointer-events:none;}
-
-.main {
-  padding: 16px;
-  margin-bottom: 30px;
-}
-
-.parent {
-    overflow: hidden;
-    width: 80%;
-}
-.branding {
-    float: right;
-    width 20%;
-    font-size: 17px;
-    color: white;
-    padding: 14px 16px;
-}
+.main {padding: 16px;margin-bottom: 30px;}
+.parent {overflow: hidden;width: 80%;}
+.branding {float: right;width 20%;font-size: 17px;color: white;padding: 14px 16px;}
  </style>
- 
 </head>
 <body>
- <h1>Available Log Files</h1>
- <div class="parent">
-  <table id="tbl">
-    <thead>
-      <tr>
-        <th style="width:40%">File</th>
-        <th>Size</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<h1>Available Log Files</h1>
+<div class="parent">
+<table id="tbl">
+<thead><tr><th style="width:40%">File</th><th>Size</th><th>Date</th></tr></thead>
+<tbody></tbody></table>
 <div class="navbar">
-
 <div class="navbar">
-  <button class="navbtn" id="prev">Previous</button>
-  <button class="navbtn" id="next">Next</button>  
-  <div class="branding">SparkFun - DataLogger IoT</div>
+<button class="navbtn" id="prev">Previous</button>
+<button class="navbtn" id="next">Next</button>
+<div class="branding">SparkFun - DataLogger IoT</div>
 </div>
 </div>
  <script>
@@ -185,7 +115,6 @@ static const char *_indexHTML = R"literal(
         _pg = res.page;
         document.getElementById("prev").disabled= (_pg == 0);
         document.getElementById("next").disabled= (res.count < 20);
-
     }
   }
  window.onload= function()
@@ -202,7 +131,7 @@ static const char *_indexHTML = R"literal(
     });    
     setupWS();
  }
- 
+
  </script>
  </body>
  </html>
