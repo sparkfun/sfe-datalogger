@@ -174,6 +174,23 @@ void sfeDataLogger::listenForFirmwareLoad(flxSignalBool &theEvent)
 }
 
 //---------------------------------------------------------------------------
+// Flash led on error/warnings
+//---------------------------------------------------------------------------
+void sfeDataLogger::onErrorMessage(uint8_t msgType)
+{
+    // send an LED thing
+    if (msgType == (uint8_t)flxLogError)
+        sfeLED.flash(sfeLED.Red);
+    else if (msgType == (uint8_t)flxLogWarning)
+        sfeLED.flash(sfeLED.Yellow);
+}
+
+void sfeDataLogger::listenForErrorMessage(flxSignalUInt8 &theEvent)
+{
+    theEvent.call(this, &sfeDataLogger::onErrorMessage);
+}
+
+//---------------------------------------------------------------------------
 // Display things during settings edits
 //---------------------------------------------------------------------------
 void sfeDataLogger::onSettingsEdit(bool bLoading)
@@ -344,6 +361,9 @@ bool sfeDataLogger::onSetup()
     // The on-board button
     flux.add(_boardButton);
 
+    // wire in LED to the logging system
+    listenForErrorMessage(flxLog.onLogMessage);
+
     // We want an event every 5 seconds
     _boardButton.setPressIncrement(kButtonPressedIncrement);
 
@@ -351,7 +371,7 @@ bool sfeDataLogger::onSetup()
     _boardButton.on_buttonRelease.call(this, &sfeDataLogger::onButtonReleased);
     _boardButton.on_buttonPressed.call(this, &sfeDataLogger::onButtonPressed);
 
-    // was device autoload disabled by startup commands?
+    // was device auto load disabled by startup commands?
     if (inOpMode(kDataLoggerOpStartNoAutoload))
         flux.setAutoload(false);
 
@@ -615,7 +635,7 @@ bool sfeDataLogger::onStart()
     setupNFDevice();
 
     // check our I2C devices
-    // Loop over the device list - note that it is iterable.
+    // Loop over the device list - note that it is iteratiable.
     flxLog_I_(F("Loading devices ... "));
     flxDeviceContainer loadedDevices = flux.connectedDevices();
 
@@ -650,7 +670,7 @@ bool sfeDataLogger::onStart()
 
     flxLog_N("");
 
-    // set our system start time im millis
+    // set our system start time in milliseconds
     _startTime = millis();
 
     // Do we have a fuel gauge ...
