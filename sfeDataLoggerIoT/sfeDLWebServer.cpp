@@ -245,7 +245,6 @@ bool sfeDLWebServer::checkAuthState(AsyncWebServerRequest *request)
  */
 bool sfeDLWebServer::setupServer(void)
 {
-    flxLog_E("web server setup.");
     if (_pWebServer)
         return true;
 
