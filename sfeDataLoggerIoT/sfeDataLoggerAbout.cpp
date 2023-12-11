@@ -207,9 +207,9 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     else
         flxLog__(logLevel, "%cPreview:", pre_ch);
     _displayAboutObjHelper(pre_ch, _iotWebServer.name(), _iotWebServer.enabled());
-    snprintf(szBuffer, sizeof(szBuffer), "mDNS - %s.local", _iotWebServer.mDNSName().c_str());
-    _displayAboutObjHelper(pre_ch, szBuffer, _iotWebServer.mDNSEnabled());    
-
+    snprintf(szBuffer, sizeof(szBuffer), "mDNS: http://%s.local", _iotWebServer.mDNSName().c_str());
+    _displayAboutObjHelper(pre_ch, szBuffer, _iotWebServer.mDNSEnabled());
+    _displayAboutObjHelper(pre_ch, "Authentication", _iotWebServer.authUsername().length() > 0);
 
     flxLog_N("");
 
