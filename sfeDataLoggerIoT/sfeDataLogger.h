@@ -352,6 +352,9 @@ class sfeDataLogger : public flxApplication
     void onSystemActivity(void);
     void listenForSystemActivity(flxSignalVoid &theEvent);
 
+    void onErrorMessage(uint8_t);
+    void listenForErrorMessage(flxSignalUInt8 &theEvent);
+
     uint getTerminalBaudRate(void);
 
     // Board button callbacks
