@@ -34,6 +34,13 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
             return;
 
         _isEnabled = bEnabled;
+
+        // did we disable, but have a file open?
+        if (!_isEnabled && _dirRoot.isValid())
+        {
+            _dirRoot.close();
+            _iCurrentFile = 1;
+        }
     }
 
     //----------------------------------------------------------------
@@ -71,7 +78,8 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
   public:
     sfeDLWebServer()
         : _theNetwork{nullptr}, _isEnabled{false}, _isMDNSEnabled{false}, _canConnect{false}, _fileSystem{nullptr},
-          _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{""}, _mdnsRunning{false}, _sPrefix("sfe")
+          _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{""}, _mdnsRunning{false},
+          _sPrefix("sfe"), _iCurrentFile{-1}
     {
         setName("IoT Web Server", "Browse and Download log files on the SD Card");
 
@@ -169,7 +177,8 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
     static constexpr char *kDefaultMDNSServiceName = "datalogger";
 
-    int getFilesForPage(uint nPage, DynamicJsonDocument &jDoc);
+    bool resetFilePosition(void);
+    int getFilesForPage(int nPage, DynamicJsonDocument &jDoc);
     bool startMDNS(void);
     void shutdownMDNS(void);
     void setupMDNSDefaultName(void);
@@ -188,4 +197,9 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     std::string _mdnsName;
     bool _mdnsRunning;
     std::string _sPrefix;
+
+    // current file position things
+
+    flxFSFile _dirRoot;
+    int _iCurrentFile;
 };

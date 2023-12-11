@@ -18,7 +18,7 @@
 
 #include <ESPmDNS.h>
 
-#define kWebServerFilesPerPage 20
+const int kWebServerFilesPerPage = 20;
 
 // index.html file
 static const char *_indexHTML = R"literal(
@@ -333,6 +333,42 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
         }
     }
 }
+
+//---------------------------------------------------------------------------------------
+
+/**
+ * @brief      used to reset the current file position to point 0 - start
+ *
+ * @return     true on success, false on failure
+ */
+bool sfeDLWebServer::resetFilePosition(void)
+{
+
+    if (!_fileSystem)
+        return false;
+
+    // file already open?
+    if (_dirRoot)
+        _dirRoot.close();
+
+    // reset our point -- which is the end of the current block, which is block 0
+    _iCurrentFile = -1;
+    _dirRoot = _fileSystem->open("/", flxIFileSystem::kFileRead, false);
+
+    if (!_dirRoot)
+    {
+        flxLog_E("%d: Error opening file system", name());
+        return false;
+    }
+
+    if (!_dirRoot.isDirectory())
+    {
+        flxLog_E("%d: Filesystem root not a directory?", name());
+        return false;
+    }
+    return true;
+}
+
 //---------------------------------------------------------------------------------------
 
 /**
@@ -343,7 +379,7 @@ void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient
  *
  * @return     The number of items loaded
  */
-int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
+int sfeDLWebServer::getFilesForPage(int nPage, DynamicJsonDocument &jDoc)
 {
     flxLog_I("Files for Page: %d", nPage);
 
@@ -355,50 +391,65 @@ int sfeDLWebServer::getFilesForPage(uint nPage, DynamicJsonDocument &jDoc)
         return 0;
     }
 
-    flxFSFile dirRoot = _fileSystem->open("/", flxIFileSystem::kFileRead, false);
+    // files listing is forward only, so we keep track of a current open file and
+    // file position. If the requested page is less than the current position, we
+    // need to reset the position to the start of the file.
 
-    if (!dirRoot || !dirRoot.isDirectory())
+    int blockEnd = (nPage * kWebServerFilesPerPage) - 1;
+
+    if (blockEnd < _iCurrentFile || !_dirRoot)
     {
-        flxLog_E(F("Error accessing SD Card"));
-        return 0;
+        if (!resetFilePosition())
+            return 0;
     }
 
-    flxFSFile nextFile;
-    // do we need to skip ahead?
+    // Do we need to move forward?
 
-    for (int i = 0; i < nPage * kWebServerFilesPerPage;)
+    flxFSFile nextFile;
+
+    // do we need to skip ahead to the point to start pulling files from?
+    while (_iCurrentFile < blockEnd)
     {
-        nextFile = dirRoot.openNextFile();
+        nextFile = _dirRoot.openNextFile();
 
         // have we run out of files? - this should be rare - no files on system, 1st page...
         if (!nextFile.isValid())
             return 0;
 
+        // Log file
         if (validFileName(nextFile.name()))
-            i++; // increment over the file.
+            _iCurrentFile++; // increment over the file.
 
         nextFile.close();
     }
 
+    // okay, the "next file position" should be at the start of the requested file block.
+    // Let's grab our files.
     int nFound = 0;
 
     char szBuffer[32];
     time_t tWrite;
 
     JsonArray jaData = jDoc.createNestedArray("files");
-
     JsonObject jEntry;
-    while (true && nFound < kWebServerFilesPerPage)
+
+    while (nFound < kWebServerFilesPerPage)
     {
-        nextFile = dirRoot.openNextFile();
+        nextFile = _dirRoot.openNextFile();
 
         // empty name == done
         if (!nextFile.isValid())
             break;
 
         if (!validFileName(nextFile.name()))
+        {
+            nextFile.close();
             continue;
+        }
 
+        _iCurrentFile++;
+
+        // move our file pointer up
         tWrite = nextFile.getLastWrite();
         flx_utils::timestampISO8601(tWrite, szBuffer, sizeof(szBuffer), false);
 
