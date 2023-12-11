@@ -33,7 +33,7 @@ const uint16_t kTimerPeriod = 100;
 
 // A task needs a Stack - let's set that size
 #define kStackSize 1024
-#define kActivityDelay 100
+#define kActivityDelay 60
 
 #define kLedColorOrder GRB
 #define kLedChipset WS2812
