@@ -52,7 +52,7 @@ jobs:
         run: ./SparkFun_Flux/install-libs.sh
 
       - name: Install datalogger libraries
-        run: arduino-cli lib install FastLED
+        run: arduino-cli lib install FastLED ESPAsyncWebSrv
         
       # Compile time - build the Firmware for the data logger.
       # Note:
