@@ -79,11 +79,15 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     sfeDLWebServer()
         : _theNetwork{nullptr}, _isEnabled{false}, _isMDNSEnabled{false}, _canConnect{false}, _fileSystem{nullptr},
           _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{""}, _mdnsRunning{false},
-          _sPrefix("sfe"), _iCurrentFile{-1}
+          _sPrefix("sfe"), _iCurrentFile{-1}, _loginTicks{0}, _bDoLogout{true}
     {
         setName("IoT Web Server", "Browse and Download log files on the SD Card");
 
         flxRegister(enabled, "Enabled", "Enable or Disable the Web Server");
+
+        authUsername.setTitle("Authentication");
+        flxRegister(authUsername, "Username", "Web access control. Leave empty to disable authentication");
+        flxRegister(authPassword, "Password", "Web access control");
 
         mDNSEnabled.setTitle("mDNS");
         flxRegister(mDNSEnabled, "mDNS Support", "Enable a name for the web address this device");
@@ -131,6 +135,9 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
         _sPrefix = sPrefix;
     }
+
+    bool loop();
+
     // Properties
 
     // Enabled/Disabled
@@ -140,6 +147,9 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
         mDNSEnabled = {false};
 
     flxPropertyRWString<sfeDLWebServer, &sfeDLWebServer::get_MDNSName, &sfeDLWebServer::set_MDNSName> mDNSName;
+
+    flxPropertyString<sfeDLWebServer> authUsername;
+    flxPropertySecureString<sfeDLWebServer> authPassword;
 
     flxSignalVoid onActivity;
 
@@ -177,6 +187,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
     static constexpr char *kDefaultMDNSServiceName = "datalogger";
 
+    bool checkAuthState(AsyncWebServerRequest *request);
     bool resetFilePosition(void);
     int getFilesForPage(int nPage, DynamicJsonDocument &jDoc);
     bool startMDNS(void);
@@ -202,4 +213,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
     flxFSFile _dirRoot;
     int _iCurrentFile;
+
+    uint32_t _loginTicks;
+    bool _bDoLogout;
 };
