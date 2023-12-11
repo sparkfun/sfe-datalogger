@@ -71,6 +71,7 @@
 #include <Flux/flxDevMicroOLED.h>
 
 #include "sfeDLButton.h"
+#include "sfeDLWebServer.h"
 
 #ifdef ENABLE_OLED_DISPLAY
 #include "sfeDLDisplay.h"
@@ -78,24 +79,23 @@
 
 //------------------------------------------
 // Default log interval in milli secs
-#define kDefaultLogInterval 15000
+const uint16_t kDefaultLogInterval = 15000;
 
-// Buffersize of our JSON document output
-#define kAppJSONDocSize 1600
+// Buffer size of our JSON document output
+const uint16_t kAppJSONDocSize = 1600;
 
 // NTP Startup delay in secs
-
-#define kAppNTPStartupDelaySecs 5
+const uint16_t kAppNTPStartupDelaySecs = 5;
 
 // Battery check interval (90 seconds)
-#define kBatteryCheckInterval 90000
+const uint32_t kBatteryCheckInterval = 90000;
 
 // Default Sleep Periods
-#define kSystemSleepSleepSec 60
-#define kSystemSleepWakeSec 120
+const uint16_t kSystemSleepSleepSec = 60;
+const uint16_t kSystemSleepWakeSec = 120;
 
 // What is the out of the box baud rate ..
-#define kDefaultTerminalBaudRate 115200
+const uint32_t kDefaultTerminalBaudRate = 115200;
 
 //-----------------------------------------------------------------
 // Helper class for loop events - unifies the idea of calling a method
@@ -349,6 +349,12 @@ class sfeDataLogger : public flxApplication
     void onSettingsEdit(bool bLoading);
     void listenForSettingsEdit(flxSignalBool &theEvent);
 
+    void onSystemActivity(void);
+    void listenForSystemActivity(flxSignalVoid &theEvent);
+
+    void onErrorMessage(uint8_t);
+    void listenForErrorMessage(flxSignalUInt8 &theEvent);
+
     uint getTerminalBaudRate(void);
 
     // Board button callbacks
@@ -417,6 +423,10 @@ class sfeDataLogger : public flxApplication
 
     // Arduino IoT
     flxIoTArduino _iotArduinoIoT;
+
+    // KDB Testing
+    // Web Server
+    sfeDLWebServer _iotWebServer;
 
     // Our firmware Update/Reset system
     flxSysFirmware _sysUpdate;

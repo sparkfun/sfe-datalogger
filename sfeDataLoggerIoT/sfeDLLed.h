@@ -19,9 +19,9 @@
 #include <FastLED.h>
 
 // Some Handy Flash levels...
-#define kLEDFlashSlow 600
-#define kLEDFlashMedium 200
-#define kLEDFlashFast 80
+const uint16_t kLEDFlashSlow = 600;
+const uint16_t kLEDFlashMedium = 200;
+const uint16_t kLEDFlashFast = 80;
 
 typedef uint32_t sfeLEDColor_t;
 //---------------------------------------------------------------

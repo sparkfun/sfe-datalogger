@@ -198,6 +198,20 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     _displayAboutObjHelper(pre_ch, _iotArduinoIoT.name(), _iotArduinoIoT.enabled());
 
     flxLog_N("");
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    Preview:");
+        flxSerial.textToNormal();
+    }
+    else
+        flxLog__(logLevel, "%cPreview:", pre_ch);
+    _displayAboutObjHelper(pre_ch, _iotWebServer.name(), _iotWebServer.enabled());
+    snprintf(szBuffer, sizeof(szBuffer), "mDNS: http://%s.local", _iotWebServer.mDNSName().c_str());
+    _displayAboutObjHelper(pre_ch, szBuffer, _iotWebServer.mDNSEnabled());
+    _displayAboutObjHelper(pre_ch, "Authentication", _iotWebServer.authUsername().length() > 0);
+
+    flxLog_N("");
 
     // connected devices...
     flxDeviceContainer myDevices = flux.connectedDevices();

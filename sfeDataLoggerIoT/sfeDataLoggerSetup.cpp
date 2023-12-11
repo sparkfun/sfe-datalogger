@@ -113,6 +113,12 @@ bool sfeDataLogger::setupIoTClients()
     _iotArduinoIoT.setNetwork(&_wifiConnection);
     _fmtJSON.add(_iotArduinoIoT);
 
+    // Web server
+    _iotWebServer.setTitle("Preview");
+    _iotWebServer.setNetwork(&_wifiConnection);
+    _iotWebServer.setFileSystem(&_theSDCard);
+    listenForSystemActivity(_iotWebServer.onActivity);
+
     return true;
 }
 

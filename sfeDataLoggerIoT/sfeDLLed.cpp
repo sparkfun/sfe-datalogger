@@ -24,16 +24,16 @@ static TaskHandle_t hTaskLED = NULL;
 QueueHandle_t hCmdQueue = NULL;
 
 // size of our queue
-#define kLEDCmdQueueSize 12
-#define kLEDCmdQueueWait 5
+const uint16_t kLEDCmdQueueSize = 12;
+const uint16_t kLEDCmdQueueWait = 5;
 
 // Time for flashing the LED
 xTimerHandle hTimer;
-#define kTimerPeriod 100
+const uint16_t kTimerPeriod = 100;
 
 // A task needs a Stack - let's set that size
 #define kStackSize 1024
-#define kActivityDelay 100
+#define kActivityDelay 60
 
 #define kLedColorOrder GRB
 #define kLedChipset WS2812
