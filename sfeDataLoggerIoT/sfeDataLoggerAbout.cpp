@@ -182,7 +182,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     if (!useInfo)
     {
         flxSerial.textToWhite();
-        flxLog_N("    IoT Services:");
+        flxLog_N(F("    IoT Services:"));
         flxSerial.textToNormal();
     }
     else
