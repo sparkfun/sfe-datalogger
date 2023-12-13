@@ -17,6 +17,7 @@
 #include <Flux/flxCoreLog.h>
 #include <Flux/flxSerialField.h>
 #include <Flux/flxUtils.h>
+#include <time.h>
 
 class sfeDLCommands
 {
@@ -361,6 +362,29 @@ class sfeDLCommands
         return true;
     }
     //---------------------------------------------------------------------
+    ///
+    /// @brief outputs current time
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool outputSystemTime(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
+
+        char szBuffer[64];
+        memset(szBuffer, '\0', sizeof(szBuffer));
+        time_t t_now;
+        time(&t_now);
+
+        flx_utils::timestampISO8601(t_now, szBuffer, sizeof(szBuffer), true);
+
+        flxLog_I("%s", szBuffer);
+
+        return true;
+    }
+    //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
         {"factory-reset", &sfeDLCommands::factoryResetDevice},
@@ -381,6 +405,7 @@ class sfeDLCommands
         {"normal-output", &sfeDLCommands::logLevelNormal},
         {"debug-output", &sfeDLCommands::logLevelDebug},
         {"verbose-output", &sfeDLCommands::logLevelVerbose},
+        {"systime", &sfeDLCommands::outputSystemTime},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
     };
