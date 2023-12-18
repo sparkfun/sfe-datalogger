@@ -347,13 +347,11 @@ class sfeDataLogger : public flxApplication
     void listenForFirmwareLoad(flxSignalBool &theEvent);
 
     void onSettingsEdit(bool bLoading);
-    void listenForSettingsEdit(flxSignalBool &theEvent);
 
     void onSystemActivity(void);
     void listenForSystemActivity(flxSignalVoid &theEvent);
 
     void onErrorMessage(uint8_t);
-    void listenForErrorMessage(flxSignalUInt8 &theEvent);
 
     uint getTerminalBaudRate(void);
 

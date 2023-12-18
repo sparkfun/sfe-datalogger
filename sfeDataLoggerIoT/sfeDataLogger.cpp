@@ -185,16 +185,12 @@ void sfeDataLogger::onErrorMessage(uint8_t msgType)
         sfeLED.flash(sfeLED.Yellow);
 }
 
-void sfeDataLogger::listenForErrorMessage(flxSignalUInt8 &theEvent)
-{
-    theEvent.call(this, &sfeDataLogger::onErrorMessage);
-}
-
 //---------------------------------------------------------------------------
 // Display things during settings edits
 //---------------------------------------------------------------------------
 void sfeDataLogger::onSettingsEdit(bool bLoading)
 {
+
     if (bLoading)
     {
         setOpMode(kDataLoggerOpEditing);
@@ -218,11 +214,6 @@ void sfeDataLogger::onSettingsEdit(bool bLoading)
             clearOpMode(kDataLoggerOpPendingRestart);
         }
     }
-}
-//---------------------------------------------------------------------------
-void sfeDataLogger::listenForSettingsEdit(flxSignalBool &theEvent)
-{
-    theEvent.call(this, &sfeDataLogger::onSettingsEdit);
 }
 
 //---------------------------------------------------------------------------
@@ -310,9 +301,9 @@ bool sfeDataLogger::onSetup()
     _jsonStorage.setFilename("datalogger.json");
 
     // Have settings saved when editing via serial console is complete.
-    listenForSettingsEdit(_serialSettings.on_editing);
-    flxSettings.listenForSave(_serialSettings.on_finished);
-    flxSettings.listenForSave(_theOutputFile.on_newFile);
+    flxRegisterEventCB(kFlxEventOnEdit, this, &sfeDataLogger::onSettingsEdit);
+    flxRegisterEventCB(kFlxEventOnEditFinished, &flxSettings, &flxSettingsSave::saveEvent_CB);
+    flxRegisterEventCB(kFlxEventOnNewFile, &flxSettings, &flxSettingsSave::saveEvent_CB);
 
     // Add serial settings to spark - the spark loop call will take care
     // of everything else.
@@ -362,7 +353,8 @@ bool sfeDataLogger::onSetup()
     flux.add(_boardButton);
 
     // wire in LED to the logging system
-    listenForErrorMessage(flxLog.onLogMessage);
+    // listenForErrorMessage(flxLog.onLogMessage);
+    flxRegisterEventCB(kFlxEventLogErrWarn, this, &sfeDataLogger::onErrorMessage);
 
     // We want an event every 5 seconds
     _boardButton.setPressIncrement(kButtonPressedIncrement);

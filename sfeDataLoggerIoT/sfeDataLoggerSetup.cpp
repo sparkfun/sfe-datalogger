@@ -53,7 +53,7 @@ bool sfeDataLogger::setupSDCard(void)
 
         // have the CSV formatter listen to the new file event. This
         // will cause a header to be written next cycle.
-        _fmtCSV.listenNewFile(_theOutputFile.on_newFile);
+        flxRegisterEventCB(kFlxEventOnNewFile, &_fmtCSV, &flxFormatCSV::output_header);
 
         return true;
     }
