@@ -24,117 +24,12 @@ const uint32_t kWebServerLogoutInactivity = 300000;
 
 const char *kWebServerAuthRelm = "SFE-DataLogger";
 
-// index.html file
+///////////////////////////////////////////////////////////////////////////////////////////////
+// index.html file - This is the minified version of dl_filebrowser.html. See that file for page development and
+// how to minify the web page.
+//
 static const char *_indexHTML = R"literal(
-<!DOCTYPE html>
-<html>
-<head>
-<title>SparkFun DataLogger IoT</title>
-<style>
-body {font-family: Helvetica, sans-serif;font-size: 12px;color: #333;background-color:#fff}
-h1 {text-align: left;color: #333;}
-table {width: 100%;border-collapse: collapse;border: 0px;}
-td {padding: 5px 5px;text-align: left;font-size: 16px;}
-tbody tr:hover{background-color: #DCDCDC;}
-th {padding: 10px 10px;text-align: left;border: 0px;font-size: 20px;font-weight: bold;}
-a, a:visited, a:active {color: #333;text-decoration: underline;font-weight: normal;}
-.navbar {overflow: hidden;background-color: #333;position: relative;bottom: 0;width: 100%;}
-.navbtn {float: left;display: block;color: #f2f2f2;text-align: center;padding: 14px 16px;text-decoration: none;font-size: 17px;cursor: pointer;border:none;background-color: #333;}
-.navbtn:hover {background: #f1f1f1;color: black;}
-.navbtn:active {background-color: #808080;color: white;}
-.navbtn:disabled {background-color: #333;color: #808080; cursor:not-allowed; pointer-events:none;}
-.main {padding: 16px;margin-bottom: 30px;}
-.parent {overflow: hidden;width: 80%;}
-.branding {float: right;width 20%;font-size: 17px;color: white;padding: 14px 16px;}
- </style>
-</head>
-<body>
-<h1>Available Log Files</h1>
-<div class="parent">
-<table id="tbl">
-<thead><tr><th style="width:40%">File</th><th>Size</th><th>Date</th></tr></thead>
-<tbody></tbody></table>
-<div class="navbar">
-<div class="navbar">
-<button class="navbtn" id="prev">Previous</button>
-<button class="navbtn" id="next">Next</button>
-<div class="branding">SparkFun - DataLogger IoT</div>
-</div>
-</div>
- <script>
-  var theWS;
-  var _pg=0;
-  function getPage(p){
-
-    if (theWS.readyState == 2 || theWS.readyState == 3){
-        _pg=p;
-        setupWS();
-        return;
-    }
-    const r= {
-        ty: 1,
-        pg: p
-    };
-    theWS.send(JSON.stringify(r));
-  }
-  function setupWS(){
-    theWS = new WebSocket( "ws://" + window.location.host + "/ws");
-    theWS.onopen = (event) => {
-        getPage(_pg);
-    }
-    theWS.onmessage = (event) => {
-        var res;
-        try {
-            var res = JSON.parse(event.data);
-        }catch (err){
-            console.log("results corrupt")
-            return;
-        }
-        var o_tb = document.querySelectorAll("tbody")[0];
-        var n_tb = document.createElement('tbody');
-        res.files.forEach( (val) => {
-            var row = document.createElement("tr");
-            var d1 = document.createElement("td");
-            var lnk = document.createElement("a");
-            lnk.innerHTML = val.name;
-            lnk.href = "/dl/" + val.name;
-            lnk.download = val.name;
-            lnk.title = "Download " + val.name;
-            d1.appendChild(lnk);
-            row.appendChild(d1);
-            var d2 = document.createElement("td");
-            d2.appendChild(document.createTextNode(val.size));
-            row.appendChild(d2);
-            var d3 = document.createElement("td");
-            d3.appendChild(document.createTextNode(val.time));
-            row.appendChild(d3);
-            n_tb.append(row);
-        });
-        var tbl = document.getElementById("tbl");
-        tbl.replaceChild(n_tb, o_tb);
-        _pg = res.page;
-        document.getElementById("prev").disabled= (_pg == 0);
-        document.getElementById("next").disabled= (res.count < 20);
-    }
-  }
- window.onload= function()
- {
-    var bn = document.getElementById("next");
-    bn.addEventListener("click", (event) => {
-        getPage(_pg + 1);
-    });
-    bn = document.getElementById("prev");    
-    bn.addEventListener("click", (event) => {
-        if (_pg > 0){
-           getPage(_pg - 1);
-        }
-    });    
-    setupWS();
- }
-
- </script>
- </body>
- </html>
+<!doctypehtml><title>SparkFun DataLogger IoT</title><style>body{font-family:Helvetica,sans-serif;font-size:12px;color:#333;background-color:#fff}h1{text-align:left;color:#333}table{width:100%;border-collapse:collapse;border:0}td{padding:5px 5px;text-align:left;font-size:16px}tbody tr:hover{background-color:#dcdcdc}th{padding:10px 10px;text-align:left;border:0;font-size:20px;font-weight:700}a,a:active,a:visited{color:#333;text-decoration:underline;font-weight:400}.navbar{overflow:hidden;background-color:#333;position:relative;bottom:0;width:100%}.navbtn{float:left;display:block;color:#f2f2f2;text-align:center;padding:14px 16px;text-decoration:none;font-size:17px;cursor:pointer;border:none;background-color:#333}.navbtn:hover{background:#f1f1f1;color:#000}.navbtn:active{background-color:grey;color:#fff}.navbtn:disabled{background-color:#333;color:grey;cursor:not-allowed;pointer-events:none}.main{padding:16px;margin-bottom:30px}.parent{overflow:hidden;width:80%}.branding{float:right;color:#fff;padding:14px 16px}</style><h1>Available Log Files</h1><div class="parent"><table id="tbl"><thead><tr><th style="width:40%">File<th>Size<th>Date<tbody></table><div class="navbar"><div class="navbar"><button class="navbtn"id="prev">Previous</button> <button class="navbtn"id="next">Next</button><div class="branding">SparkFun - DataLogger IoT</div></div></div><script>var theWS,_pg=0;function getPage(e){2==theWS.readyState||3==theWS.readyState?(_pg=e,setupWS()):theWS.send(JSON.stringify({ty:1,pg:e}))}function setupWS(){(theWS=new WebSocket("ws://"+window.location.host+"/ws")).onopen=e=>{getPage(_pg)},theWS.onmessage=e=>{try{var t=JSON.parse(e.data)}catch(e){return void console.log("results corrupt")}var e=document.querySelectorAll("tbody")[0],a=document.createElement("tbody");t.files.forEach(e=>{var t=document.createElement("tr"),n=document.createElement("td"),d=document.createElement("a"),d=(d.innerHTML=e.name,d.href="/dl/"+e.name,d.download=e.name,d.title="Download "+e.name,n.appendChild(d),t.appendChild(n),document.createElement("td")),n=(d.appendChild(document.createTextNode(e.size)),t.appendChild(d),document.createElement("td"));n.appendChild(document.createTextNode(e.time)),t.appendChild(n),a.append(t)}),document.getElementById("tbl").replaceChild(a,e),_pg=t.page,document.getElementById("prev").disabled=0==_pg,document.getElementById("next").disabled=t.count<20}}window.onload=function(){var e=document.getElementById("next");e.addEventListener("click",e=>{getPage(_pg+1)}),(e=document.getElementById("prev")).addEventListener("click",e=>{0<_pg&&getPage(_pg-1)}),setupWS()}</script></div>
 )literal";
 
 //-------------------------------------------------------------------------
