@@ -145,8 +145,6 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     flxPropertyString<sfeDLWebServer> authUsername;
     flxPropertySecureString<sfeDLWebServer> authPassword;
 
-    flxSignalVoid onActivity;
-
   protected:
     flxNetwork *_theNetwork;
 

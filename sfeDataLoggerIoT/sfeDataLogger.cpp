@@ -168,11 +168,6 @@ void sfeDataLogger::onFirmwareLoad(bool bLoading)
         sfeLED.off();
 }
 
-void sfeDataLogger::listenForFirmwareLoad(flxSignalBool &theEvent)
-{
-    theEvent.call(this, &sfeDataLogger::onFirmwareLoad);
-}
-
 //---------------------------------------------------------------------------
 // Flash led on error/warnings
 //---------------------------------------------------------------------------
@@ -343,7 +338,7 @@ bool sfeDataLogger::onSetup()
     _sysUpdate.setWiFiDevice(&_wifiConnection);
     _sysUpdate.enableOTAUpdates(kDataLoggerOTAManifestURL);
 
-    listenForFirmwareLoad(_sysUpdate.on_firmwareload);
+    flxRegisterEventCB(kFlxEventOnFirmwareLoad, this, &sfeDataLogger::onFirmwareLoad);
 
     // Add to the system - manual add so it appears last in the ops list
     _sysUpdate.setTitle("Advanced");

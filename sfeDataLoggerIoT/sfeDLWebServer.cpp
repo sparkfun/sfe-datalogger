@@ -214,7 +214,7 @@ bool sfeDLWebServer::setupServer(void)
         // update activity/login ticks
         _loginTicks = millis();
         request->send(200, "text/html", _indexHTML);
-        onActivity.emit();
+        flxSendEvent(kFlxEventOnSystemActivity);
     });
 
     // Setup the handler for downloading file
@@ -225,7 +225,7 @@ bool sfeDLWebServer::setupServer(void)
         if (!checkAuthState(request))
             return;
 
-        onActivity.emit();
+        flxSendEvent(kFlxEventOnSystemActivity);
         // get the file from the URL - move type to std.
         std::string theURL = request->url().c_str();
         std::string::size_type n = theURL.rfind('/');
@@ -269,8 +269,7 @@ bool sfeDLWebServer::setupServer(void)
 void sfeDLWebServer::onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
                                     uint8_t *data, size_t len)
 {
-
-    onActivity.emit();
+    flxSendEvent(kFlxEventOnSystemActivity);
 
     if (type == WS_EVT_CONNECT)
     {

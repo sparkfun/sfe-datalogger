@@ -344,8 +344,6 @@ class sfeDataLogger : public flxApplication
 
     // event things
     void onFirmwareLoad(bool bLoading);
-    void listenForFirmwareLoad(flxSignalBool &theEvent);
-
     void onSettingsEdit(bool bLoading);
 
     void onSystemActivity(void);
