@@ -103,7 +103,7 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     {
         _theNetwork = theNetwork;
 
-        flxRegisterEventCB(kFlxEventOnConnectionChange, this, &sfeDLWebServer::onConnectionChange);
+        flxRegisterEventCB(flxEvent::kOnConnectionChange, this, &sfeDLWebServer::onConnectionChange);
     }
 
     bool connected()

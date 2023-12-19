@@ -51,9 +51,9 @@ bool sfeDataLogger::setupSDCard(void)
         // add the file output to the CSV output.
         //_fmtCSV.add(_theOutputFile);
 
-        // have the CSV formatter listen to the new file event. This
+        // have the CSV format driver listen to the new file event. This
         // will cause a header to be written next cycle.
-        flxRegisterEventCB(kFlxEventOnNewFile, &_fmtCSV, &flxFormatCSV::output_header);
+        flxRegisterEventCB(flxEvent::kOnNewFile, &_fmtCSV, &flxFormatCSV::output_header);
 
         return true;
     }
@@ -117,7 +117,7 @@ bool sfeDataLogger::setupIoTClients()
     _iotWebServer.setTitle("Preview");
     _iotWebServer.setNetwork(&_wifiConnection);
     _iotWebServer.setFileSystem(&_theSDCard);
-    flxRegisterEventCB(kFlxEventOnSystemActivity, this, &sfeDataLogger::onSystemActivity);
+    flxRegisterEventCB(flxEvent::kOnSystemActivity, this, &sfeDataLogger::onSystemActivity);
 
     return true;
 }

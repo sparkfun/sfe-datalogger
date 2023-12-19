@@ -44,7 +44,7 @@ RTC_DATA_ATTR int boot_count = 0;
 // Application keys - used to encrypt runtime secrets for the app.
 //
 // NOTE: Gen a base 64 key  % openssl rand -base64 32
-//       Convert into ascii ints in python %    data = [ord(c) for c in ss]
+//       Convert into ASCII ints in python %    data = [ord(c) for c in ss]
 //       Jam into the below array
 
 // If a key array is passed in via a #define, use that, otherwise use a default, dev key
@@ -296,9 +296,9 @@ bool sfeDataLogger::onSetup()
     _jsonStorage.setFilename("datalogger.json");
 
     // Have settings saved when editing via serial console is complete.
-    flxRegisterEventCB(kFlxEventOnEdit, this, &sfeDataLogger::onSettingsEdit);
-    flxRegisterEventCB(kFlxEventOnEditFinished, &flxSettings, &flxSettingsSave::saveEvent_CB);
-    flxRegisterEventCB(kFlxEventOnNewFile, &flxSettings, &flxSettingsSave::saveEvent_CB);
+    flxRegisterEventCB(flxEvent::kOnEdit, this, &sfeDataLogger::onSettingsEdit);
+    flxRegisterEventCB(flxEvent::kOnEditFinished, &flxSettings, &flxSettingsSave::saveEvent_CB);
+    flxRegisterEventCB(flxEvent::kOnNewFile, &flxSettings, &flxSettingsSave::saveEvent_CB);
 
     // Add serial settings to spark - the spark loop call will take care
     // of everything else.
@@ -338,7 +338,7 @@ bool sfeDataLogger::onSetup()
     _sysUpdate.setWiFiDevice(&_wifiConnection);
     _sysUpdate.enableOTAUpdates(kDataLoggerOTAManifestURL);
 
-    flxRegisterEventCB(kFlxEventOnFirmwareLoad, this, &sfeDataLogger::onFirmwareLoad);
+    flxRegisterEventCB(flxEvent::kOnFirmwareLoad, this, &sfeDataLogger::onFirmwareLoad);
 
     // Add to the system - manual add so it appears last in the ops list
     _sysUpdate.setTitle("Advanced");
@@ -348,8 +348,7 @@ bool sfeDataLogger::onSetup()
     flux.add(_boardButton);
 
     // wire in LED to the logging system
-    // listenForErrorMessage(flxLog.onLogMessage);
-    flxRegisterEventCB(kFlxEventLogErrWarn, this, &sfeDataLogger::onErrorMessage);
+    flxRegisterEventCB(flxEvent::kLogErrWarn, this, &sfeDataLogger::onErrorMessage);
 
     // We want an event every 5 seconds
     _boardButton.setPressIncrement(kButtonPressedIncrement);
