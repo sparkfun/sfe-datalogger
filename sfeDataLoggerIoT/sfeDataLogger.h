@@ -347,7 +347,6 @@ class sfeDataLogger : public flxApplication
     void onSettingsEdit(bool bLoading);
 
     void onSystemActivity(void);
-    void listenForSystemActivity(flxSignalVoid &theEvent);
 
     void onErrorMessage(uint8_t);
 
