@@ -218,6 +218,12 @@ void sfeDataLogger::onSystemActivity(void)
 }
 
 //---------------------------------------------------------------------------
+void sfeDataLogger::onSystemActivityLow(void)
+{
+    sfeLED.flash(sfeLED.Blue);
+}
+
+//---------------------------------------------------------------------------
 // Button Events - general handler
 //---------------------------------------------------------------------------
 //
@@ -368,6 +374,10 @@ bool sfeDataLogger::onSetup()
     // was wifi startup disabled by startup commands?
     if (inOpMode(kDataLoggerOpStartListDevices))
         flux.dumpDeviceAutoLoadTable();
+
+    // setup our event callbacks for system/framework events;
+    flxRegisterEventCB(flxEvent::kOnSystemActivity, this, &sfeDataLogger::onSystemActivity);
+    flxRegisterEventCB(flxEvent::kOnSystemActivityLow, this, &sfeDataLogger::onSystemActivityLow);
 
     return true;
 }

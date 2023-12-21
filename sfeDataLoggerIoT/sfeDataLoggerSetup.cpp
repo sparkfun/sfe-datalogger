@@ -117,7 +117,6 @@ bool sfeDataLogger::setupIoTClients()
     _iotWebServer.setTitle("Preview");
     _iotWebServer.setNetwork(&_wifiConnection);
     _iotWebServer.setFileSystem(&_theSDCard);
-    flxRegisterEventCB(flxEvent::kOnSystemActivity, this, &sfeDataLogger::onSystemActivity);
 
     return true;
 }
