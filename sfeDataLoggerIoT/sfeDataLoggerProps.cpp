@@ -110,36 +110,23 @@ void sfeDataLogger::set_sleepEnabled(bool enabled)
 
     _bSleepEnabled = enabled;
 
-    // manage our event -- if enabled, add to loop events, else remove it
-    // Is it in the loop event list ?
-    auto it = std::find(_loopEventList.begin(), _loopEventList.end(), &_sleepEvent);
-
     if (_bSleepEnabled)
-    {
-        _sleepEvent.last = millis();
-
-        // just to be safe - check for dups
-        if (it == _loopEventList.end())
-            _loopEventList.push_back(&_sleepEvent);
-    }
+        flxAddJobToQueue(_sleepJob);
     else
-    {
-        if (it != _loopEventList.end()) // need to remove this
-            _loopEventList.erase(it);
-    }
+        flxRemoveJobFromQueue(_sleepJob);
 }
 
 //---------------------------------------------------------------------------
 // Wake interval - get/set in secs; stored in our sleep event as MSecs
 uint sfeDataLogger::get_sleepWakePeriod(void)
 {
-    return _sleepEvent.delta / 1000;
+    return _sleepJob.period() / 1000;
 }
 //---------------------------------------------------------------------------
 // set period -- in secs
 void sfeDataLogger::set_sleepWakePeriod(uint period)
 {
-    _sleepEvent.delta = period * 1000;
+    _sleepJob.setPeriod(period * 1000);
 }
 
 //---------------------------------------------------------------------------

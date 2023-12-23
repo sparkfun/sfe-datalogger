@@ -26,7 +26,6 @@
 // for our time setup
 #include <Flux/flxClock.h>
 #include <Flux/flxDevMAX17048.h>
-
 #include <Flux/flxUtils.h>
 
 // SPI Devices
@@ -149,7 +148,7 @@ sfeDataLogger::sfeDataLogger()
 
     // set sleep default interval && event handler method
     sleepInterval = kSystemSleepSleepSec;
-    _sleepEvent.call(this, &sfeDataLogger::enterSleepMode);
+    _sleepJob.setup(kSystemSleepSleepSec * 1000, this, &sfeDataLogger::enterSleepMode);
 
     // app key
     flux.setAppToken(_app_jump, sizeof(_app_jump));
@@ -550,13 +549,18 @@ void sfeDataLogger::checkOpMode()
 {
     _isValidMode = dlModeCheckValid(_modeFlags);
 
-    // DO we need to nag? If so, add nag event to loop
+    // DO we need to nag? If so, add nag job to the loop
     if (!_isValidMode)
     {
-        // Create a loop event for the nag message
-        sfeDLLoopEvent *pEvent = new sfeDLLoopEvent("VALIDMODE", kLNagTimesMSecs, 0);
-        pEvent->call(this, &sfeDataLogger::outputVMessage);
-        _loopEventList.push_back(pEvent);
+        // Create a timed job that will trigger a nag message at a regular interval
+        flxJob *pJob = new flxJob;
+        if (pJob != nullptr)
+        {
+            pJob->setup(kLNagTimesMSecs, this, &sfeDataLogger::outputVMessage);
+            flxAddJobToQueue(*pJob);
+        }
+        else
+            flxLog_W(kLNagMessage);
     }
     // at this point we know the board we're running on. Set the name...
     setName(dlModeCheckName(_modeFlags));
@@ -668,9 +672,12 @@ bool sfeDataLogger::onStart()
     // Do we have a fuel gauge ...
     if (_fuelGauge)
     {
-        _batteryEvent.last = _startTime;
-        _batteryEvent.call(this, &sfeDataLogger::checkBatteryLevels);
-        _loopEventList.push_back(&_batteryEvent);
+        _batteryJob.reset(new flxJob);
+        if (_batteryJob != nullptr)
+        {
+            _batteryJob->setup(kBatteryCheckInterval, this, &sfeDataLogger::checkBatteryLevels);
+            flxAddJobToQueue(*_batteryJob);
+        }
     }
 
     checkOpMode();
@@ -769,19 +776,6 @@ void sfeDataLogger::checkBatteryLevels(void)
 
 bool sfeDataLogger::loop()
 {
-    // Event things ...
-    unsigned long ticks = millis();
-
-    // Loop over loop Events - if limit reached, call event handler
-    for (sfeDLLoopEvent *pEvent : _loopEventList)
-    {
-        if (ticks - pEvent->last > pEvent->delta)
-        {
-            pEvent->handler();
-            pEvent->last = ticks;
-        }
-    }
-
     // key press at Serial Console? What to do??
     if (Serial.available())
     {

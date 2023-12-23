@@ -18,6 +18,7 @@
 
 // Spark framework
 #include <Flux.h>
+#include <Flux/flxCoreJobs.h>
 #include <Flux/flxCoreLog.h>
 #include <Flux/flxFmtCSV.h>
 #include <Flux/flxFmtJSON.h>
@@ -77,6 +78,8 @@
 #include "sfeDLDisplay.h"
 #endif
 
+#include <utility>
+
 //------------------------------------------
 // Default log interval in milli secs
 const uint16_t kDefaultLogInterval = 15000;
@@ -96,44 +99,6 @@ const uint16_t kSystemSleepWakeSec = 120;
 
 // What is the out of the box baud rate ..
 const uint32_t kDefaultTerminalBaudRate = 115200;
-
-//-----------------------------------------------------------------
-// Helper class for loop events - unifies the idea of calling a method
-// after a specific time ...
-class sfeDLLoopEvent
-{
-
-  public:
-    sfeDLLoopEvent(const char *label) : name{label}, delta{0}, last{0}
-    {
-    }
-
-    sfeDLLoopEvent(const char *label, uint32_t in_delta, uint32_t in_last) : sfeDLLoopEvent(label)
-    {
-        delta = in_delta;
-        last = in_last;
-    }
-
-    // what method to call when time expired
-    template <typename T> void call(T *inst, void (T::*func)())
-    {
-        handler = [=]() { // uses a lambda for the callback
-            (inst->*func)();
-        };
-    }
-
-    // handler
-    std::function<void()> handler;
-
-    // Time delta in MS
-    uint32_t delta;
-
-    // Last time checked im MS;
-    uint32_t last;
-
-    // Event name = helpful
-    const char *name;
-};
 
 // Operation mode flags
 #define kDataLoggerOpNone (0)
@@ -444,15 +409,12 @@ class sfeDataLogger : public flxApplication
     // oled
     flxDevMicroOLED *_microOLED;
 
-    // loop event things
-    std::vector<sfeDLLoopEvent *> _loopEventList;
-
     // battery check event
-    sfeDLLoopEvent _batteryEvent = {"BATTERY", kBatteryCheckInterval, 0};
+    std::unique_ptr<flxJob> _batteryJob;
 
     // sleep things - is enabled storage, sleep event
     bool _bSleepEnabled;
-    sfeDLLoopEvent _sleepEvent = {"SLEEP", kSystemSleepWakeSec * 1000, 0};
+    flxJob _sleepJob;
 
 #ifdef ENABLE_OLED_DISPLAY
     sfeDLDisplay *_pDisplay;
