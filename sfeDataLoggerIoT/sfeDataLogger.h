@@ -156,7 +156,7 @@ class sfeDataLogger : public flxApplication
     //---------------------------------------------------------------------------
     // onDeviceLoad()
     //
-    // Called by the system, right after device autoload, but before system restore
+    // Called by the system, right after device auto-load, but before system restore
     // Allows the app to load other devices.
     void onDeviceLoad(void);
 
@@ -170,7 +170,7 @@ class sfeDataLogger : public flxApplication
     //---------------------------------------------------------------------
     // Check if we have a NFC reader available -- for use with WiFi credentials
     //
-    // Call after autoload
+    // Call after auto-load
     void setupNFDevice(void);
 
     //---------------------------------------------------------------------
