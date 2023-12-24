@@ -184,7 +184,7 @@ void _sfeLED::_eventCB(cmdStruct_t &theCommand)
     // quick flash of LED
     case kCmdFlash:
         pushState(theCommand.data);
-        vTaskDelay(kActivityDelay / portTICK_RATE_MS);
+        vTaskDelay(kActivityDelay / portTICK_PERIOD_MS);
         popState();
         break;
 
