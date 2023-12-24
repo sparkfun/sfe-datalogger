@@ -148,7 +148,7 @@ sfeDataLogger::sfeDataLogger()
 
     // set sleep default interval && event handler method
     sleepInterval = kSystemSleepSleepSec;
-    _sleepJob.setup(kSystemSleepSleepSec * 1000, this, &sfeDataLogger::enterSleepMode);
+    _sleepJob.setup("sleep", kSystemSleepSleepSec * 1000, this, &sfeDataLogger::enterSleepMode, true);
 
     // app key
     flux.setAppToken(_app_jump, sizeof(_app_jump));
@@ -556,7 +556,7 @@ void sfeDataLogger::checkOpMode()
         flxJob *pJob = new flxJob;
         if (pJob != nullptr)
         {
-            pJob->setup(kLNagTimesMSecs, this, &sfeDataLogger::outputVMessage);
+            pJob->setup("!SparkFun", kLNagTimesMSecs, this, &sfeDataLogger::outputVMessage);
             flxAddJobToQueue(*pJob);
         }
         else
@@ -675,7 +675,7 @@ bool sfeDataLogger::onStart()
         _batteryJob.reset(new flxJob);
         if (_batteryJob != nullptr)
         {
-            _batteryJob->setup(kBatteryCheckInterval, this, &sfeDataLogger::checkBatteryLevels);
+            _batteryJob->setup("Battery", kBatteryCheckInterval, this, &sfeDataLogger::checkBatteryLevels);
             flxAddJobToQueue(*_batteryJob);
         }
     }
