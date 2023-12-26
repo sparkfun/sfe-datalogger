@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2022-2023, SparkFun Electronics Inc.  All rights reserved.
+ * Copyright (c) 2022-2024, SparkFun Electronics Inc.  All rights reserved.
  * This software includes information which is proprietary to and a
  * trade secret of SparkFun Electronics Inc.  It is not to be disclosed
  * to anyone outside of this organization. Reproduction by any means
@@ -17,7 +17,7 @@
 
 // A class to encapsulate the event logic/handling of the on-board button of the DataLogger.
 //
-// Note: For button press events, the class will send out "increment" events if the button is pressed for a 
+// Note: For button press events, the class will send out "increment" events if the button is pressed for a
 // longer that "momentary" period
 
 class sfeDLButton : public flxActionType<sfeDLButton>
@@ -40,13 +40,12 @@ class sfeDLButton : public flxActionType<sfeDLButton>
             _pressIncrement = inc;
     }
 
-    // Our events - signals ... 
+    // Our events - signals ...
     flxSignalVoid on_momentaryPress;
     flxSignalUInt on_buttonRelease;
     flxSignalUInt on_buttonPressed;
 
   private:
-
     // How many seconds per increment on a button press
     uint32_t _pressIncrement;
 
