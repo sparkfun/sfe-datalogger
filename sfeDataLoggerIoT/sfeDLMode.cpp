@@ -99,7 +99,7 @@ bool dlModeCheckPrefix(uint32_t mode, char prefix[5])
 // The original board used devices to determine if the board was valid. This really
 // didn't scale, but the firmware needs to support it.
 //
-// This method will set the appropiate mode bits if the devices for the 9DOF board
+// This method will set the appropriate mode bits if the devices for the 9DOF board
 // are present.
 //
 // Returns true if a 9DOF board and the mode needs to be updated
