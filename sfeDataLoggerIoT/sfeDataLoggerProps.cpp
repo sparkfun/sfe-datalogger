@@ -180,22 +180,30 @@ void sfeDataLogger::set_termBaudRate(uint newRate)
     }
 }
 //---------------------------------------------------------------------------
-uint sfeDataLogger::getTerminalBaudRate(void)
+void sfeDataLogger::getStartupProperties(uint &baudRate, uint &startupDelay)
 {
     // Do we have this block in storage? And yes, a little hacky with name :)
     flxStorageBlock *stBlk = _sysStorage.getBlock(((flxObject *)this)->name());
 
     if (!stBlk)
-        return kDefaultTerminalBaudRate;
+    {
+        baudRate = kDefaultTerminalBaudRate;
+        startupDelay = kStartupMenuDefaultDelaySecs;
+        return;
+    }
 
-    uint theRate = 0;
-    bool status = stBlk->read(serialBaudRate.name(), theRate);
+    baudRate = 0;
+    bool status = stBlk->read(serialBaudRate.name(), baudRate);
+
+    if (!status)
+        baudRate = kDefaultTerminalBaudRate;
+
+    status = stBlk->read(startupDelaySecs.name(), startupDelay);
+    if (!status)
+        startupDelay = kStartupMenuDefaultDelaySecs;
 
     _sysStorage.endBlock(stBlk);
-
-    return status ? theRate : kDefaultTerminalBaudRate;
 }
-
 //---------------------------------------------------------------------------
 // local/board name things
 std::string sfeDataLogger::get_local_name(void)

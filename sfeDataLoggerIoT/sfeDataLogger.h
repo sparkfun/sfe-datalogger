@@ -97,6 +97,9 @@ const uint16_t kSystemSleepWakeSec = 120;
 // What is the out of the box baud rate ..
 const uint32_t kDefaultTerminalBaudRate = 115200;
 
+// General startup delay (secs) for the startup menu
+const uint32_t kStartupMenuDefaultDelaySecs = 2;
+
 //-----------------------------------------------------------------
 // Helper class for loop events - unifies the idea of calling a method
 // after a specific time ...
@@ -272,7 +275,7 @@ class sfeDataLogger : public flxApplication
     void set_color_text(bool);
 
     // support for onInit
-    void onInitStartupCommands(void);
+    void onInitStartupCommands(uint);
 
   public:
     //---------------------------------------------------------------------------
@@ -333,6 +336,9 @@ class sfeDataLogger : public flxApplication
     flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_color_text, &sfeDataLogger::set_color_text> colorTextOutput = {
         true};
 
+    // startup delay setting
+    flxPropertyUint<sfeDataLogger> startupDelaySecs = {2, 60};
+
   private:
     void enterSleepMode(void);
     void outputVMessage(void);
@@ -350,7 +356,7 @@ class sfeDataLogger : public flxApplication
 
     void onErrorMessage(uint8_t);
 
-    uint getTerminalBaudRate(void);
+    void getStartupProperties(uint &baudRate, uint &startupDelay);
 
     // Board button callbacks
     void onButtonPressed(uint);
