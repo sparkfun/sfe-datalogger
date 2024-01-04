@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2022-2023, SparkFun Electronics Inc.  All rights reserved.
+ * Copyright (c) 2022-2024, SparkFun Electronics Inc.  All rights reserved.
  * This software includes information which is proprietary to and a
  * trade secret of SparkFun Electronics Inc.  It is not to be disclosed
  * to anyone outside of this organization. Reproduction by any means
@@ -26,7 +26,6 @@
 // for our time setup
 #include <Flux/flxClock.h>
 #include <Flux/flxDevMAX17048.h>
-
 #include <Flux/flxUtils.h>
 
 // SPI Devices
@@ -153,7 +152,7 @@ sfeDataLogger::sfeDataLogger()
 
     // set sleep default interval && event handler method
     sleepInterval = kSystemSleepSleepSec;
-    _sleepEvent.call(this, &sfeDataLogger::enterSleepMode);
+    _sleepJob.setup("sleep", kSystemSleepSleepSec * 1000, this, &sfeDataLogger::enterSleepMode, true);
 
     // app key
     flux.setAppToken(_app_jump, sizeof(_app_jump));
@@ -219,6 +218,12 @@ void sfeDataLogger::onSettingsEdit(bool bLoading)
 void sfeDataLogger::onSystemActivity(void)
 {
     sfeLED.flash(sfeLED.Orange);
+}
+
+//---------------------------------------------------------------------------
+void sfeDataLogger::onSystemActivityLow(void)
+{
+    sfeLED.flash(sfeLED.Blue);
 }
 
 //---------------------------------------------------------------------------
@@ -372,6 +377,10 @@ bool sfeDataLogger::onSetup()
     // was wifi startup disabled by startup commands?
     if (inOpMode(kDataLoggerOpStartListDevices))
         flux.dumpDeviceAutoLoadTable();
+
+    // setup our event callbacks for system/framework events;
+    flxRegisterEventCB(flxEvent::kOnSystemActivity, this, &sfeDataLogger::onSystemActivity);
+    flxRegisterEventCB(flxEvent::kOnSystemActivityLow, this, &sfeDataLogger::onSystemActivityLow);
 
     return true;
 }
@@ -576,13 +585,18 @@ void sfeDataLogger::checkOpMode()
 {
     _isValidMode = dlModeCheckValid(_modeFlags);
 
-    // DO we need to nag? If so, add nag event to loop
+    // DO we need to nag? If so, add nag job to the loop
     if (!_isValidMode)
     {
-        // Create a loop event for the nag message
-        sfeDLLoopEvent *pEvent = new sfeDLLoopEvent("VALIDMODE", kLNagTimesMSecs, 0);
-        pEvent->call(this, &sfeDataLogger::outputVMessage);
-        _loopEventList.push_back(pEvent);
+        // Create a timed job that will trigger a nag message at a regular interval
+        flxJob *pJob = new flxJob;
+        if (pJob != nullptr)
+        {
+            pJob->setup("!SparkFun", kLNagTimesMSecs, this, &sfeDataLogger::outputVMessage);
+            flxAddJobToQueue(*pJob);
+        }
+        else
+            flxLog_W(kLNagMessage);
     }
     // at this point we know the board we're running on. Set the name...
     setName(dlModeCheckName(_modeFlags));
@@ -694,9 +708,12 @@ bool sfeDataLogger::onStart()
     // Do we have a fuel gauge ...
     if (_fuelGauge)
     {
-        _batteryEvent.last = _startTime;
-        _batteryEvent.call(this, &sfeDataLogger::checkBatteryLevels);
-        _loopEventList.push_back(&_batteryEvent);
+        _batteryJob.reset(new flxJob);
+        if (_batteryJob != nullptr)
+        {
+            _batteryJob->setup("Battery", kBatteryCheckInterval, this, &sfeDataLogger::checkBatteryLevels);
+            flxAddJobToQueue(*_batteryJob);
+        }
     }
 
     checkOpMode();
@@ -795,19 +812,6 @@ void sfeDataLogger::checkBatteryLevels(void)
 
 bool sfeDataLogger::loop()
 {
-    // Event things ...
-    unsigned long ticks = millis();
-
-    // Loop over loop Events - if limit reached, call event handler
-    for (sfeDLLoopEvent *pEvent : _loopEventList)
-    {
-        if (ticks - pEvent->last > pEvent->delta)
-        {
-            pEvent->handler();
-            pEvent->last = ticks;
-        }
-    }
-
     // key press at Serial Console? What to do??
     if (Serial.available())
     {

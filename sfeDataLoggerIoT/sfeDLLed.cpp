@@ -2,7 +2,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2022-2023, SparkFun Electronics Inc.  All rights reserved.
+ * Copyright (c) 2022-2024, SparkFun Electronics Inc.  All rights reserved.
  * This software includes information which is proprietary to and a
  * trade secret of SparkFun Electronics Inc.  It is not to be disclosed
  * to anyone outside of this organization. Reproduction by any means
@@ -24,7 +24,7 @@ static TaskHandle_t hTaskLED = NULL;
 QueueHandle_t hCmdQueue = NULL;
 
 // size of our queue
-const uint16_t kLEDCmdQueueSize = 12;
+const uint16_t kLEDCmdQueueSize = 30;
 const uint16_t kLEDCmdQueueWait = 5;
 
 // Time for flashing the LED
@@ -33,7 +33,7 @@ const uint16_t kTimerPeriod = 100;
 
 // A task needs a Stack - let's set that size
 #define kStackSize 1024
-#define kActivityDelay 60
+#define kActivityDelay 50
 
 #define kLedColorOrder GRB
 #define kLedChipset WS2812
@@ -76,7 +76,7 @@ static void _sfeLED_TaskProcessing(void *parameter)
         {
             _sfeLED::cmdStruct_t thePeek;
 
-            if (xQueuePeek(hCmdQueue, &thePeek, (TickType_t)5))
+            if (xQueuePeek(hCmdQueue, &thePeek, (TickType_t)10))
             {
                 // skip the current flash?
                 if (thePeek.type == _sfeLED::kCmdFlash)
@@ -184,7 +184,7 @@ void _sfeLED::_eventCB(cmdStruct_t &theCommand)
     // quick flash of LED
     case kCmdFlash:
         pushState(theCommand.data);
-        vTaskDelay(kActivityDelay / portTICK_RATE_MS);
+        vTaskDelay(kActivityDelay / portTICK_PERIOD_MS);
         popState();
         break;
 
@@ -226,7 +226,7 @@ void _sfeLED::update(void)
     // check blink state - blink on, blink off?
     if (_colorStack[_current].ticks > 0)
     {
-        xTimerChangePeriod(hTimer, _colorStack[_current].ticks / portTICK_RATE_MS, 10);
+        xTimerChangePeriod(hTimer, _colorStack[_current].ticks / portTICK_PERIOD_MS, 10);
         xTimerReset(hTimer, 10);
     }
     else
@@ -268,8 +268,9 @@ void _sfeLED::queueCommand(cmdType_t command, sfeLEDColor_t color, uint32_t tick
 
     cmdStruct_t theCommand = {command, {color, ticks}};
 
-    if (xQueueSend(hCmdQueue, (void *)&theCommand, kLEDCmdQueueWait / portTICK_RATE_MS) != pdPASS)
-        Serial.println("[WARNING] - LED queue overflow"); // TODO -- DO WE CARE
+    xQueueSend(hCmdQueue, (void *)&theCommand, 10);
+    // if (xQueueSend(hCmdQueue, (void *)&theCommand, 10) != pdPASS)
+    // Serial.println("[WARNING] - LED queue overflow"); // TODO -- DO WE CARE
 }
 //---------------------------------------------------------
 // public interface methods.

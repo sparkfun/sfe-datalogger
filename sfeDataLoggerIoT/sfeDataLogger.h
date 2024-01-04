@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2022-2023, SparkFun Electronics Inc.  All rights reserved.
+ * Copyright (c) 2022-2024, SparkFun Electronics Inc.  All rights reserved.
  * This software includes information which is proprietary to and a
  * trade secret of SparkFun Electronics Inc.  It is not to be disclosed
  * to anyone outside of this organization. Reproduction by any means
@@ -18,6 +18,7 @@
 
 // Spark framework
 #include <Flux.h>
+#include <Flux/flxCoreJobs.h>
 #include <Flux/flxCoreLog.h>
 #include <Flux/flxFmtCSV.h>
 #include <Flux/flxFmtJSON.h>
@@ -77,6 +78,8 @@
 #include "sfeDLDisplay.h"
 #endif
 
+#include <utility>
+
 //------------------------------------------
 // Default log interval in milli secs
 const uint16_t kDefaultLogInterval = 15000;
@@ -99,44 +102,6 @@ const uint32_t kDefaultTerminalBaudRate = 115200;
 
 // General startup delay (secs) for the startup menu
 const uint32_t kStartupMenuDefaultDelaySecs = 2;
-
-//-----------------------------------------------------------------
-// Helper class for loop events - unifies the idea of calling a method
-// after a specific time ...
-class sfeDLLoopEvent
-{
-
-  public:
-    sfeDLLoopEvent(const char *label) : name{label}, delta{0}, last{0}
-    {
-    }
-
-    sfeDLLoopEvent(const char *label, uint32_t in_delta, uint32_t in_last) : sfeDLLoopEvent(label)
-    {
-        delta = in_delta;
-        last = in_last;
-    }
-
-    // what method to call when time expired
-    template <typename T> void call(T *inst, void (T::*func)())
-    {
-        handler = [=]() { // uses a lambda for the callback
-            (inst->*func)();
-        };
-    }
-
-    // handler
-    std::function<void()> handler;
-
-    // Time delta in MS
-    uint32_t delta;
-
-    // Last time checked im MS;
-    uint32_t last;
-
-    // Event name = helpful
-    const char *name;
-};
 
 // Operation mode flags
 #define kDataLoggerOpNone (0)
@@ -194,7 +159,7 @@ class sfeDataLogger : public flxApplication
     //---------------------------------------------------------------------------
     // onDeviceLoad()
     //
-    // Called by the system, right after device autoload, but before system restore
+    // Called by the system, right after device auto-load, but before system restore
     // Allows the app to load other devices.
     void onDeviceLoad(void);
 
@@ -208,7 +173,7 @@ class sfeDataLogger : public flxApplication
     //---------------------------------------------------------------------
     // Check if we have a NFC reader available -- for use with WiFi credentials
     //
-    // Call after autoload
+    // Call after auto-load
     void setupNFDevice(void);
 
     //---------------------------------------------------------------------
@@ -353,6 +318,7 @@ class sfeDataLogger : public flxApplication
     void onSettingsEdit(bool bLoading);
 
     void onSystemActivity(void);
+    void onSystemActivityLow(void);
 
     void onErrorMessage(uint8_t);
 
@@ -449,15 +415,12 @@ class sfeDataLogger : public flxApplication
     // oled
     flxDevMicroOLED *_microOLED;
 
-    // loop event things
-    std::vector<sfeDLLoopEvent *> _loopEventList;
-
     // battery check event
-    sfeDLLoopEvent _batteryEvent = {"BATTERY", kBatteryCheckInterval, 0};
+    std::unique_ptr<flxJob> _batteryJob;
 
     // sleep things - is enabled storage, sleep event
     bool _bSleepEnabled;
-    sfeDLLoopEvent _sleepEvent = {"SLEEP", kSystemSleepWakeSec * 1000, 0};
+    flxJob _sleepJob;
 
 #ifdef ENABLE_OLED_DISPLAY
     sfeDLDisplay *_pDisplay;
