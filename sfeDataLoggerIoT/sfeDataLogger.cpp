@@ -89,6 +89,9 @@ static const char *kLNagMessage =
 
 constexpr char *sfeDataLogger::kLogFormatNames[];
 
+// delay used in loop during startup
+const uint32_t kStartupLoopDelayMS = 70;
+
 //---------------------------------------------------------------------------
 // Constructor
 //---------------------------------------------------------------------------
@@ -136,7 +139,8 @@ sfeDataLogger::sfeDataLogger()
     flxRegister(sleepInterval, "Sleep Interval (sec)", "The interval the system will sleep for");
     flxRegister(wakeInterval, "Wake Interval (sec)", "The interval the system will operate between sleep period");
 
-    verboseDevNames.setTitle("Advanced");
+    startupDelaySecs.setTitle("Advanced");
+    flxRegister(startupDelaySecs, "Startup Delay", "Startup Menu Delay in Seconds");
     flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
 
     // about?
@@ -466,12 +470,16 @@ void sfeDataLogger::resetDevice(void)
 /// @brief Checks for any before startup commands from the user
 ///
 
-void sfeDataLogger::onInitStartupCommands(void)
+void sfeDataLogger::onInitStartupCommands(uint delaySecs)
 {
 
     // Waking up from sleep?
     if (boot_count > 0)
         return;
+
+    uint32_t delayMS = delaySecs * 1000;
+
+    uint32_t nIterations = delayMS / kStartupLoopDelayMS + 1;
 
     // setup our commands...
     // may a simple command table
@@ -481,41 +489,66 @@ void sfeDataLogger::onInitStartupCommands(void)
         uint16_t mode;
         const char *name;
     } startupCommand_t;
-    startupCommand_t commands[] = {{0, kDataLoggerOpNone, "normal-startup"},
+    startupCommand_t commands[] = {{'n', kDataLoggerOpNone, "normal-startup"},
                                    {'a', kDataLoggerOpStartNoAutoload, "device-auto-load-disabled"},
                                    {'l', kDataLoggerOpStartListDevices, "device-listing-enabled"},
                                    {'w', kDataLoggerOpStartNoWiFi, "wifi-disabled"},
                                    {'s', kDataLoggerOpStartNoSettings, "settings-restore-disabled"}};
 
-    char spinny[4] = {'\\', '|', '/', '-'};
-    Serial.printf("\n\rStartup:  %c", spinny[0]);
-    char chBS = 8; // backspace
-    for (int i = 1; i < 25; i++)
-    {
-        Serial.write(chBS);
-        Serial.write(spinny[i % 4]);
-        delay(70);
-    }
-    Serial.write(chBS);
-    int iCommand = 0;
-    if (Serial.available())
-    {
-        // code /key pressed
-        uint8_t chIn = Serial.read();
+    // clear buffer
+    while (Serial.available() > 0)
+        Serial.read();
 
-        // any match
-        for (int i = 1; i < sizeof(commands) / sizeof(startupCommand_t); i++)
+    bool menuSelected = false;
+    Serial.printf("\n\rStartup Options:\n\r");
+    for (int n = 0; n < sizeof(commands) / sizeof(startupCommand_t); n++)
+        Serial.printf("   '%c' = %s\n\r", commands[n].key, commands[n].name);
+    Serial.printf("Select Option[%2us]:", delaySecs);
+
+    char chBS = 8; // backspace
+    char chCodeBell = 7;
+
+    int iCommand = 0;
+
+    for (int i = 1; i < nIterations && !menuSelected; i++)
+    {
+        delayMS -= kStartupLoopDelayMS;
+        if (delayMS / 1000 != delaySecs)
         {
-            if (chIn == commands[i].key)
+            Serial.write(chBS);
+            Serial.write(chBS);
+            Serial.write(chBS);
+            Serial.write(chBS);
+            Serial.write(chBS);
+            delaySecs = delayMS / 1000;
+            Serial.printf("%2us]:", delaySecs);
+        }
+
+        delay(kStartupLoopDelayMS);
+
+        if (Serial.available() > 0)
+        {
+            // code /key pressed
+            uint8_t chIn = Serial.read();
+
+            // any match
+            for (int n = 0; n < sizeof(commands) / sizeof(startupCommand_t); n++)
             {
-                iCommand = i;
-                break;
+                if (chIn == commands[n].key)
+                {
+                    iCommand = n;
+                    menuSelected = true;
+                    break;
+                }
             }
+            if (!menuSelected)
+                Serial.write(chCodeBell); // bad char
         }
     }
+
     // set the op mode
     setOpMode(commands[iCommand].mode);
-    Serial.printf("%s\n\r", commands[iCommand].name);
+    Serial.printf(" %s\n\r", commands[iCommand].name);
 }
 //---------------------------------------------------------------------------
 // onInit()
@@ -525,7 +558,9 @@ void sfeDataLogger::onInitStartupCommands(void)
 void sfeDataLogger::onInit(void)
 {
     // Did the user set a serial value?
-    uint theRate = getTerminalBaudRate();
+    uint theRate;
+    uint theDelay;
+    getStartupProperties(theRate, theDelay);
 
     // just to be safe...
     theRate = theRate >= 1200 ? theRate : kDefaultTerminalBaudRate;
@@ -541,7 +576,8 @@ void sfeDataLogger::onInit(void)
 
     setOpMode(kDataLoggerOpStartup);
 
-    onInitStartupCommands();
+    startupDelaySecs = theDelay;
+    onInitStartupCommands(theDelay);
 }
 //---------------------------------------------------------------------------
 // Check our platform status
