@@ -219,7 +219,7 @@ void sfeDataLogger::onSettingsEdit(bool bLoading)
 //---------------------------------------------------------------------------
 void sfeDataLogger::onSystemActivity(void)
 {
-    sfeLED.flash(sfeLED.Orange);
+    sfeLED.flash(sfeLED.Gray);
 }
 
 //---------------------------------------------------------------------------
