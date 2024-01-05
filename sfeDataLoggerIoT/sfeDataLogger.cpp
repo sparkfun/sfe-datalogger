@@ -501,9 +501,10 @@ void sfeDataLogger::onInitStartupCommands(uint delaySecs)
 
     uint32_t delayMS = delaySecs * 1000;
 
-    uint32_t nIterations = delayMS / kStartupLoopDelayMS + 1;
+    uint32_t nIterations = delayMS / kStartupLoopDelayMS;
 
-    // setup our commands...
+    // setup our commands
+    //
     // may a simple command table
     typedef struct
     {
@@ -513,61 +514,66 @@ void sfeDataLogger::onInitStartupCommands(uint delaySecs)
     } startupCommand_t;
     startupCommand_t commands[] = {{'n', kDataLoggerOpNone, "normal-startup"},
                                    {'a', kDataLoggerOpStartNoAutoload, "device-auto-load-disabled"},
-                                   {'l', kDataLoggerOpStartListDevices, "device-listing-enabled"},
+                                   {'l', kDataLoggerOpStartListDevices, "i2c-driver-listing-enabled"},
                                    {'w', kDataLoggerOpStartNoWiFi, "wifi-disabled"},
                                    {'s', kDataLoggerOpStartNoSettings, "settings-restore-disabled"}};
 
-    // clear buffer
-    while (Serial.available() > 0)
-        Serial.read();
-
-    bool menuSelected = false;
-    Serial.printf("\n\rStartup Options:\n\r");
-    for (int n = 0; n < sizeof(commands) / sizeof(startupCommand_t); n++)
-        Serial.printf("   '%c' = %s\n\r", commands[n].key, commands[n].name);
-    Serial.printf("Select Option[%2us]:", delaySecs);
-
-    char chBS = 8; // backspace
-    char chCodeBell = 7;
-
+    // Default
     int iCommand = 0;
 
-    for (int i = 1; i < nIterations && !menuSelected; i++)
+    Serial.printf("\n\r");
+
+    if (nIterations > 0)
     {
-        delayMS -= kStartupLoopDelayMS;
-        if (delayMS / 1000 != delaySecs)
+        // clear buffer
+        while (Serial.available() > 0)
+            Serial.read();
+
+        bool menuSelected = false;
+        Serial.printf("Startup Options:\n\r");
+        for (int n = 0; n < sizeof(commands) / sizeof(startupCommand_t); n++)
+            Serial.printf("   '%c' = %s\n\r", commands[n].key, commands[n].name);
+        Serial.printf("Select Option[%2us]:", delaySecs);
+
+        char chBS = 8; // backspace
+        char chCodeBell = 7;
+
+        for (int i = 0; i < nIterations && !menuSelected; i++)
         {
-            Serial.write(chBS);
-            Serial.write(chBS);
-            Serial.write(chBS);
-            Serial.write(chBS);
-            Serial.write(chBS);
-            delaySecs = delayMS / 1000;
-            Serial.printf("%2us]:", delaySecs);
-        }
-
-        delay(kStartupLoopDelayMS);
-
-        if (Serial.available() > 0)
-        {
-            // code /key pressed
-            uint8_t chIn = Serial.read();
-
-            // any match
-            for (int n = 0; n < sizeof(commands) / sizeof(startupCommand_t); n++)
+            delayMS -= kStartupLoopDelayMS;
+            if (delayMS / 1000 != delaySecs)
             {
-                if (chIn == commands[n].key)
-                {
-                    iCommand = n;
-                    menuSelected = true;
-                    break;
-                }
+                Serial.write(chBS);
+                Serial.write(chBS);
+                Serial.write(chBS);
+                Serial.write(chBS);
+                Serial.write(chBS);
+                delaySecs = delayMS / 1000;
+                Serial.printf("%2us]:", delaySecs);
             }
-            if (!menuSelected)
-                Serial.write(chCodeBell); // bad char
+
+            delay(kStartupLoopDelayMS);
+
+            if (Serial.available() > 0)
+            {
+                // code /key pressed
+                uint8_t chIn = Serial.read();
+
+                // any match
+                for (int n = 0; n < sizeof(commands) / sizeof(startupCommand_t); n++)
+                {
+                    if (chIn == commands[n].key)
+                    {
+                        iCommand = n;
+                        menuSelected = true;
+                        break;
+                    }
+                }
+                if (!menuSelected)
+                    Serial.write(chCodeBell); // bad char
+            }
         }
     }
-
     // set the op mode
     setOpMode(commands[iCommand].mode);
     Serial.printf(" %s\n\r", commands[iCommand].name);

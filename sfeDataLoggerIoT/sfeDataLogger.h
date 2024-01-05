@@ -302,7 +302,7 @@ class sfeDataLogger : public flxApplication
         true};
 
     // startup delay setting
-    flxPropertyUint<sfeDataLogger> startupDelaySecs = {2, 60};
+    flxPropertyUint<sfeDataLogger> startupDelaySecs = {0, 60};
 
   private:
     void enterSleepMode(void);
