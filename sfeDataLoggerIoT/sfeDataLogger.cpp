@@ -25,7 +25,9 @@
 
 // for our time setup
 #include <Flux/flxClock.h>
+#include <Flux/flxDevButton.h>
 #include <Flux/flxDevMAX17048.h>
+#include <Flux/flxDevTwist.h>
 #include <Flux/flxUtils.h>
 
 // SPI Devices
@@ -391,7 +393,7 @@ bool sfeDataLogger::onSetup()
 //---------------------------------------------------------------------
 // onDeviceLoad()
 //
-// Called after qwiic/i2c autoload, but before system state restore
+// Called after qwiic/i2c auto-load, but before system state restore
 
 void sfeDataLogger::onDeviceLoad()
 {
@@ -438,7 +440,27 @@ void sfeDataLogger::onDeviceLoad()
         _pDisplay->initialize(_microOLED, &_wifiConnection, _fuelGauge, &_theSDCard);
     }
 #endif
-    // flxLog_I("DEBUG: end onDeviceLoad() Free Heap: %d", ESP.getFreeHeap());
+
+    // Was a button attached? If it is, on press event, we trigger a log event.
+    // To do this, we need to *wire up* the events
+    // Identify any buttons
+    // Add their on_clicked events as logger triggers
+    auto buttons = flux.get<flxDevButton>();
+
+    if (buttons->size() > 0)
+    {
+        for (auto b : *buttons)
+            _logger.listen(b->on_clicked); // Connect logger to the clicked event
+    }
+
+    // Twist?
+    auto twists = flux.get<flxDevTwist>();
+
+    if (twists->size() > 0)
+    {
+        for (auto tw : *twists)
+            _logger.listen(tw->on_clicked); // Connect logger to the clicked event
+    }
 }
 //---------------------------------------------------------------------
 // onRestore()
