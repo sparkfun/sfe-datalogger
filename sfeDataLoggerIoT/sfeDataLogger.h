@@ -69,14 +69,14 @@
 #include <Flux/flxSysFirmware.h>
 
 // OLED
-#include <Flux/flxDevMicroOLED.h>
+//#include <Flux/flxDevMicroOLED.h>
 
 #include "sfeDLButton.h"
 #include "sfeDLWebServer.h"
 
-#ifdef ENABLE_OLED_DISPLAY
-#include "sfeDLDisplay.h"
-#endif
+// #ifdef ENABLE_OLED_DISPLAY
+// #include "sfeDLDisplay.h"
+// #endif
 
 #include <utility>
 
@@ -412,8 +412,8 @@ class sfeDataLogger : public flxApplication
     // Fuel gauge
     flxDevMAX17048 *_fuelGauge;
 
-    // oled
-    flxDevMicroOLED *_microOLED;
+    // // oled
+    // flxDevMicroOLED *_microOLED;
 
     // battery check event
     std::unique_ptr<flxJob> _batteryJob;
@@ -422,7 +422,7 @@ class sfeDataLogger : public flxApplication
     bool _bSleepEnabled;
     flxJob _sleepJob;
 
-#ifdef ENABLE_OLED_DISPLAY
-    sfeDLDisplay *_pDisplay;
-#endif
+    // #ifdef ENABLE_OLED_DISPLAY
+    //     sfeDLDisplay *_pDisplay;
+    // #endif
 };

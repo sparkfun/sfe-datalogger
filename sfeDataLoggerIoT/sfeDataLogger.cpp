@@ -101,7 +101,7 @@ const uint32_t kStartupLoopDelayMS = 70;
 
 sfeDataLogger::sfeDataLogger()
     : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}, _isValidMode{false},
-      _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _microOLED{nullptr}, _bSleepEnabled{false}
+      _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _bSleepEnabled{false}
 #ifdef ENABLE_OLED_DISPLAY
       ,
       _pDisplay{nullptr}

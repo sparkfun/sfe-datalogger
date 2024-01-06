@@ -11,7 +11,7 @@
  */
 #pragma once
 
-#define IF_THIS_IS_ENABLED
+#ifdef IF_THIS_IS_ENABLED
 #include "sfeDLGraphx.h"
 
 // Icons
