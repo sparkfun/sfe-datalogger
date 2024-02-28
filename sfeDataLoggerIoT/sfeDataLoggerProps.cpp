@@ -189,6 +189,11 @@ void sfeDataLogger::getStartupProperties(uint &baudRate, uint &startupDelay)
     if (!status)
         startupDelay = kStartupMenuDefaultDelaySecs;
 
+    // Startup Output message level
+    uint8_t uTmp;
+    status = stBlk->read(startupOutputMode.name(), uTmp);
+    startupOutputMode = (status ? uTmp : kAppStartupMsgNormal);
+
     _sysStorage.endBlock(stBlk);
 }
 //---------------------------------------------------------------------------

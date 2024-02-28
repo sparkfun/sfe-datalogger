@@ -142,7 +142,8 @@ sfeDataLogger::sfeDataLogger()
     flxRegister(sleepInterval, "Sleep Interval (sec)", "The interval the system will sleep for");
     flxRegister(wakeInterval, "Wake Interval (sec)", "The interval the system will operate between sleep period");
 
-    startupDelaySecs.setTitle("Advanced");
+    startupOutputMode.setTitle("Advanced");
+    flxRegister(startupOutputMode, "Startup Messages", "Level of message output at startup");
     flxRegister(startupDelaySecs, "Startup Delay", "Startup Menu Delay in Seconds");
     flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
 
@@ -276,6 +277,10 @@ void sfeDataLogger::onButtonReleased(uint increment)
 // Called by the system before devices are loaded, and system initialized
 bool sfeDataLogger::onSetup()
 {
+
+    // do we need to disable startup messages (Warn and Error still displayed)
+    if (startupOutputMode() == kAppStartupMsgNone)
+        flxLog.setLogLevel(flxLogWarning);
 
     // See if we can ID the board we're running on.
     _modeFlags |= dlModeCheckSystem();
@@ -747,7 +752,8 @@ bool sfeDataLogger::onStart()
 
     checkOpMode();
 
-    displayAppStatus(true);
+    if (startupOutputMode() == kAppStartupMsgNormal)
+        displayAppStatus(true);
 
     if (!_isValidMode)
         outputVMessage();
@@ -764,6 +770,10 @@ bool sfeDataLogger::onStart()
         _pDisplay->update();
 #endif
     sfeLED.off();
+
+    // we are done with startup - reset output mode
+    if (startupOutputMode() != kAppStartupMsgNormal)
+        flxLog.setLogLevel(flxLogInfo);
 
     // flxLog_I("DEBUG: onStart() - exit -  Free Heap: %d", ESP.getFreeHeap());
 

@@ -191,6 +191,11 @@ class sfeDataLogger : public flxApplication
 
     static constexpr char *kLogFormatNames[] = {"Disabled", "CSV Format", "JSON Format"};
 
+    // Startup output modes
+    static constexpr uint8_t kAppStartupMsgNormal = 0x0;
+    static constexpr uint8_t kAppStartupMsgCompact = 0x1;
+    static constexpr uint8_t kAppStartupMsgNone = 0x2;
+
     //---------------------------------------------------------------------------
     uint8_t get_logTypeSD(void);
 
@@ -303,6 +308,10 @@ class sfeDataLogger : public flxApplication
 
     // startup delay setting
     flxPropertyUint<sfeDataLogger> startupDelaySecs = {0, 60};
+
+    flxPropertyUint8<sfeDataLogger> startupOutputMode = {
+        kAppStartupMsgNormal,
+        {{"Normal", kAppStartupMsgNormal}, {"Compact", kAppStartupMsgCompact}, {"Disabled", kAppStartupMsgNone}}};
 
   private:
     void enterSleepMode(void);
