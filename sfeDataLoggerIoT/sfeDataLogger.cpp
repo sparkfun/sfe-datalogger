@@ -30,6 +30,7 @@
 #include <Flux/flxDevTwist.h>
 #include <Flux/flxUtils.h>
 
+#include <time.h>
 // SPI Devices
 // The onboard IMU
 static const uint8_t kAppOnBoardIMUCS = 5;
@@ -776,7 +777,13 @@ void sfeDataLogger::enterSleepMode()
     if (!sleepEnabled())
         return;
 
-    flxLog_I(F("Starting device deep sleep for %u secs"), sleepInterval());
+    time_t t_now;
+    time(&t_now);
+    struct tm *tmLocal = localtime(&t_now);
+    char szBuffer[32];
+    strftime(szBuffer, sizeof(szBuffer), "%d-%m-%G %T", tmLocal);
+
+    flxLog_I(F("%s: Starting device deep sleep for %u secs"), szBuffer, sleepInterval());
 
     // esp_sleep_config_gpio_isolate(); // Don't. This causes: E (33643) gpio: gpio_sleep_set_pull_mode(827): GPIO
     // number error
