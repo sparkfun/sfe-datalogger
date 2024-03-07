@@ -384,6 +384,29 @@ class sfeDLCommands
 
         return true;
     }
+
+    //---------------------------------------------------------------------
+    ///
+    /// @brief outputs uptime
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool outputUpTime(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
+
+        // uptime
+        uint32_t days, hours, minutes, secs, mills;
+
+        flx_utils::uptime(days, hours, minutes, secs, mills);
+
+        flxLog_I("Uptime: %u days, %02u:%02u:%02u.%u", days, hours, minutes, secs, mills);
+
+        return true;
+    }
+
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
@@ -406,6 +429,7 @@ class sfeDLCommands
         {"debug-output", &sfeDLCommands::logLevelDebug},
         {"verbose-output", &sfeDLCommands::logLevelVerbose},
         {"systime", &sfeDLCommands::outputSystemTime},
+        {"uptime", &sfeDLCommands::outputUpTime},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
     };
