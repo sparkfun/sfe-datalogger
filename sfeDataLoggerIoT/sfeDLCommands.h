@@ -406,7 +406,22 @@ class sfeDLCommands
 
         return true;
     }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief log an observation now!
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool logObservationNow(sfeDataLogger *dlApp)
+    {
+        if (!dlApp)
+            return false;
 
+        dlApp->_logger.logObservation();
+
+        return true;
+    }
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
@@ -420,6 +435,7 @@ class sfeDLCommands
         {"json-settings", &sfeDLCommands::loadJSONSettings},
         {"log-rate", &sfeDLCommands::logRateStats},
         {"log-rate-toggle", &sfeDLCommands::logRateToggle},
+        {"log-now", &sfeDLCommands::logObservationNow},
         {"wifi", &sfeDLCommands::wifiStats},
         {"sdcard", &sfeDLCommands::sdCardStats},
         {"devices", &sfeDLCommands::listLoadedDevices},
