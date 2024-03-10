@@ -472,7 +472,7 @@ class sfeDLCommands
             status = (this->*(it->second))(dlApp);
         else
         {
-            flxLog_N(F("Unknown Command: %s"), sBuffer.c_str());
+            flxLog_N(F("Unknown Command: `%s`"), sBuffer.c_str());
             status = false;
         }
         return status;
