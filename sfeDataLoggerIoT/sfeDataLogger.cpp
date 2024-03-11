@@ -153,9 +153,11 @@ sfeDataLogger::sfeDataLogger()
     aboutApplication.prompt = false; // no prompt needed before execution
 
     // Log system info property - we host it at the app level, but only display it in the logger object
-    flxRegister(logSysInfo, "System Info", "Log system information");
-    this->removeProperty(logSysInfo);
+    // So *manually* register so it's not added to this objects property list - set name, desc
+    logSysInfo.setName("System Info", "Log system information");
+    logSysInfo(this, true); // set owner object - skip the add to prop list for this object
 
+    // add this prop to our logger
     _logger.addProperty(logSysInfo);
 
     // Update timer object string
