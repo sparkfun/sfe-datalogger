@@ -123,6 +123,9 @@ const uint32_t kStartupMenuDefaultDelaySecs = 2;
 #define setOpMode(__mode__) _opFlags |= __mode__
 #define clearOpMode(__mode__) _opFlags &= ~__mode__
 
+// forward declare of our system info class
+class sfeDLSystemOp;
+
 /////////////////////////////////////////////////////////////////////////
 // Define our application class for the data logger
 /////////////////////////////////////////////////////////////////////////
@@ -169,6 +172,7 @@ class sfeDataLogger : public flxApplication
 
   private:
     friend class sfeDLCommands;
+    friend class sfeDLSystemOp;
 
     //---------------------------------------------------------------------
     // Check if we have a NFC reader available -- for use with WiFi credentials
@@ -244,6 +248,11 @@ class sfeDataLogger : public flxApplication
     bool get_color_text(void);
     void set_color_text(bool);
 
+    // for enabling system info in the log stream
+
+    bool get_logsysinfo(void);
+    void set_logsysinfo(bool);
+
     // support for onInit
     void onInitStartupCommands(uint);
 
@@ -312,6 +321,10 @@ class sfeDataLogger : public flxApplication
     flxPropertyUint8<sfeDataLogger> startupOutputMode = {
         kAppStartupMsgNormal,
         {{"Normal", kAppStartupMsgNormal}, {"Compact", kAppStartupMsgCompact}, {"Disabled", kAppStartupMsgNone}}};
+
+    // log system info
+    // Enabled/Disabled
+    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_logsysinfo, &sfeDataLogger::set_logsysinfo> logSysInfo;
 
   private:
     void enterSleepMode(void);
@@ -430,6 +443,11 @@ class sfeDataLogger : public flxApplication
     // sleep things - is enabled storage, sleep event
     bool _bSleepEnabled;
     flxJob _sleepJob;
+
+    // log sys info
+
+    bool _bLogSysInfo;
+    sfeDLSystemOp *_pSystemInfo;
 
     // #ifdef ENABLE_OLED_DISPLAY
     //     sfeDLDisplay *_pDisplay;

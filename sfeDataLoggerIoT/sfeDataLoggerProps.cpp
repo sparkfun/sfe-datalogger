@@ -16,6 +16,8 @@
  */
 
 #include "sfeDLLed.h"
+#include "sfeDLSystemOp.h"
+#include "sfeDLVersion.h"
 #include "sfeDataLogger.h"
 #include <Flux/flxSerial.h>
 
@@ -220,4 +222,32 @@ bool sfeDataLogger::get_color_text(void)
 void sfeDataLogger::set_color_text(bool enable)
 {
     flxSerial.setColorEnabled(enable);
+}
+// for enabling system info in the log stream
+
+bool sfeDataLogger::get_logsysinfo(void)
+{
+    return _bLogSysInfo;
+}
+void sfeDataLogger::set_logsysinfo(bool bEnableSysLog)
+{
+    // Change?
+    if (bEnableSysLog == _bLogSysInfo)
+        return;
+
+    // Have we created an log object yet?
+    if (!_pSystemInfo)
+    {
+        _pSystemInfo = new sfeDLSystemOp(this);
+        if (!_pSystemInfo)
+        {
+            flxLogM_E(kMsgErrAllocError, "System Info Operator");
+            return;
+        }
+    }
+    _bLogSysInfo = bEnableSysLog;
+    if (_bLogSysInfo)
+        _logger.add(_pSystemInfo);
+    else
+        _logger.remove(_pSystemInfo);
 }

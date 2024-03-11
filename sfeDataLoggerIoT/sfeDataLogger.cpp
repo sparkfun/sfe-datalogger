@@ -19,6 +19,7 @@
 #include "sfeDLCommands.h"
 #include "sfeDLLed.h"
 #include "sfeDLMode.h"
+#include "sfeDLSystemOp.h"
 #include "sfeDLVersion.h"
 
 #include "esp_sleep.h"
@@ -102,7 +103,7 @@ const uint32_t kStartupLoopDelayMS = 70;
 
 sfeDataLogger::sfeDataLogger()
     : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _timer{kDefaultLogInterval}, _isValidMode{false},
-      _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _bSleepEnabled{false}
+      _modeFlags{0}, _opFlags{0}, _fuelGauge{nullptr}, _bSleepEnabled{false}, _bLogSysInfo{false}, _pSystemInfo{nullptr}
 #ifdef ENABLE_OLED_DISPLAY
       ,
       _pDisplay{nullptr}
@@ -150,6 +151,12 @@ sfeDataLogger::sfeDataLogger()
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
     aboutApplication.prompt = false; // no prompt needed before execution
+
+    // Log system info property - we host it at the app level, but only display it in the logger object
+    flxRegister(logSysInfo, "System Info", "Log system information");
+    this->removeProperty(logSysInfo);
+
+    _logger.addProperty(logSysInfo);
 
     // Update timer object string
     _timer.setName("Logging Timer", "Set the internal between log entries");
