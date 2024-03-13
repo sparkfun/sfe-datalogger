@@ -40,11 +40,15 @@ bool sfeDLButton::initialize(void)
 
     userButtonEvent = kEventNone;
 
+    // job/timer for when we should check button state
+    _jobCheckButton.setup("buttoncheck", 300, this, &sfeDLButton::checkButton);
+    flxAddJobToQueue(_jobCheckButton);
+
     return true;
 }
 
 //---------------------------------------------------------------------------
-bool sfeDLButton::loop(void)
+void sfeDLButton::checkButton(void)
 {
     // Button event / state change?
     if (userButtonEvent != kEventNone)
@@ -80,6 +84,4 @@ bool sfeDLButton::loop(void)
             _incEventTime = millis();
         }
     }
-
-    return false;
 }

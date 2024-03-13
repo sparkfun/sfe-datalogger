@@ -14,6 +14,7 @@
 #include <cstdint>
 
 #include <Flux/flxCore.h>
+#include <Flux/flxCoreJobs.h>
 
 // A class to encapsulate the event logic/handling of the on-board button of the DataLogger.
 //
@@ -31,7 +32,6 @@ class sfeDLButton : public flxActionType<sfeDLButton>
     }
 
     bool initialize(void);
-    bool loop(void);
 
     // An Pressed event is sent after each increment value.
     void setPressIncrement(uint inc)
@@ -46,6 +46,7 @@ class sfeDLButton : public flxActionType<sfeDLButton>
     flxSignalUInt on_buttonPressed;
 
   private:
+    void checkButton(void);
     // How many seconds per increment on a button press
     uint32_t _pressIncrement;
 
@@ -60,4 +61,6 @@ class sfeDLButton : public flxActionType<sfeDLButton>
 
     // the current increment count
     uint16_t _currentInc;
+
+    flxJob _jobCheckButton;
 };
