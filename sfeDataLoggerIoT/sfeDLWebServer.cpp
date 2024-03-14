@@ -22,6 +22,8 @@ const int kWebServerFilesPerPage = 20;
 
 const uint32_t kWebServerLogoutInactivity = 300000;
 
+const uint32_t kWebServerJobCheckTimeout = 60000;
+
 const char *kWebServerAuthRelm = "SFE-DataLogger";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,8 +53,21 @@ bool sfeDLWebServer::checkAuthState(AsyncWebServerRequest *request)
         if (!request->authenticate(authUsername().c_str(), authPassword().c_str(), kWebServerAuthRelm) || _bDoLogout)
         {
             _bDoLogout = false;
+
+            // on some browsers, auth of the web page doesn't auth the web-socket connection. So we manage
+            // this here. If we are not auth for a web page, we make sure auth is set for socket.
+            //
+            if (_pWebSocket)
+                _pWebSocket->setAuthentication(authUsername().c_str(), authPassword().c_str());
+
             request->requestAuthentication(kWebServerAuthRelm);
             return false;
+        }
+        else
+        {
+            // we are auth'd - disable auth on the web socket
+            if (_pWebSocket)
+                _pWebSocket->setAuthentication("", "");
         }
     }
 
@@ -72,6 +87,18 @@ bool sfeDLWebServer::setupServer(void)
     if (_pWebServer)
         return true;
 
+    // The web server can't be shutdown and then restarted (haven't fully figured this out)
+    // so if it was shutdown...
+    if (_wasShutdown)
+    {
+        flxLog_N("");
+        flxSerial.textToYellow();
+        flxLog_N("\tNOTE: The system must be restarted to start the web server once it's been shutdown.");
+        flxSerial.textToNormal();
+
+        return false;
+    }
+
     _pWebServer = new AsyncWebServer(80);
     if (!_pWebServer)
     {
@@ -86,6 +113,7 @@ bool sfeDLWebServer::setupServer(void)
         _pWebServer = nullptr;
         return false;
     }
+    _loginTicks = 0;
     // hey, we have a web socket - yay
     _pWebSocket->onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
                                 uint8_t *data,
@@ -146,7 +174,38 @@ bool sfeDLWebServer::setupServer(void)
     // MDNS?
     startMDNS();
 
+    // job/timer for when we should check login state
+    _jobCheckLogin.setup("webserver", kWebServerJobCheckTimeout, this, &sfeDLWebServer::checkLogin);
+    flxAddJobToQueue(_jobCheckLogin);
+
     return true;
+}
+//-------------------------------------------------------------------------
+void sfeDLWebServer::shutdownServer(void)
+{
+    if (_pWebServer)
+    {
+
+        if (_pWebSocket)
+        {
+            _pWebServer->removeHandler(_pWebSocket);
+            // remove deletes the object
+            _pWebSocket = nullptr;
+        }
+        _pWebServer->end();
+        delete _pWebServer;
+        _pWebServer = nullptr;
+        _wasShutdown = true;
+
+        flxLog_N("");
+        flxSerial.textToYellow();
+        flxLog_N("\tNOTE: To restart the Web Server, the system must be restarted");
+        flxSerial.textToNormal();
+    }
+    shutdownMDNS();
+
+    _loginTicks = 0;
+    flxRemoveJobFromQueue(_jobCheckLogin);
 }
 
 //-------------------------------------------------------------------------
@@ -465,12 +524,12 @@ std::string sfeDLWebServer::get_MDNSName(void)
 //----------------------------------------------------------------
 
 /**
- * @brief      loop() - system loop routine
+ * @brief      checkLogin() - Job/Timer calling
  *
  * @return     use this to check for logout
  */
 
-bool sfeDLWebServer::loop()
+void sfeDLWebServer::checkLogin()
 {
     // Are we checking auth and if so, did the timeout for inactivity expire?
     if (_loginTicks > 0 && millis() - _loginTicks > kWebServerLogoutInactivity)
@@ -479,5 +538,4 @@ bool sfeDLWebServer::loop()
         _bDoLogout = true;
         _loginTicks = 0;
     }
-    return false;
 }

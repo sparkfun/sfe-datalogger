@@ -13,6 +13,7 @@
 #pragma once
 
 #include <Flux/flxCoreInterface.h>
+#include <Flux/flxCoreJobs.h>
 #include <Flux/flxFS.h>
 #include <Flux/flxFileRotate.h>
 #include <Flux/flxFlux.h>
@@ -35,12 +36,20 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
         _isEnabled = bEnabled;
 
-        // did we disable, but have a file open?
-        if (!_isEnabled && _dirRoot.isValid())
+        // did we move to disable the server?
+        if (!_isEnabled)
         {
-            _dirRoot.close();
-            _iCurrentFile = 1;
+            // did we disable, but have a file open?
+            if (_dirRoot.isValid())
+            {
+                _dirRoot.close();
+                _iCurrentFile = 1;
+            }
+            // shutdown the server
+            shutdownServer();
         }
+        else if (_canConnect) // start server if network is up
+            setupServer();
     }
 
     //----------------------------------------------------------------
@@ -72,13 +81,14 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
         setupServer();
     }
     bool setupServer(void);
+    void shutdownServer(void);
     void onEventDerived(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
                         uint8_t *data, size_t len);
 
   public:
     sfeDLWebServer()
-        : _theNetwork{nullptr}, _isEnabled{false}, _isMDNSEnabled{false}, _canConnect{false}, _fileSystem{nullptr},
-          _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{""}, _mdnsRunning{false},
+        : _theNetwork{nullptr}, _isEnabled{false}, _isMDNSEnabled{false}, _canConnect{false}, _wasShutdown{false},
+          _fileSystem{nullptr}, _pWebServer{nullptr}, _pWebSocket{nullptr}, _mdnsName{""}, _mdnsRunning{false},
           _sPrefix("sfe"), _iCurrentFile{-1}, _loginTicks{0}, _bDoLogout{true}
     {
         setName("IoT Web Server", "Browse and Download log files on the SD Card");
@@ -129,8 +139,6 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
         _sPrefix = sPrefix;
     }
-
-    bool loop();
 
     // Properties
 
@@ -185,10 +193,12 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
     bool startMDNS(void);
     void shutdownMDNS(void);
     void setupMDNSDefaultName(void);
+    void checkLogin(void);
 
     bool _isEnabled;
     bool _isMDNSEnabled;
     bool _canConnect;
+    bool _wasShutdown; // we can't fully shutdown and restart the server.
 
     AsyncWebServer *_pWebServer;
     AsyncWebSocket *_pWebSocket;
@@ -208,4 +218,6 @@ class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 
     uint32_t _loginTicks;
     bool _bDoLogout;
+
+    flxJob _jobCheckLogin;
 };
