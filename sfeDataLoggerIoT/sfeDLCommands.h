@@ -422,6 +422,41 @@ class sfeDLCommands
 
         return true;
     }
+
+    //---------------------------------------------------------------------
+    ///
+    /// @brief output the firmware version
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool printVersion(sfeDataLogger *dlApp)
+    {
+
+        char szBuffer[128];
+        flux.versionString(szBuffer, sizeof(szBuffer), true);
+
+        flxLog_I("%s   %s", flux.name(), flux.description());
+        flxLog_I("Version: %s\n\r", szBuffer);
+
+        return true;
+    }
+
+    //---------------------------------------------------------------------
+    ///
+    /// @brief output the device ID
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool printDeviceID(sfeDataLogger *dlApp)
+    {
+
+        flxLog_I("Device ID: %s", flux.deviceId());
+
+        return true;
+    }
+
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
@@ -446,6 +481,8 @@ class sfeDLCommands
         {"verbose-output", &sfeDLCommands::logLevelVerbose},
         {"systime", &sfeDLCommands::outputSystemTime},
         {"uptime", &sfeDLCommands::outputUpTime},
+        {"device-id", &sfeDLCommands::printDeviceID},
+        {"version", &sfeDLCommands::printVersion},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
     };
