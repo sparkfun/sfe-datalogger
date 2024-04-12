@@ -45,7 +45,7 @@ jobs:
 
       # Install ESP32 - v2.0.9 (May, 2023)
       - name: Arduino - Install ESP32 platform
-        run: arduino-cli core install esp32:esp32@2.0.9
+        run: arduino-cli core install esp32:esp32@2.0.14
 
       # install the libraries Flux uses
       - name: Install Flux dependant libraries.
