@@ -221,10 +221,10 @@ class sfeDataLogger : public flxApplication
 
     // For the terminal baud rate setting
 
-    uint _terminalBaudRate;
+    uint32_t _terminalBaudRate;
 
-    uint get_termBaudRate(void);
-    void set_termBaudRate(uint rate);
+    uint32_t get_termBaudRate(void);
+    void set_termBaudRate(uint32_t rate);
 
     bool get_ledEnabled(void);
     void set_ledEnabled(bool);
@@ -232,11 +232,11 @@ class sfeDataLogger : public flxApplication
     bool get_sleepEnabled(void);
     void set_sleepEnabled(bool);
 
-    uint get_sleepWakePeriod(void);
-    void set_sleepWakePeriod(uint);
+    uint32_t get_sleepWakePeriod(void);
+    void set_sleepWakePeriod(uint32_t);
 
-    uint get_jsonBufferSize(void);
-    void set_jsonBufferSize(uint);
+    uint32_t get_jsonBufferSize(void);
+    void set_jsonBufferSize(uint32_t);
 
     bool get_verbose_dev_name(void);
     void set_verbose_dev_name(bool);
@@ -273,25 +273,25 @@ class sfeDataLogger : public flxApplication
 
     // Define our log type properties
 
-    flxPropertyRWUint8<sfeDataLogger, &sfeDataLogger::get_logTypeSD, &sfeDataLogger::set_logTypeSD> sdCardLogType = {
+    flxPropertyRWUInt8<sfeDataLogger, &sfeDataLogger::get_logTypeSD, &sfeDataLogger::set_logTypeSD> sdCardLogType = {
         kAppLogTypeCSV,
         {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
          {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
          {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
 
-    flxPropertyRWUint8<sfeDataLogger, &sfeDataLogger::get_logTypeSer, &sfeDataLogger::set_logTypeSer> serialLogType = {
+    flxPropertyRWUInt8<sfeDataLogger, &sfeDataLogger::get_logTypeSer, &sfeDataLogger::set_logTypeSer> serialLogType = {
         kAppLogTypeCSV,
         {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
          {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
          {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
 
     // JSON output buffer size
-    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_jsonBufferSize, &sfeDataLogger::set_jsonBufferSize>
+    flxPropertyRWUInt32<sfeDataLogger, &sfeDataLogger::get_jsonBufferSize, &sfeDataLogger::set_jsonBufferSize>
         jsonBufferSize = {100, 5000};
 
     // System sleep properties
-    flxPropertyUint<sfeDataLogger> sleepInterval = {5, 86400};
-    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_sleepWakePeriod, &sfeDataLogger::set_sleepWakePeriod>
+    flxPropertyUInt32<sfeDataLogger> sleepInterval = {5, 86400};
+    flxPropertyRWUInt32<sfeDataLogger, &sfeDataLogger::get_sleepWakePeriod, &sfeDataLogger::set_sleepWakePeriod>
         wakeInterval = {60, 86400};
     flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_sleepEnabled, &sfeDataLogger::set_sleepEnabled> sleepEnabled;
 
@@ -299,7 +299,7 @@ class sfeDataLogger : public flxApplication
     flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_ledEnabled, &sfeDataLogger::set_ledEnabled> ledEnabled;
 
     // Serial Baud rate setting
-    flxPropertyRWUint<sfeDataLogger, &sfeDataLogger::get_termBaudRate, &sfeDataLogger::set_termBaudRate>
+    flxPropertyRWUInt32<sfeDataLogger, &sfeDataLogger::get_termBaudRate, &sfeDataLogger::set_termBaudRate>
         serialBaudRate = {1200, 500000};
 
     // Verbose Device Names
@@ -316,9 +316,9 @@ class sfeDataLogger : public flxApplication
         true};
 
     // startup delay setting
-    flxPropertyUint<sfeDataLogger> startupDelaySecs = {0, 60};
+    flxPropertyUInt32<sfeDataLogger> startupDelaySecs = {0, 60};
 
-    flxPropertyUint8<sfeDataLogger> startupOutputMode = {
+    flxPropertyUInt8<sfeDataLogger> startupOutputMode = {
         kAppStartupMsgNormal,
         {{"Normal", kAppStartupMsgNormal}, {"Compact", kAppStartupMsgCompact}, {"Disabled", kAppStartupMsgNone}}};
 

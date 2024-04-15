@@ -73,12 +73,12 @@ void sfeDataLogger::set_logTypeSer(uint8_t logType)
 //---------------------------------------------------------------------------
 // json Buffer Size
 
-uint sfeDataLogger::get_jsonBufferSize(void)
+uint32_t sfeDataLogger::get_jsonBufferSize(void)
 {
     return _fmtJSON.bufferSize();
 }
 
-void sfeDataLogger::set_jsonBufferSize(uint new_size)
+void sfeDataLogger::set_jsonBufferSize(uint32_t new_size)
 {
     _fmtJSON.setBufferSize(new_size);
 }
@@ -120,13 +120,13 @@ void sfeDataLogger::set_sleepEnabled(bool enabled)
 
 //---------------------------------------------------------------------------
 // Wake interval - get/set in secs; stored in our sleep event as MSecs
-uint sfeDataLogger::get_sleepWakePeriod(void)
+uint32_t sfeDataLogger::get_sleepWakePeriod(void)
 {
     return _sleepJob.period() / 1000;
 }
 //---------------------------------------------------------------------------
 // set period -- in secs
-void sfeDataLogger::set_sleepWakePeriod(uint period)
+void sfeDataLogger::set_sleepWakePeriod(uint32_t period)
 {
     _sleepJob.setPeriod(period * 1000);
 }
@@ -147,12 +147,12 @@ void sfeDataLogger::set_ledEnabled(bool enabled)
 //---------------------------------------------------------------------------
 // Terminal Baudrate things
 //---------------------------------------------------------------------------
-uint sfeDataLogger::get_termBaudRate(void)
+uint32_t sfeDataLogger::get_termBaudRate(void)
 {
     return _terminalBaudRate;
 }
 //---------------------------------------------------------------------------
-void sfeDataLogger::set_termBaudRate(uint newRate)
+void sfeDataLogger::set_termBaudRate(uint32_t newRate)
 {
     // no change?
     if (newRate == _terminalBaudRate)

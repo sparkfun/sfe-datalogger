@@ -42,8 +42,8 @@ class sfeDLButton : public flxActionType<sfeDLButton>
 
     // Our events - signals ...
     flxSignalVoid on_momentaryPress;
-    flxSignalUInt on_buttonRelease;
-    flxSignalUInt on_buttonPressed;
+    flxSignalUInt32 on_buttonRelease;
+    flxSignalUInt32 on_buttonPressed;
 
   private:
     void checkButton(void);
