@@ -21,10 +21,10 @@
 #define kDLVersionNumberMinor 2
 
 // Point version number
-#define kDLVersionNumberPoint 00
+#define kDLVersionNumberPoint 01
 
 // Version string description
-#define kDLVersionDescriptor "Version 1.2"
+#define kDLVersionDescriptor "Version 1.2.01 Development"
 
 // app name/class ID string
 #define kDLAppClassNameID "SFE-DATALOGGER-IOT"
