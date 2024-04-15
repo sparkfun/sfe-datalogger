@@ -38,12 +38,12 @@ class sfeDLSystemOp : public flxOperation
         return _pDataLogger->_wifiConnection.RSSI();
     }
 
-    uint get_uptime(void)
+    uint32_t get_uptime(void)
     {
         return millis();
     }
 
-    uint get_sdfree(void)
+    uint32_t get_sdfree(void)
     {
         if (!_pDataLogger || !_pDataLogger->_theSDCard.enabled())
             return 0;
@@ -51,7 +51,7 @@ class sfeDLSystemOp : public flxOperation
         return _pDataLogger->_theSDCard.total() - _pDataLogger->_theSDCard.used();
     }
 
-    uint get_heap(void)
+    uint32_t get_heap(void)
     {
         return ESP.getFreeHeap();
     }
@@ -80,13 +80,13 @@ class sfeDLSystemOp : public flxOperation
 
     flxParameterOutString<sfeDLSystemOp, &sfeDLSystemOp::get_wifi_ssid> wifiSSID;
 
-    flxParameterOutUint8<sfeDLSystemOp, &sfeDLSystemOp::get_wifi_rssi> wifiRSSI;
+    flxParameterOutUInt8<sfeDLSystemOp, &sfeDLSystemOp::get_wifi_rssi> wifiRSSI;
 
-    flxParameterOutUint<sfeDLSystemOp, &sfeDLSystemOp::get_uptime> systemUptime;
+    flxParameterOutUInt32<sfeDLSystemOp, &sfeDLSystemOp::get_uptime> systemUptime;
 
-    flxParameterOutUint<sfeDLSystemOp, &sfeDLSystemOp::get_sdfree> systemSDFree;
+    flxParameterOutUInt32<sfeDLSystemOp, &sfeDLSystemOp::get_sdfree> systemSDFree;
 
-    flxParameterOutUint<sfeDLSystemOp, &sfeDLSystemOp::get_heap> systemHeap;
+    flxParameterOutUInt32<sfeDLSystemOp, &sfeDLSystemOp::get_heap> systemHeap;
 
   private:
     sfeDataLogger *_pDataLogger;
