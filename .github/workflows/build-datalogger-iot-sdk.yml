@@ -32,9 +32,9 @@ jobs:
         run: |
           git clone --branch refactor-to-sdk-and-cmake git@github.com:sparkfun/SparkFun_Flux.git
           mv SparkFun_Flux flux-sdk
-          export FLUX_SDK_PATH=`pwd`/flux-sdk
-          ls flux-sdk/
-          printenv
+          echo "FLUX_SDK_PATH=$(`pwd`/flux-sdk)" >> $GITHUB_ENV
+
+
 
       - name: Run CMake
         run: |
