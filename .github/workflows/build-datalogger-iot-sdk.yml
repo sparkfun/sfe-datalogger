@@ -1,7 +1,7 @@
 name: Build DataLogger Firmware Action
 
 on: 
-  workflow-dispatch:
+  workflow_dispatch:
 
 env:
   DATALOGGER_IOT_APP_KEY: ${{ secrets.DATALOGGER_IOT_APP_KEY }}
