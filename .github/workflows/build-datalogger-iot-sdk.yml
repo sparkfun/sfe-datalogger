@@ -1,4 +1,4 @@
-name: Build DataLogger Firmware Action 2
+name: Build DataLogger with SDK Action
 
 on: 
   workflow_dispatch:
