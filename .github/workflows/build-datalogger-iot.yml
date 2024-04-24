@@ -63,7 +63,7 @@ jobs:
 
       # install the libraries Flux uses
       - name: Install Flux dependant libraries.
-        run: ./SparkFun_Flux/install-libs.sh
+        run: ./flux-sdk/install-libs.sh
 
       - name: Install datalogger libraries
         run: arduino-cli lib install FastLED ESPAsyncWebSrv
