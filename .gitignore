@@ -2,3 +2,6 @@
 sfeDataLoggerIoT/build/**/*.ino.*
 fuse_id/dist
 fuse_id/sfe_dl_fuseid.egg-info
+build/
+
+SparkFun_Flux/
