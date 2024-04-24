@@ -1,11 +1,11 @@
 name: Build DataLogger Firmware Action
-on: 
+on:
   push:
     branches:
       - main
-      
+
   workflow_dispatch:
-    branches: 
+    branches:
 
 env:
   DATALOGGER_IOT_APP_KEY: ${{ secrets.DATALOGGER_IOT_APP_KEY }}
@@ -13,25 +13,39 @@ env:
 
 jobs:
   build:
-    
     name: Build DataLogger IoT
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repo and submodules
         uses: actions/checkout@v3
-        
-      # setup the ssh key used to pull in the Flux submodule source. This was the
+        with:
+          ref: main
+
+      # setup the ssh key used to pull in the Flux SDK source. This was the
       # only way found to make this work when using private models (ssh private key here, public on Flux deploy keys
       - name: Et Tu Submodule
         uses: webfactory/ssh-agent@master
         with:
           ssh-private-key: |
             ${{ secrets.FLUX_PULL_KEY_2 }}
-      
-      # checkout flux
-      - name: Checkout Flux submodule
-        run: git submodule update --init --recursive
+
+      # checkout flux-sdk
+      - name: Checkout the flux-sdk
+        run: |
+          git clone --branch main git@github.com:sparkfun/SparkFun_Flux.git
+          mv SparkFun_Flux flux-sdk
+          echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
+
+      # Run cmake - this will build a custom SparkFun_Flux library we can use with
+      # the Arduino CLI
+      - name: Run CMake
+        run: |
+          echo $FLUX_SDK_PATH
+          mkdir -p build
+          cd build
+          cmake ..
+          cd ..
 
       # Setup Arduino command line - install esp32 and all the libs flux needs
       - name: Arduino - Install and setup the Arduino CLI
@@ -49,29 +63,30 @@ jobs:
 
       # install the libraries Flux uses
       - name: Install Flux dependant libraries.
-        run: ./SparkFun_Flux/install-libs.sh
+        run: ./flux-sdk/install-libs.sh
 
       - name: Install datalogger libraries
         run: arduino-cli lib install FastLED ESPAsyncWebSrv
-        
+
       # Compile time - build the Firmware for the data logger.
       # Note:
       #   - The use of a full path to flux - this is needed or the build fails (relative paths get merged).
       #   - We are providing a custom partition structure for the ESP32
-      
+
       - name: Compile DataLogger firmware binary
-        run: arduino-cli compile --fqbn esp32:esp32:esp32 ./sfeDataLoggerIoT/sfeDataLoggerIoT.ino 
-            --build-property upload.maximum_size=3145728 --build-property build.flash_size=16MB --build-property build.partitions=partitions 
-            --build-property build.flash_mode=dio --build-property build.flash_freq=80m
-            --build-property "compiler.cpp.extra_flags=\"-DDATALOGGER_IOT_APP_KEY=$DATALOGGER_IOT_APP_KEY\" \"-DDATALOGGER_IOT_ID_KEY=$DATALOGGER_IOT_ID_KEY\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
-            --export-binaries --clean --library `pwd`/SparkFun_Flux 
+        run:
+          arduino-cli compile --fqbn esp32:esp32:esp32 ./sfeDataLoggerIoT/sfeDataLoggerIoT.ino
+          --build-property upload.maximum_size=3145728 --build-property build.flash_size=16MB --build-property build.partitions=partitions
+          --build-property build.flash_mode=dio --build-property build.flash_freq=80m
+          --build-property "compiler.cpp.extra_flags=\"-DDATALOGGER_IOT_APP_KEY=$DATALOGGER_IOT_APP_KEY\" \"-DDATALOGGER_IOT_ID_KEY=$DATALOGGER_IOT_ID_KEY\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
+          --export-binaries --clean --library `pwd`/SparkFun_Flux
 
       # - name: Rename Library
       #   run: |
       #     cd sfeDataLoggerIoT/build/esp32.esp32.esp32/
       #     mv sfeDataLoggerIoT.ino.bin SparkFun_DataLoggerIoT.bin
-      
-      # Upload the build files - bootloader, paritions, firmware  
+
+      # Upload the build files - bootloader, paritions, firmware
       - uses: actions/upload-artifact@v3
         with:
           name: sfeDataLoggerIoT-build
@@ -81,23 +96,22 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-          
+          python-version: "3.11"
+
       # Setup python packages
       - name: Setup Python
         run: |
           pip3 install setuptools
-          
-      - name: Build Python Package 
+
+      - name: Build Python Package
         run: |
           cd fuse_id
           python setup.py sdist
-       
+
       - uses: actions/upload-artifact@v3
         with:
           name: Flash ID CLI Tool
           path: fuse_id/dist
-
 
       # now build our burn took production config file
       - name: Build product burn config file
@@ -105,13 +119,13 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: SparkFunProductionConfig 
+          name: SparkFunProductionConfig
           path: dl_fuseid.conf
-          
+
       # - name: Compile Sketch
       #   run: arduino-cli compile --fqbn esp32:esp32:esp32 ./Firmware/RTK_Surveyor/RTK_Surveyor.ino
       #     --build-property build.partitions=partitions
-      #     --build-property upload.maximum_size=3145728 
+      #     --build-property upload.maximum_size=3145728
       #     --build-property "compiler.cpp.extra_flags=\"-DPOINTPERFECT_TOKEN=$POINTPERFECT_TOKEN\" \"-DFIRMWARE_VERSION_MAJOR=$FIRMWARE_VERSION_MAJOR\" \"-DFIRMWARE_VERSION_MINOR=$FIRMWARE_VERSION_MINOR\" \"-DENABLE_DEVELOPER=${{ env.ENABLE_DEVELOPER }}\""
       #     --export-binaries
 
