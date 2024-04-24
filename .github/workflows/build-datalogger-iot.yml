@@ -33,8 +33,7 @@ jobs:
       # checkout flux-sdk
       - name: Checkout the flux-sdk
         run: |
-          git clone --branch main git@github.com:sparkfun/SparkFun_Flux.git
-          mv SparkFun_Flux flux-sdk
+          git clone --branch main git@github.com:sparkfun/flux-sdk.git
           echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
 
       # Run cmake - this will build a custom SparkFun_Flux library we can use with
