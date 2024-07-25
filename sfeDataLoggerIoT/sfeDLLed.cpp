@@ -310,7 +310,7 @@ void _sfeLED::on(sfeLEDColor_t color)
 //---------------------------------------------------------
 // Blink - change the timer value of the current color
 
-void _sfeLED::blink(uint timeout)
+void _sfeLED::blink(uint32_t timeout)
 {
     if (_disabled)
         return;
