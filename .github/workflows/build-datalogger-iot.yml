@@ -113,13 +113,13 @@ jobs:
           path: fuse_id/dist
 
       # now build our burn took production config file
-      - name: Build product burn config file
-        run: ./fuse_id/dl_build_conf.py
+      # - name: Build product burn config file
+      #   run: ./fuse_id/dl_build_conf.py
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: SparkFunProductionConfig
-          path: dl_fuseid.conf
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: SparkFunProductionConfig
+      #     path: dl_fuseid.conf
 
       # - name: Compile Sketch
       #   run: arduino-cli compile --fqbn esp32:esp32:esp32 ./Firmware/RTK_Surveyor/RTK_Surveyor.ino
