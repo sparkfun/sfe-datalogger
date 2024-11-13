@@ -1,3 +1,8 @@
+#
+# Copyright (c) 2022-2024, SparkFun Electronics Inc.
+#
+# SPDX-License-Identifier: MIT
+#
 cmake_minimum_required(VERSION 3.13)
 
 # set project name - setting language to NONE disables the default compiler checks
