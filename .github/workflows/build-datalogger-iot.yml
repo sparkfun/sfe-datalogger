@@ -33,8 +33,7 @@ jobs:
       # checkout flux-sdk
       - name: Checkout the flux-sdk
         run: |
-          git clone --branch main git@github.com:sparkfun/SparkFun_Flux.git
-          mv SparkFun_Flux flux-sdk
+          git clone --branch main git@github.com:sparkfun/flux-sdk.git
           echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
 
       # Run cmake - this will build a custom SparkFun_Flux library we can use with
@@ -59,7 +58,7 @@ jobs:
 
       # Install ESP32 - v2.0.9 (May, 2023)
       - name: Arduino - Install ESP32 platform
-        run: arduino-cli core install esp32:esp32
+        run: arduino-cli core install esp32:esp32@2.0.14
 
       # install the libraries Flux uses
       - name: Install Flux dependant libraries.
@@ -114,13 +113,13 @@ jobs:
           path: fuse_id/dist
 
       # now build our burn took production config file
-      - name: Build product burn config file
-        run: ./fuse_id/dl_build_conf.py
+      # - name: Build product burn config file
+      #   run: ./fuse_id/dl_build_conf.py
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: SparkFunProductionConfig
-          path: dl_fuseid.conf
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: SparkFunProductionConfig
+      #     path: dl_fuseid.conf
 
       # - name: Compile Sketch
       #   run: arduino-cli compile --fqbn esp32:esp32:esp32 ./Firmware/RTK_Surveyor/RTK_Surveyor.ino
