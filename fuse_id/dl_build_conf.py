@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-
+#
+# Copyright (c) 2022-2024, SparkFun Electronics Inc.
+#
+# SPDX-License-Identifier: MIT
+#
 import os
 import sys
 import datetime
