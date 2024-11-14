@@ -365,7 +365,7 @@ def dl_fuseid():
 #-----------------------------------------------------------------------------
 # _dl_add_board_parameter()
 #
-# Internal routine that addes the specified board arg to sys.argv.
+# Internal routine that adds the specified board arg to sys.argv.
 #
 # If a board arg is already present, it overrides the arg
 
@@ -374,12 +374,12 @@ def _dl_add_board_parameter(board_type):
     # does a board parameter already exist in argv?
     iBoard = [i for i,x in enumerate(sys.argv) if x == '-b' or x == '--board']
 
-    # was a swtich provided?
+    # was a switch provided?
     if len(iBoard) == 0:
         sys.argv.append('-b')
         sys.argv.append(board_type)
     else:
-        # swtich provided .. check value - if switch is at end of list, that's an issue
+        # switch provided .. check value - if switch is at end of list, that's an issue
         if len(sys.argv)-1 == iBoard[0]:
             sys.argv.append(board_type)
         else:

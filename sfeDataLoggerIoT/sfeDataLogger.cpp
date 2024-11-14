@@ -159,7 +159,7 @@ sfeDataLogger::sfeDataLogger()
     _logger.addProperty(logSysInfo);
 
     // Update timer object string
-    _timer.setName("Logging Timer", "Set the internal between log entries");
+    _timer.setName("Logging Timer", "Set the interval between log entries");
 
     // set sleep default interval && event handler method
     sleepInterval = kSystemSleepSleepSec;
@@ -307,7 +307,7 @@ bool sfeDataLogger::onSetup()
     // Version info
     setVersion(kDLVersionNumberMajor, kDLVersionNumberMinor, kDLVersionNumberPoint, kDLVersionDescriptor, BUILD_NUMBER);
 
-    // set the settings storage system for spark
+    // set the settings storage system for the framework
     flxSettings.setStorage(&_sysStorage);
     flxSettings.setFallback(&_jsonStorage);
 
@@ -320,7 +320,7 @@ bool sfeDataLogger::onSetup()
     flxRegisterEventCB(flxEvent::kOnEditFinished, &flxSettings, &flxSettingsSave::saveEvent_CB);
     flxRegisterEventCB(flxEvent::kOnNewFile, &flxSettings, &flxSettingsSave::saveEvent_CB);
 
-    // Add serial settings to spark - the spark loop call will take care
+    // Add serial settings to flux - the flux loop call will take care
     // of everything else.
     flux.add(_serialSettings);
 
@@ -708,7 +708,7 @@ bool sfeDataLogger::onStart()
     setupNFDevice();
 
     // check our I2C devices
-    // Loop over the device list - note that it is iteratiable.
+    // Loop over the device list - note that it is iterable.
     flxLog_I_(F("Loading devices ... "));
     flxDeviceContainer loadedDevices = flux.connectedDevices();
 
