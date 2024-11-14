@@ -29,7 +29,7 @@ dlPrefs = {}
 
 #------------------------------------------------------------------
 # The plan:
-#   Intialize our defaults and then see if we can load the user prefs
+#   Initialize our defaults and then see if we can load the user prefs
 #------------------------------------------------------------------
 
 
@@ -86,7 +86,7 @@ else:
 
 
 
-# assume our parent dir is our pacakge name.
+# assume our parent dir is our package name.
 if __name__.find('.') > 0:
 	dlPrefs['package_name'] = __name__.split('.')[-2]
 else:
