@@ -25,9 +25,9 @@
 #include <Flux/flxTimer.h>
 
 // settings storage
+#include <Flux/flxPreferences.h>
 #include <Flux/flxSettings.h>
 #include <Flux/flxSettingsSerial.h>
-#include <Flux/flxStorageESP32Pref.h>
 #include <Flux/flxStorageJSONPref.h>
 
 // SD Card output
@@ -375,7 +375,7 @@ class sfeDataLogger : public flxApplication
     flxFileRotate _theOutputFile;
 
     // settings things
-    flxStorageESP32Pref _sysStorage;
+    flxPreferences _sysStorage;
     flxSettingsSerial _serialSettings;
     flxStorageJSONPrefFile _jsonStorage;
 

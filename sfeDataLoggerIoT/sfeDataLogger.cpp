@@ -167,6 +167,9 @@ sfeDataLogger::sfeDataLogger()
 
     // app key
     flux.setAppToken(_app_jump, sizeof(_app_jump));
+
+    // do not want the wifi connect() call made until after initialize
+    _wifiConnection.setDelayedStartup(true);
 }
 
 //---------------------------------------------------------------------------
@@ -689,6 +692,8 @@ bool sfeDataLogger::onStart()
 
     boot_count++;
 
+    // init wifi
+    _wifiConnection.connect();
     // Logging is done at an interval - using an interval timer.
     // Connect logger to the timer event
     _logger.listen(_timer.on_interval);
