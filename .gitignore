@@ -5,3 +5,10 @@ fuse_id/sfe_dl_fuseid.egg-info
 build/
 
 SparkFun_Flux/
+
+sfeDataLoggerIoT/Doxyfile
+
+sfeDataLoggerIoT/html/
+
+sfeDataLoggerIoT/latex/
+.gitignore

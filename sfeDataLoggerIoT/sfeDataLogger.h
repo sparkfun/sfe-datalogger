@@ -342,11 +342,11 @@ class sfeDataLogger : public flxApplication
 
     void onErrorMessage(uint8_t);
 
-    void getStartupProperties(uint &baudRate, uint &startupDelay);
+    void getStartupProperties(uint32_t &baudRate, uint32_t &startupDelay);
 
     // Board button callbacks
-    void onButtonPressed(uint);
-    void onButtonReleased(uint);
+    void onButtonPressed(uint32_t);
+    void onButtonReleased(uint32_t);
 
     // battery level checks
     void checkBatteryLevels(void);

@@ -167,7 +167,7 @@ void sfeDataLogger::set_termBaudRate(uint32_t newRate)
     }
 }
 //---------------------------------------------------------------------------
-void sfeDataLogger::getStartupProperties(uint &baudRate, uint &startupDelay)
+void sfeDataLogger::getStartupProperties(uint32_t &baudRate, uint32_t &startupDelay)
 {
     // Do we have this block in storage? And yes, a little hacky with name :)
     flxStorageBlock *stBlk = _sysStorage.getBlock(((flxObject *)this)->name());

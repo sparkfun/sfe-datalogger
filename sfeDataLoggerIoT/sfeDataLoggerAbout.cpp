@@ -98,7 +98,6 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         char szSize[32];
         char szCap[32];
         char szAvail[32];
-
         flx_utils::formatByteString(_theSDCard.size(), 2, szSize, sizeof(szSize));
         flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));
         flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
