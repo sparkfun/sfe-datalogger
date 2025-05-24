@@ -65,7 +65,7 @@ jobs:
         run: ./flux-sdk/install-libs.sh
 
       - name: Install datalogger libraries
-        run: arduino-cli lib install FastLED ESPAsyncWebSrv
+        run: arduino-cli lib install FastLED "ESP Async WebServer"
 
       # Compile time - build the Firmware for the data logger.
       # Note:
