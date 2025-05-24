@@ -167,6 +167,9 @@ sfeDataLogger::sfeDataLogger()
 
     // app key
     flux.setAppToken(_app_jump, sizeof(_app_jump));
+
+    // do not want the wifi connect() call made until after initialize
+    _wifiConnection.setDelayedStartup(true);
 }
 
 //---------------------------------------------------------------------------
@@ -242,7 +245,7 @@ void sfeDataLogger::onSystemActivityLow(void)
 //---------------------------------------------------------------------------
 //
 // CAlled when the button is pressed and an increment time passed
-void sfeDataLogger::onButtonPressed(uint increment)
+void sfeDataLogger::onButtonPressed(uint32_t increment)
 {
 
     // we need LED on for visual feedback...
@@ -270,7 +273,7 @@ void sfeDataLogger::onButtonPressed(uint increment)
     }
 }
 //---------------------------------------------------------------------------
-void sfeDataLogger::onButtonReleased(uint increment)
+void sfeDataLogger::onButtonReleased(uint32_t increment)
 {
     if (increment > 0)
         sfeLED.off();
@@ -599,8 +602,8 @@ void sfeDataLogger::onInitStartupCommands(uint delaySecs)
 void sfeDataLogger::onInit(void)
 {
     // Did the user set a serial value?
-    uint theRate;
-    uint theDelay;
+    uint32_t theRate;
+    uint32_t theDelay;
     getStartupProperties(theRate, theDelay);
 
     // just to be safe...
@@ -689,6 +692,8 @@ bool sfeDataLogger::onStart()
 
     boot_count++;
 
+    // init wifi
+    _wifiConnection.connect();
     // Logging is done at an interval - using an interval timer.
     // Connect logger to the timer event
     _logger.listen(_timer.on_interval);

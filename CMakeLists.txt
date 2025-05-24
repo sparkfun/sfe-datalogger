@@ -9,7 +9,10 @@ cmake_minimum_required(VERSION 3.13)
 project(DataLoggerIoT NONE)
 
 # Import the flux-dk cmake system
-include(flux_sdk_import.cmake)
+include($ENV{FLUX_SDK_PATH}/external/flux_sdk_import.cmake)
+
+# set our Arduino Library name to something unique to this project
+flux_sdk_set_library_name(SparkFun_DataLoggerIoT)
 
 # Where is directory that the flux stuff will be added to? This is the relative path from this file
 # to the aurdiuno sketch directory this is also used as the name of the cmake project

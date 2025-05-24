@@ -319,7 +319,7 @@ void _sfeLED::blink(uint32_t timeout)
 //---------------------------------------------------------
 // Blink - change state, start blinking
 
-void _sfeLED::blink(sfeLEDColor_t color, uint timeout)
+void _sfeLED::blink(sfeLEDColor_t color, uint32_t timeout)
 {
     if (_disabled)
         return;

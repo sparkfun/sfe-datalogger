@@ -132,7 +132,10 @@ uint32_t dlModeCheckSystem(void)
     for (int32_t block3Address = EFUSE_BLK3_RDATA0_REG; block3Address <= EFUSE_BLK3_RDATA7_REG; block3Address += 4)
     {
         // this is read in 4 byte chunks...
-        uint32_t block = REG_GET_FIELD(block3Address, EFUSE_BLK3_DOUT0);
+        // uint32_t block = REG_GET_FIELD(block3Address, EFUSE_BLK3_DOUT0);
+        // Arduion ESP32 core v 3.2.0 -- may 23, 2025 - looks like this defines changed, trying this.
+        // TODO: Still needs testing, but it's complining (which measn nada)
+        uint32_t block = REG_GET_FIELD(block3Address, EFUSE_BLK3_DIN0);
 
         data_buffer[i++] = block & 0xFF;
         data_buffer[i++] = block >> 8 & 0xFF;

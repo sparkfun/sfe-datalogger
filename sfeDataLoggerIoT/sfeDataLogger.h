@@ -25,9 +25,9 @@
 #include <Flux/flxTimer.h>
 
 // settings storage
+#include <Flux/flxPreferences.h>
 #include <Flux/flxSettings.h>
 #include <Flux/flxSettingsSerial.h>
-#include <Flux/flxStorageESP32Pref.h>
 #include <Flux/flxStorageJSONPref.h>
 
 // SD Card output
@@ -342,11 +342,11 @@ class sfeDataLogger : public flxApplication
 
     void onErrorMessage(uint8_t);
 
-    void getStartupProperties(uint &baudRate, uint &startupDelay);
+    void getStartupProperties(uint32_t &baudRate, uint32_t &startupDelay);
 
     // Board button callbacks
-    void onButtonPressed(uint);
-    void onButtonReleased(uint);
+    void onButtonPressed(uint32_t);
+    void onButtonReleased(uint32_t);
 
     // battery level checks
     void checkBatteryLevels(void);
@@ -375,7 +375,7 @@ class sfeDataLogger : public flxApplication
     flxFileRotate _theOutputFile;
 
     // settings things
-    flxStorageESP32Pref _sysStorage;
+    flxPreferences _sysStorage;
     flxSettingsSerial _serialSettings;
     flxStorageJSONPrefFile _jsonStorage;
 
