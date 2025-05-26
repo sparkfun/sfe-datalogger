@@ -56,9 +56,9 @@ jobs:
       - name: Arduino - Update index
         run: arduino-cli core update-index
 
-      # Install ESP32 - v2.0.9 (May, 2023)
+      # Install ESP32 - v3.0.7 - working as of June 2025 (latest versions fail for various reasons)
       - name: Arduino - Install ESP32 platform
-        run: arduino-cli core install esp32:esp32@2.0.14
+        run: arduino-cli core install esp32:esp32@3.0.7
 
       # install the libraries Flux uses
       - name: Install Flux dependant libraries.
