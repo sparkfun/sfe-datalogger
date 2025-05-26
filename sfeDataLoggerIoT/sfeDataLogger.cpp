@@ -876,7 +876,11 @@ bool sfeDataLogger::loop()
         uint8_t chIn = Serial.read();
         if (chIn == '!')
         {
+            flxSerial.textToWhite();
+            Serial.write('>');
+            flxSerial.textToNormal();
             Serial.write('!');
+            Serial.flush();
             sfeDLCommands cmdProcessor;
             bool status = cmdProcessor.processCommand(this);
         }
