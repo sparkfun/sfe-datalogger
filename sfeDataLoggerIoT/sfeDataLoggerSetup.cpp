@@ -13,6 +13,7 @@
  * SparkFun Data Logger - setup methods
  *
  */
+#include "sfeDLBoard.h"
 #include "sfeDataLogger.h"
 
 #include <Flux/flxDevBME280.h>
@@ -227,4 +228,23 @@ void sfeDataLogger::setupENS160(void)
         flxLog_I(F("%s: compensation values applied from %s"), pENS160->name(), pSHTC3->name());
         return;
     }
+}
+//---------------------------------------------------------------------------
+void sfeDataLogger::setupGNSS(void)
+{
+    // do we have one attached?
+    auto gnssDevices = flux.get<flxDevGNSS>();
+    if (gnssDevices->size() == 0)
+        return;
+
+    // get the first GNSS device and set the PPS Pin that can be used
+    flxDevGNSS *pGNSS = gnssDevices->at(0);
+    if (!pGNSS)
+        return;
+
+    // set the in we use for PPS -- expect the input to be wired to this
+    pGNSS->set_pps_pin(kDLBoardGNSSPPSPin);
+
+    // wire in the event to the logger
+    flxRegisterEventCB(flxEvent::kOnGNSSPPSEvent, &_logger, &flxLogger::logObservation);
 }

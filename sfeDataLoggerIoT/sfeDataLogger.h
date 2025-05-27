@@ -184,6 +184,8 @@ class sfeDataLogger : public flxApplication
     //---------------------------------------------------------------------
     void setupENS160(void);
 
+    //---------------------------------------------------------------------
+    void setupGNSS(void);
     //------------------------------------------
     // For controlling the log output types
 
