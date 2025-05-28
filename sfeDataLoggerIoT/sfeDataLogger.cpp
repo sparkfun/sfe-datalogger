@@ -477,6 +477,10 @@ void sfeDataLogger::onDeviceLoad()
         for (auto tw : *twists)
             _logger.listen(tw->on_clicked); // Connect logger to the clicked event
     }
+
+    // setup the GNSS device - will create some properties that should be visible
+    // after the device is loaded and before restore (if the settings are saved)
+    setupGNSS();
 }
 //---------------------------------------------------------------------
 // onRestore()

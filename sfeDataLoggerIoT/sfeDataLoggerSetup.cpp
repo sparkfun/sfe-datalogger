@@ -243,7 +243,7 @@ void sfeDataLogger::setupGNSS(void)
         return;
 
     // set the in we use for PPS -- expect the input to be wired to this
-    pGNSS->set_pps_pin(kDLBoardGNSSPPSPin);
+    pGNSS->setAvailablePPSPins(kDLBoardGNSSPPSPins, sizeof(kDLBoardGNSSPPSPins) / sizeof(kDLBoardGNSSPPSPins[0]));
 
     // wire in the event to the logger
     flxRegisterEventCB(flxEvent::kOnGNSSPPSEvent, &_logger, &flxLogger::logObservation);

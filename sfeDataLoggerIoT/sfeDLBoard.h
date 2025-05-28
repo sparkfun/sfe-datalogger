@@ -27,5 +27,5 @@ const uint8_t kDLBoardLEDBuiltin = 25;
 const uint8_t kDLBoardLEDRGBBuiltin = 26;
 
 // Define the GNSS PPS pin for the datalogger IoT board
-const uint8_t kDLBoardGNSSPPSPin = 5;
+const uint16_t kDLBoardGNSSPPSPins[] = {33, 36};
 ;
