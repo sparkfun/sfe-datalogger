@@ -123,7 +123,7 @@ bool _sfeLED::initialize(void)
 
     // Event processing task
     BaseType_t xReturnValue = xTaskCreate(_sfeLED_TaskProcessing, // Event processing task function
-                                          "eventProc",            // String with name of task.
+                                          "LEDEventProc",         // String with name of task.
                                           kStackSize,             // Stack size in 32 bit words.
                                           NULL,                   // Parameter passed as input of the task
                                           1,                      // Priority of the task.
