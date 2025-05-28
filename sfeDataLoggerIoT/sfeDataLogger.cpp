@@ -145,6 +145,7 @@ sfeDataLogger::sfeDataLogger()
     flxRegister(startupOutputMode, "Startup Messages", "Level of message output at startup");
     flxRegister(startupDelaySecs, "Startup Delay", "Startup Menu Delay in Seconds");
     flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
+    flxRegister(verboseEnabled, "Verbose Messages", "Enable verbose messages");
 
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
@@ -532,11 +533,14 @@ void sfeDataLogger::onInitStartupCommands(uint delaySecs)
         uint16_t mode;
         const char *name;
     } startupCommand_t;
-    startupCommand_t commands[] = {{'n', kDataLoggerOpNone, "normal-startup"},
-                                   {'a', kDataLoggerOpStartNoAutoload, "device-auto-load-disabled"},
-                                   {'l', kDataLoggerOpStartListDevices, "i2c-driver-listing-enabled"},
-                                   {'w', kDataLoggerOpStartNoWiFi, "wifi-disabled"},
-                                   {'s', kDataLoggerOpStartNoSettings, "settings-restore-disabled"}};
+    startupCommand_t commands[] = {
+        {'n', kDataLoggerOpNone, "normal-startup"},
+        {'v', kAppOpStartVerboseOutput, "verbose-output-enabled"},
+        {'a', kDataLoggerOpStartNoAutoload, "device-auto-load-disabled"},
+        {'l', kDataLoggerOpStartListDevices, "i2c-driver-listing-enabled"},
+        {'w', kDataLoggerOpStartNoWiFi, "wifi-disabled"},
+        {'s', kDataLoggerOpStartNoSettings, "settings-restore-disabled"},
+    };
 
     // Default
     int iCommand = 0;

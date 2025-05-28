@@ -112,10 +112,11 @@ const uint32_t kStartupMenuDefaultDelaySecs = 2;
 #define kDataLoggerOpStartListDevices (1 << 4)
 #define kDataLoggerOpStartNoSettings (1 << 5)
 #define kDataLoggerOpStartNoWiFi (1 << 6)
+#define kAppOpStartVerboseOutput (1 << 7)
 
 #define kDataLoggerOpStartAllFlags                                                                                     \
     (kDataLoggerOpStartNoAutoload | kDataLoggerOpStartListDevices | kDataLoggerOpStartNoSettings |                     \
-     kDataLoggerOpStartNoWiFi)
+     kDataLoggerOpStartNoWiFi | kAppOpStartVerboseOutput)
 
 #define inOpMode(__mode__) ((_opFlags & __mode__) == __mode__)
 #define setOpMode(__mode__) _opFlags |= __mode__
@@ -244,6 +245,9 @@ class sfeDataLogger : public flxApplication
     std::string get_local_name(void);
     void set_local_name(std::string name);
 
+    bool get_verbose(void);
+    void set_verbose(bool enable);
+
     // color text
     bool get_color_text(void);
     void set_color_text(bool);
@@ -321,6 +325,9 @@ class sfeDataLogger : public flxApplication
     flxPropertyUInt8<sfeDataLogger> startupOutputMode = {
         kAppStartupMsgNormal,
         {{"Normal", kAppStartupMsgNormal}, {"Compact", kAppStartupMsgCompact}, {"Disabled", kAppStartupMsgNone}}};
+
+    // Verbose messages enabled?
+    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_verbose, &sfeDataLogger::set_verbose> verboseEnabled = {false};
 
     // log system info
     // Enabled/Disabled
