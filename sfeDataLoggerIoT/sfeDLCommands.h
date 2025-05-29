@@ -406,7 +406,7 @@ class sfeDLCommands
         if (!dlApp)
             return false;
 
-        flxSendEvent(flxEvent::kOnLogObservationWithSource, "COMMAND");
+        flxSendEvent(flxEvent::kOnLogObservationWithSource, "CLI");
 
         return true;
     }
