@@ -406,7 +406,7 @@ class sfeDLCommands
         if (!dlApp)
             return false;
 
-        dlApp->_logger.logObservation();
+        flxSendEvent(flxEvent::kOnLogObservationWithSource, "COMMAND");
 
         return true;
     }

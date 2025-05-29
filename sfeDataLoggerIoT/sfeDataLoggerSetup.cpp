@@ -229,6 +229,10 @@ void sfeDataLogger::setupENS160(void)
         return;
     }
 }
+void sfeDataLogger::gnssPPSEventCB(void)
+{
+    flxSendEvent(flxEvent::kOnLogObservationWithSource, "PPS");
+}
 //---------------------------------------------------------------------------
 void sfeDataLogger::setupGNSS(void)
 {
@@ -246,5 +250,5 @@ void sfeDataLogger::setupGNSS(void)
     pGNSS->setAvailablePPSPins(kDLBoardGNSSPPSPins, sizeof(kDLBoardGNSSPPSPins) / sizeof(kDLBoardGNSSPPSPins[0]));
 
     // wire in the event to the logger
-    flxRegisterEventCB(flxEvent::kOnGNSSPPSEvent, &_logger, &flxLogger::logObservation);
+    flxRegisterEventCB(flxEvent::kOnGNSSPPSEvent, this, &sfeDataLogger::gnssPPSEventCB);
 }

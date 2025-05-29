@@ -187,6 +187,7 @@ class sfeDataLogger : public flxApplication
 
     //---------------------------------------------------------------------
     void setupGNSS(void);
+    void gnssPPSEventCB(void);
     //------------------------------------------
     // For controlling the log output types
 

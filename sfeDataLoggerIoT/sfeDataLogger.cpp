@@ -704,7 +704,7 @@ bool sfeDataLogger::onStart()
     _wifiConnection.connect();
     // Logging is done at an interval - using an interval timer.
     // Connect logger to the timer event
-    _logger.listen(_timer.on_interval);
+    _logger.listen(_timer.on_interval_with_name);
 
     //  - Add the JSON and CVS format to the logger
     _logger.add(_fmtJSON);
