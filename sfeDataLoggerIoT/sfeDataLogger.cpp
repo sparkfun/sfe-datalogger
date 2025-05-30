@@ -482,6 +482,9 @@ void sfeDataLogger::onDeviceLoad()
     // setup the GNSS device - will create some properties that should be visible
     // after the device is loaded and before restore (if the settings are saved)
     setupGNSS();
+
+    // setup the external serial device manager
+    setupExtSerial();
 }
 //---------------------------------------------------------------------
 // onRestore()
@@ -630,6 +633,12 @@ void sfeDataLogger::onInit(void)
 
     startupDelaySecs = theDelay;
     onInitStartupCommands(theDelay);
+
+    // change the order of the system settings
+    flux.insert_after(&flxSettings, &flxClock);
+
+    // set the location of the external serial system
+    flux.insert_after(&_extSerial, &_theOutputFile);
 }
 //---------------------------------------------------------------------------
 // Check our platform status

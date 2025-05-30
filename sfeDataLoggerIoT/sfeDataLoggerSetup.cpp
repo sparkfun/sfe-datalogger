@@ -255,13 +255,16 @@ void sfeDataLogger::setupGNSS(void)
 }
 //---------------------------------------------------------------------------
 // setup serial device things
-void sfeDataLogger::serialDataEventCB(void)
+void sfeDataLogger::extSerialDataEventCB(void)
 {
     flxSendEvent(flxEvent::kOnLogObservationWithSource, "SERIAL");
 }
 //---------------------------------------------------------------------------
-void sfeDataLogger::setupSerial(void)
+void sfeDataLogger::setupExtSerial(void)
 {
+    // setup the pins
+    _extSerial.rxPin(kDLBoardExtSerialRXPin);
+    _extSerial.txPin(kDLBoardExtSerialTXPin);
     // wire in the event to the logger
-    flxRegisterEventCB(flxEvent::kOnSerialDataAvailable, this, &sfeDataLogger::serialDataEventCB);
+    flxRegisterEventCB(flxEvent::kOnSerialDataAvailable, this, &sfeDataLogger::extSerialDataEventCB);
 }

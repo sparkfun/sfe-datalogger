@@ -28,4 +28,7 @@ const uint8_t kDLBoardLEDRGBBuiltin = 26;
 
 // Define the GNSS PPS pin for the datalogger IoT board
 const uint16_t kDLBoardGNSSPPSPins[] = {33, 36};
-;
+
+// External Serial pins on the board
+const uint8_t kDLBoardExtSerialRXPin = 16;
+const uint8_t kDLBoardExtSerialTXPin = 17;

@@ -63,6 +63,9 @@
 #include <Flux/flxIoTThingSpeak.h>
 #include <Flux/flxMQTTESP32.h>
 
+// External Serial Device connection and use
+#include <Flux/flxOptExtSerial.h>
+
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
 
@@ -191,8 +194,8 @@ class sfeDataLogger : public flxApplication
 
     //---------------------------------------------------------------------------
     // serial input device setup and event methods ...
-    void serialDataEventCB(void);
-    void setupSerial(void);
+    void extSerialDataEventCB(void);
+    void setupExtSerial(void);
 
     //------------------------------------------
     // For controlling the log output types
@@ -401,6 +404,9 @@ class sfeDataLogger : public flxApplication
 
     // a biometric sensor hub
     flxDevBioHub _bioHub;
+
+    // the external serial connection manager
+    flxOptExtSerial _extSerial;
 
     // IoT endpoints
     // An generic MQTT client
