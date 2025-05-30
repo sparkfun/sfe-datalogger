@@ -21,6 +21,7 @@
 #include <Flux/flxDevGNSS.h>
 #include <Flux/flxDevRV8803.h>
 #include <Flux/flxDevSHTC3.h>
+#include <Flux/flxDevSerial.h>
 
 // Biometric Hub -- requires pins to be set on startup
 static const uint8_t kAppBioHubReset = 17; // Use the TXD pin as the bio hub reset pin
@@ -251,4 +252,16 @@ void sfeDataLogger::setupGNSS(void)
 
     // wire in the event to the logger
     flxRegisterEventCB(flxEvent::kOnGNSSPPSEvent, this, &sfeDataLogger::gnssPPSEventCB);
+}
+//---------------------------------------------------------------------------
+// setup serial device things
+void sfeDataLogger::serialDataEventCB(void)
+{
+    flxSendEvent(flxEvent::kOnLogObservationWithSource, "SERIAL");
+}
+//---------------------------------------------------------------------------
+void sfeDataLogger::setupSerial(void)
+{
+    // wire in the event to the logger
+    flxRegisterEventCB(flxEvent::kOnSerialDataAvailable, this, &sfeDataLogger::serialDataEventCB);
 }
