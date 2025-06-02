@@ -227,9 +227,11 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
         flxLog_N_(F("%c    %-20s  - %-40s  {"), pre_ch, device->name(), device->description());
         if (device->getKind() == flxDeviceKindI2C)
             flxLog_N("%s x%x}", "qwiic", device->address());
-        else
+        else if (device->getKind() == flxDeviceKindSPI)
             flxLog_N("%s p%u}", "SPI", device->address());
-    }
+        else if (device->getKind() == flxDeviceKindGPIO)
+            flxLog_N("%s p%u}", "GPIO", device->address());
+        }
 
     flxLog_N("");
 }

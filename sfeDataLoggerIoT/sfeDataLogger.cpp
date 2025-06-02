@@ -745,8 +745,10 @@ bool sfeDataLogger::onStart()
             flxLog_N_(F("    %-20s  - %-40s  {"), device->name(), device->description());
             if (device->getKind() == flxDeviceKindI2C)
                 flxLog_N("%s x%x}", "qwiic", device->address());
-            else
+            else if (device->getKind() == flxDeviceKindSPI)
                 flxLog_N("%s p%u}", "SPI", device->address());
+            else if (device->getKind() == flxDeviceKindGPIO)
+                flxLog_N("%s p%u}", "GPIO", device->address());
 
             if (device->nOutputParameters() > 0)
                 _logger.add(device);
@@ -790,6 +792,10 @@ bool sfeDataLogger::onStart()
     // for our web server file search
     _iotWebServer.setFilePrefix(_theOutputFile.filePrefix());
 
+    // Register our device management event handlers
+    flxRegisterEventCB(flxEvent::kOnFluxAddDevice, this, &sfeDataLogger::onDeviceAdded);
+    flxRegisterEventCB(flxEvent::kOnFluxRemoveDevice, this, &sfeDataLogger::onDeviceRemoved);
+
     // clear startup flags/mode
     clearOpMode(kDataLoggerOpStartup);
     clearOpMode(kDataLoggerOpStartAllFlags);
@@ -798,6 +804,7 @@ bool sfeDataLogger::onStart()
     if (_pDisplay)
         _pDisplay->update();
 #endif
+
     sfeLED.off();
 
     // we are done with startup - reset output mode
@@ -879,6 +886,38 @@ void sfeDataLogger::checkBatteryLevels(void)
     sfeLED.flash(color);
 }
 
+//---------------------------------------------------------------------------
+// Device bookkeeping
+//---------------------------------------------------------------------------
+void sfeDataLogger::onDeviceAdded(uint32_t uiDevice)
+{
+    flxLog_I("Device Added: %u", uiDevice);
+    // if in startup skip
+    if (inOpMode(kDataLoggerOpStartup))
+        return;
+
+    flxDevice *pDevice = (flxDevice *)uiDevice;
+    if (pDevice == nullptr)
+        return;
+
+    // add this device to the logger
+    _logger.add(pDevice);
+}
+void sfeDataLogger::onDeviceRemoved(uint32_t uiDevice)
+{
+    flxLog_I("Device Removed: %u", uiDevice);
+
+    // if in startup skip
+    if (inOpMode(kDataLoggerOpStartup))
+        return;
+
+    flxDevice *pDevice = (flxDevice *)uiDevice;
+    if (pDevice == nullptr)
+        return;
+
+    // remove this device from the logger
+    _logger.remove(pDevice);
+}
 //---------------------------------------------------------------------------
 // loop()
 //

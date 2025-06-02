@@ -370,6 +370,10 @@ class sfeDataLogger : public flxApplication
     // battery level checks
     void checkBatteryLevels(void);
 
+    // system device add/remove events -- when this happens, bookkeeping is requires
+    void onDeviceAdded(uint32_t);
+    void onDeviceRemoved(uint32_t);
+
     // Class members -- that make up the application structure
 
     // WiFi and NTP
