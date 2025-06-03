@@ -262,7 +262,7 @@ void sfeDataLogger::extSerialDataEventCB(void)
 //---------------------------------------------------------------------------
 void sfeDataLogger::setupExtSerial(void)
 {
-    // setup the pins
+    // setup the default pins
     _extSerial.rxPin(kDLBoardExtSerialRXPin);
     _extSerial.txPin(kDLBoardExtSerialTXPin);
     // wire in the event to the logger
