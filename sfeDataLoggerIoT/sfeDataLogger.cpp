@@ -820,7 +820,10 @@ bool sfeDataLogger::onStart()
     if (startupOutputMode() != kAppStartupMsgNormal)
         flxLog.setLogLevel(flxLogInfo);
 
-    // flxLog_I("DEBUG: onStart() - exit -  Free Heap: %d", ESP.getFreeHeap());
+    // June 2025 - ESP32 arduino core v3.07- if a serial device is enabled, the setup of the device (above)
+    // the serial device doesn't behave correctly - new data fails to register. But, "resetting it here"
+    // enables the serial device to work correctly.
+    _extSerial.reset();
 
     return true;
 }
