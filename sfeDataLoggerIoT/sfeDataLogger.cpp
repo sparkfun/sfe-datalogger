@@ -898,7 +898,6 @@ void sfeDataLogger::checkBatteryLevels(void)
 //---------------------------------------------------------------------------
 void sfeDataLogger::onDeviceAdded(uint32_t uiDevice)
 {
-    flxLog_I("Device Added: %u", uiDevice);
     // if in startup skip
     if (inOpMode(kDataLoggerOpStartup))
         return;
@@ -912,8 +911,6 @@ void sfeDataLogger::onDeviceAdded(uint32_t uiDevice)
 }
 void sfeDataLogger::onDeviceRemoved(uint32_t uiDevice)
 {
-    flxLog_I("Device Removed: %u", uiDevice);
-
     // if in startup skip
     if (inOpMode(kDataLoggerOpStartup))
         return;
