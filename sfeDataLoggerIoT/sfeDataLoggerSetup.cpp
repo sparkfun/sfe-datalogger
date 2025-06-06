@@ -268,3 +268,11 @@ void sfeDataLogger::setupExtSerial(void)
     // wire in the event to the logger
     flxRegisterEventCB(flxEvent::kOnSerialDataAvailable, this, &sfeDataLogger::extSerialDataEventCB);
 }
+
+void sfeDataLogger::setInterruptEvent(void)
+{
+    _extIntrEvent.setAvailablePins(kDLBoardIntrruptPins,
+                                   sizeof(kDLBoardIntrruptPins) / sizeof(kDLBoardIntrruptPins[0]));
+
+    _extIntrEvent.setEventToSend(flxEvent::kOnLogObservationWithSource);
+}

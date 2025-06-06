@@ -32,3 +32,6 @@ const uint16_t kDLBoardGNSSPPSPins[] = {33, 36};
 // External Serial pins on the board
 const uint8_t kDLBoardExtSerialRXPin = 16;
 const uint8_t kDLBoardExtSerialTXPin = 17;
+
+// pins that can be used for interrupts.
+const uint16_t kDLBoardIntrruptPins[] = {33, 36};

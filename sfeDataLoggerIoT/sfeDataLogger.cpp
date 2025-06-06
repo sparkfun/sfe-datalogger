@@ -485,6 +485,9 @@ void sfeDataLogger::onDeviceLoad()
 
     // setup the external serial device manager
     setupExtSerial();
+
+    // setup interrupt event
+    setInterruptEvent();
 }
 //---------------------------------------------------------------------
 // onRestore()
@@ -639,6 +642,8 @@ void sfeDataLogger::onInit(void)
 
     // set the location of the external serial system
     flux.insert_after(&_extSerial, &_theOutputFile);
+
+    flux.insert_after(&_extIntrEvent, &_extSerial);
 }
 //---------------------------------------------------------------------------
 // Check our platform status

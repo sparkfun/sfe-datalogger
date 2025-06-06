@@ -66,6 +66,9 @@
 // External Serial Device connection and use
 #include <Flux/flxOptExtSerial.h>
 
+// Interrupt event to drive logging
+#include <Flux/flxOptInterruptEvent.h>
+
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
 
@@ -196,6 +199,8 @@ class sfeDataLogger : public flxApplication
     // serial input device setup and event methods ...
     void extSerialDataEventCB(void);
     void setupExtSerial(void);
+
+    void setInterruptEvent(void);
 
     //------------------------------------------
     // For controlling the log output types
@@ -411,6 +416,9 @@ class sfeDataLogger : public flxApplication
 
     // the external serial connection manager
     flxOptExtSerial _extSerial;
+
+    // interrupt event to drive logging
+    flxOptInterruptEvent _extIntrEvent;
 
     // IoT endpoints
     // An generic MQTT client
