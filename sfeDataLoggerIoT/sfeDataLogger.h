@@ -69,6 +69,10 @@
 // Interrupt event to drive logging
 #include <Flux/flxOptInterruptEvent.h>
 
+// Soil moisture sensor enable
+#include <Flux/flxDevSoilMoisture.h>
+#include <Flux/flxOptEnableDevice.h>
+
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
 
@@ -419,6 +423,10 @@ class sfeDataLogger : public flxApplication
 
     // interrupt event to drive logging
     flxOptInterruptEvent _extIntrEvent;
+
+    // Soil moisture sensor Enable manager
+    flxOptEnableDevice<flxDevSoilMoisture> _soilMoistureEnable = {"Soil Moisture Sensor",
+                                                                  "Enable GPIO attached Soil Moisture Sensor"};
 
     // IoT endpoints
     // An generic MQTT client

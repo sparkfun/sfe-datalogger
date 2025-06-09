@@ -644,6 +644,8 @@ void sfeDataLogger::onInit(void)
     flux.insert_after(&_extSerial, &_theOutputFile);
 
     flux.insert_after(&_extIntrEvent, &_extSerial);
+
+    flux.insert_after(&_soilMoistureEnable, &_extIntrEvent);
 }
 //---------------------------------------------------------------------------
 // Check our platform status
