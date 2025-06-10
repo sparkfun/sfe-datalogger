@@ -73,6 +73,9 @@
 #include <Flux/flxDevSoilMoisture.h>
 #include <Flux/flxOptEnableDevice.h>
 
+// analog pin
+#include <Flux/flxDevAnalogPin.h>
+
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
 
@@ -432,6 +435,14 @@ class sfeDataLogger : public flxApplication
     flxOptEnableDevice<flxDevSoilMoisture> _soilMoistureEnable = {
         "Soil Moisture Sensor", "Enable GPIO attached Soil Moisture Sensor", (uint8_t)33, (uint8_t)2};
 
+    // Analog pin device
+    // This allows us to enable/disable the device and manage its lifecycle.
+    // We pass in an initialiser list that contains:
+    // - The name  and description of the device.
+    // - Available pins
+    // - The pin names for the analog pins.
+    flxOptEnableDevice<flxDevAnalogPin> _analogPinEnable = {
+        "Analog Pin Sensor", "Read analog values from a pin", {{"A0", 36}, {"A3", 39}, {"A7", 35}}};
     // IoT endpoints
     // An generic MQTT client
     flxMQTTESP32 _mqttClient;
