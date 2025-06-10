@@ -425,9 +425,10 @@ class sfeDataLogger : public flxApplication
     flxOptInterruptEvent _extIntrEvent;
 
     // Soil moisture sensor Enable manager
-    flxOptEnableDevice<flxDevSoilMoisture> _soilMoistureEnable = {"Soil Moisture Sensor",
-                                                                  "Enable GPIO attached Soil Moisture Sensor"};
-
+    flxOptEnableDevice2<flxDevSoilMoisture> _soilMoistureEnable = {
+        "Soil Moisture Sensor", "Enable GPIO attached Soil Moisture Sensor", (uint8_t)33, (uint8_t)2};
+    // flxOptEnableDevice2<flxDevSoilMoisture> _soilMoistureEnable = {"Soil Moisture Sensor",
+    //                                                                "Enable GPIO attached Soil Moisture Sensor"};
     // IoT endpoints
     // An generic MQTT client
     flxMQTTESP32 _mqttClient;
