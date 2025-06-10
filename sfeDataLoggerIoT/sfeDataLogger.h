@@ -424,11 +424,14 @@ class sfeDataLogger : public flxApplication
     // interrupt event to drive logging
     flxOptInterruptEvent _extIntrEvent;
 
-    // Soil moisture sensor Enable manager
-    flxOptEnableDevice2<flxDevSoilMoisture> _soilMoistureEnable = {
+    // Soil moisture sensor Enable manager. We use the flxOptEnableDevice template to manage the device
+    // This allows us to enable/disable the device and manage its lifecycle.
+    // We pass in an initialiser list that contains:
+    // - The name  and description of the device.
+    //  - The default pins for the soil sensor - VCC and Sensor pin.
+    flxOptEnableDevice<flxDevSoilMoisture> _soilMoistureEnable = {
         "Soil Moisture Sensor", "Enable GPIO attached Soil Moisture Sensor", (uint8_t)33, (uint8_t)2};
-    // flxOptEnableDevice2<flxDevSoilMoisture> _soilMoistureEnable = {"Soil Moisture Sensor",
-    //                                                                "Enable GPIO attached Soil Moisture Sensor"};
+
     // IoT endpoints
     // An generic MQTT client
     flxMQTTESP32 _mqttClient;
