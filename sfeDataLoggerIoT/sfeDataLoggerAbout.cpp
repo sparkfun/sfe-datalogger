@@ -175,6 +175,48 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
                  _theOutputFile.currentFilename().length() == 0 ? "<none>" : _theOutputFile.currentFilename().c_str());
     flxLog_N("%c    Rotate Period: %d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
+    bool bEnabled = _extIntrEvent.isEnabled();
+    flxLog__(logLevel, "%cInterrupt Log Trigger: %s", pre_ch, bEnabled ? "Enabled" : "Disabled");
+    if (bEnabled)
+    {
+        flxLog__(logLevel, "%c    Pin: %d", pre_ch, _extIntrEvent.intrPin());
+        flxLog__(logLevel, "%c    Event: %s", pre_ch, _extIntrEvent.eventName().c_str());
+    }
+    flxLog_N("");
+    if (!useInfo)
+    {
+        flxSerial.textToWhite();
+        flxLog_N("    GPIO:");
+        flxSerial.textToNormal();
+    }
+    bEnabled = _extSerial.serialDeviceEnabled();
+    flxLog__(logLevel, "%cSerial Device Logging: %s", pre_ch, bEnabled ? "Enabled" : "Disabled");
+    if (bEnabled)
+    {
+        flxLog__(logLevel, "%c    RX Pin: %d", pre_ch, _extSerial.rxPin());
+        flxLog__(logLevel, "%c    TX Pin: %d", pre_ch, _extSerial.txPin());
+        flxLog__(logLevel, "%c    Baud Rate: %d", pre_ch, _extSerial.serialBaudRate());
+    }
+    bEnabled = _soilMoistureEnable.isEnabled();
+    flxLog__(logLevel, "%cSoil Moisture Device: %s", pre_ch, bEnabled ? "Enabled" : "Disabled");
+    if (bEnabled)
+    {
+        auto soilDevices = flux.get<flxDevSoilMoisture>();
+        if (soilDevices->size() > 0)
+        {
+            flxDevSoilMoisture *pSoil = soilDevices->at(0);
+            flxLog__(logLevel, "%c    VCC Pin: %d", pre_ch, pSoil->vccPin());
+            flxLog__(logLevel, "%c    Sensor Pin: %d", pre_ch, pSoil->sensorPin());
+        }
+    }
+    bEnabled = _analogPinEnable.isEnabled();
+    flxLog__(logLevel, "%cAnalog Pin Sensor: %s", pre_ch, bEnabled ? "Enabled" : "Disabled");
+    if (bEnabled)
+    {
+        auto analogDevices = flux.get<flxDevAnalogPin>();
+        if (analogDevices->size() > 0)
+            flxLog__(logLevel, "%c    Pin: %d", pre_ch, analogDevices->at(0)->sensorPin());
+    }
     flxLog_N("");
     if (!useInfo)
     {
@@ -231,7 +273,7 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
             flxLog_N("%s p%u}", "SPI", device->address());
         else if (device->getKind() == flxDeviceKindGPIO)
             flxLog_N("%s p%u}", "GPIO", device->address());
-        }
+    }
 
     flxLog_N("");
 }
