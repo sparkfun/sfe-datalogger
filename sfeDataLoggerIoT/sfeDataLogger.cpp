@@ -640,12 +640,14 @@ void sfeDataLogger::onInit(void)
     // change the order of the system settings
     flux.insert_after(&flxSettings, &flxClock);
 
-    // set the location of the external serial system
-    flux.insert_after(&_extSerial, &_theOutputFile);
+    // set interrupt event after the output file
+    flux.insert_after(&_extIntrEvent, &_theOutputFile);
 
-    flux.insert_after(&_extIntrEvent, &_extSerial);
-
-    flux.insert_after(&_soilMoistureEnable, &_extIntrEvent);
+    // GPIO devices in the menu
+    _extSerial.setTitle("GPIO Devices");
+    flux.insert_after(&_extSerial, &_extIntrEvent);
+    flux.insert_after(&_soilMoistureEnable, &_extSerial);
+    flux.insert_after(&_analogPinEnable, &_soilMoistureEnable);
 }
 //---------------------------------------------------------------------------
 // Check our platform status
