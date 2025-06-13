@@ -230,10 +230,7 @@ void sfeDataLogger::setupENS160(void)
         return;
     }
 }
-void sfeDataLogger::gnssPPSEventCB(void)
-{
-    flxSendEvent(flxEvent::kOnLogObservationWithSource, "PPS");
-}
+
 //---------------------------------------------------------------------------
 void sfeDataLogger::setupGNSS(void)
 {
@@ -250,30 +247,26 @@ void sfeDataLogger::setupGNSS(void)
     // set the in we use for PPS -- expect the input to be wired to this
     pGNSS->setAvailablePPSPins(kDLBoardGNSSPPSPins, sizeof(kDLBoardGNSSPPSPins) / sizeof(kDLBoardGNSSPPSPins[0]));
 
-    // wire in the event to the logger
-    flxRegisterEventCB(flxEvent::kOnGNSSPPSEvent, this, &sfeDataLogger::gnssPPSEventCB);
+    // map the GNSS PPS event to the log observation event
+    flxAddEventAliasWithValue(flxEvent::kOnGNSSPPSEvent, flxEvent::kOnLogObservationWithSource, "PPS");
 }
-//---------------------------------------------------------------------------
-// setup serial device things
-void sfeDataLogger::extSerialDataEventCB(void)
-{
-    flxSendEvent(flxEvent::kOnLogObservationWithSource, "SERIAL");
-}
+
 //---------------------------------------------------------------------------
 void sfeDataLogger::setupExtSerial(void)
 {
     // setup the default pins
     _extSerial.rxPin(kDLBoardExtSerialRXPin);
     _extSerial.txPin(kDLBoardExtSerialTXPin);
-    // wire in the event to the logger
-    flxRegisterEventCB(flxEvent::kOnSerialDataAvailable, this, &sfeDataLogger::extSerialDataEventCB);
+
+    // map the data available event to the log observation event
+    flxAddEventAliasWithValue(flxEvent::kOnSerialDataAvailable, flxEvent::kOnLogObservationWithSource, "SERIAL");
 }
 //---------------------------------------------------------------------------
 void sfeDataLogger::setInterruptEvent(void)
 {
     _extIntrEvent.setDescription("Trigger a logging event from an interrupt");
-    _extIntrEvent.setAvailablePins(kDLBoardIntrruptPins,
-                                   sizeof(kDLBoardIntrruptPins) / sizeof(kDLBoardIntrruptPins[0]));
+    _extIntrEvent.setAvailablePins(kDLBoardInterruptPins,
+                                   sizeof(kDLBoardInterruptPins) / sizeof(kDLBoardInterruptPins[0]));
 
     _extIntrEvent.setEventToSend(flxEvent::kOnLogObservationWithSource);
 }
