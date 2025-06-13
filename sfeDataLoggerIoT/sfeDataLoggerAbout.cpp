@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2022-2024, SparkFun Electronics Inc.
+ * Copyright (c) 2022-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
