@@ -75,7 +75,7 @@ The following command will build the DataLogger firmware. This command is run fr
 
 arduino-cli compile --fqbn esp32:esp32:esp32 \
             ./sfeDataLoggerIoT/sfeDataLoggerIoT.ino \
-            --build-property upload.maximum_size=3145728 \
+            --build-property upload.maximum_size=4980736 \
             --build-property build.flash_size=16MB \
             --build-property build.partitions=partitions \
             --build-property build.flash_mode=dio \
