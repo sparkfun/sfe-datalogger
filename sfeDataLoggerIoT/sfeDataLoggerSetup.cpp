@@ -65,17 +65,22 @@ bool sfeDataLogger::setupSDCard(void)
 bool sfeDataLogger::setupIoTClients()
 {
 
+    _iotEndpoints.setTitle("Services");
+    _iotEndpoints.setName("IoT Services", "IoT Service Connection Drivers");
     // Add title for this section
     _mqttClient.setTitle("IoT Services");
     // setup the network connection for the mqtt
     _mqttClient.setNetwork(&_wifiConnection);
     // add mqtt to JSON
     _fmtJSON.add(_mqttClient);
+    _iotEndpoints.push_back(_mqttClient);
 
     // setup the network connection for the mqtt
     _mqttSecureClient.setNetwork(&_wifiConnection);
     // add mqtt to JSON
     _fmtJSON.add(_mqttSecureClient);
+
+    _iotEndpoints.push_back(_mqttSecureClient);
 
     // AWS
     _iotAWS.setName("AWS IoT", "Connect to an AWS Iot Thing");
@@ -85,12 +90,17 @@ bool sfeDataLogger::setupIoTClients()
     _iotAWS.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotAWS);
 
+    _iotEndpoints.push_back(_iotAWS);
+
     // Thingspeak driver
     _iotThingSpeak.setNetwork(&_wifiConnection);
 
     // Add the filesystem to load certs/keys from the SD card
     _iotThingSpeak.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotThingSpeak);
+
+    // Add the ThingSpeak driver to the flux system
+    _iotEndpoints.push_back(_iotThingSpeak);
 
     // Azure IoT
     _iotAzure.setNetwork(&_wifiConnection);
@@ -99,20 +109,30 @@ bool sfeDataLogger::setupIoTClients()
     _iotAzure.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotAzure);
 
+    // Add the Azure IoT driver to the flux system
+    _iotEndpoints.push_back(_iotAzure);
+
     // general HTTP / URL logger
     _iotHTTP.setNetwork(&_wifiConnection);
     _iotHTTP.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotHTTP);
 
+    // Add the HTTP driver to the flux system
+    _iotEndpoints.push_back(_iotHTTP);
     // Machine Chat
     _iotMachineChat.setNetwork(&_wifiConnection);
     _iotMachineChat.setFileSystem(&_theSDCard);
     _fmtJSON.add(_iotMachineChat);
 
+    // Add the Machine Chat driver to the flux system
+    _iotEndpoints.push_back(_iotMachineChat);
+
     // Arduino IoT
     _iotArduinoIoT.setNetwork(&_wifiConnection);
     _fmtJSON.add(_iotArduinoIoT);
 
+    // Add the Arduino IoT driver to the flux system
+    _iotEndpoints.push_back(_iotArduinoIoT);
     // Web server
     _iotWebServer.setTitle("Preview");
     _iotWebServer.setNetwork(&_wifiConnection);

@@ -648,6 +648,8 @@ void sfeDataLogger::onInit(void)
     flux.insert_after(&_extSerial, &_extIntrEvent);
     flux.insert_after(&_soilMoistureEnable, &_extSerial);
     flux.insert_after(&_analogPinEnable, &_soilMoistureEnable);
+
+    flux.insert_after(&_iotEndpoints, &_analogPinEnable);
 }
 //---------------------------------------------------------------------------
 // Check our platform status

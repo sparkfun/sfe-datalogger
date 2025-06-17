@@ -443,6 +443,9 @@ class sfeDataLogger : public flxApplication
     // - The pin names for the analog pins.
     flxOptEnableDevice<flxDevAnalogPin> _analogPinEnable = {
         "Analog Pin Sensor", "Read analog values from a pin", {{"A0", 36}, {"A3", 39}, {"A7", 35}}};
+
+    // Container for IoT endpoint drivers
+    flxActionContainer _iotEndpoints;
     // IoT endpoints
     // An generic MQTT client
     flxMQTTESP32 _mqttClient;
