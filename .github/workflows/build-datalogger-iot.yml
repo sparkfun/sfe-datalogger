@@ -19,8 +19,6 @@ jobs:
     steps:
       - name: Checkout Repo and submodules
         uses: actions/checkout@v4
-        with:
-          ref: main
 
       # setup the ssh key used to pull in the Flux SDK source. This was the
       # only way found to make this work when using private models (ssh private key here, public on Flux deploy keys
@@ -33,7 +31,7 @@ jobs:
       # checkout flux-sdk
       - name: Checkout the flux-sdk
         run: |
-          git clone --branch main git@github.com:sparkfun/flux-sdk.git
+          git clone --branch feature/version-1.2.0 git@github.com:sparkfun/flux-sdk.git
           echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
 
       # Run cmake - this will build a custom SparkFun_Flux library we can use with
@@ -65,7 +63,7 @@ jobs:
         run: ./flux-sdk/install-libs.sh
 
       - name: Install datalogger libraries
-        run: arduino-cli lib install FastLED "ESP Async WebServer"
+        run: arduino-cli lib install FastLED "ESP Async WebServer" "Async TCP"
 
       - name: Checkout BMV080 Arduino library repo
         uses: actions/checkout@v4
@@ -83,7 +81,6 @@ jobs:
       ## copy in the BMV080 libraries
       - name: Copy BMV080 libraries
         run: |
-          ls -la
           cp  sfe-datalogger-bmv080-libs/esp32/* ./SparkFun_BMV080_Arduino_Library/src/sfTk 
           cp  sfe-datalogger-bmv080-libs/esp32/* ./SparkFun_BMV080_Arduino_Library/src/esp32
 
@@ -98,7 +95,7 @@ jobs:
           --build-property upload.maximum_size=3145728 --build-property build.flash_size=16MB --build-property build.partitions=partitions
           --build-property build.flash_mode=dio --build-property build.flash_freq=80m
           --build-property "compiler.cpp.extra_flags=\"-DDATALOGGER_IOT_APP_KEY=$DATALOGGER_IOT_APP_KEY\" \"-DDATALOGGER_IOT_ID_KEY=$DATALOGGER_IOT_ID_KEY\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
-          --export-binaries --clean --library `pwd`/SparkFun_Flux
+          --export-binaries --clean --library `pwd`/SparkFun_Flux --library `pwd`/SparkFun_BMV080_Arduino_Library
 
       # - name: Rename Library
       #   run: |
