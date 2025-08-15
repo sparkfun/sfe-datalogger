@@ -92,7 +92,7 @@ jobs:
       - name: Compile DataLogger firmware binary
         run:
           arduino-cli compile --fqbn esp32:esp32:esp32 ./sfeDataLoggerIoT/sfeDataLoggerIoT.ino
-          --build-property upload.maximum_size=3145728 --build-property build.flash_size=16MB --build-property build.partitions=partitions
+          --build-property upload.maximum_size=4980736 --build-property build.flash_size=16MB --build-property build.partitions=partitions
           --build-property build.flash_mode=dio --build-property build.flash_freq=80m
           --build-property "compiler.cpp.extra_flags=\"-DDATALOGGER_IOT_APP_KEY=$DATALOGGER_IOT_APP_KEY\" \"-DDATALOGGER_IOT_ID_KEY=$DATALOGGER_IOT_ID_KEY\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
           --export-binaries --clean --library `pwd`/SparkFun_DataLoggerIoT --library `pwd`/SparkFun_BMV080_Arduino_Library
