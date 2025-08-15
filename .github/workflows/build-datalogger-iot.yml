@@ -72,6 +72,7 @@ jobs:
         with:
           token: ${{ secrets.BMV080_LIBS_REPO_KEY }}
           repository: sparkfun/sfe-datalogger-bmv080-libs
+          path: sfe-datalogger-bmv080-libs
 
       ## copy in the BMV080 libraries
       - name: Copy BMV080 libraries
