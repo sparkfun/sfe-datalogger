@@ -67,6 +67,12 @@ jobs:
       - name: Install datalogger libraries
         run: arduino-cli lib install FastLED "ESP Async WebServer"
 
+      - name: Checkout BMV080 Arduino library repo
+        uses: actions/checkout@v4
+        with:
+          repository: sparkfun/SparkFun_BMV080_Arduino_Library
+          path: SparkFun_BMV080_Arduino_Library
+
       - name: Checkout BMV080 libraries repo
         uses: actions/checkout@v4
         with:
@@ -78,8 +84,8 @@ jobs:
       - name: Copy BMV080 libraries
         run: |
           ls -la
-          cp  sfe-datalogger-bmv080-libs/esp32/* Arduino/libraries/SparkFun_BMV080_Arduino_Library/src/sfTk 
-          cp  sfe-datalogger-bmv080-libs/esp32/* Arduino/libraries/SparkFun_BMV080_Arduino_Library/src/esp32
+          cp  sfe-datalogger-bmv080-libs/esp32/* ./SparkFun_BMV080_Arduino_Library/src/sfTk 
+          cp  sfe-datalogger-bmv080-libs/esp32/* ./SparkFun_BMV080_Arduino_Library/src/esp32
 
       # Compile time - build the Firmware for the data logger.
       # Note:
