@@ -77,6 +77,7 @@ jobs:
       ## copy in the BMV080 libraries
       - name: Copy BMV080 libraries
         run: |
+          ls -la
           cp  sfe-datalogger-bmv080-libs/esp32/* Arduino/libraries/SparkFun_BMV080_Arduino_Library/src/sfTk 
           cp  sfe-datalogger-bmv080-libs/esp32/* Arduino/libraries/SparkFun_BMV080_Arduino_Library/src/esp32
 
