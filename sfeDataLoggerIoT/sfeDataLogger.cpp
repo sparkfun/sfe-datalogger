@@ -831,6 +831,8 @@ bool sfeDataLogger::onStart()
     if (startupOutputMode() != kAppStartupMsgNormal)
         flxLog.setLogLevel(flxLogInfo);
 
+    // log now!
+    _timer.trigger();
     return true;
 }
 
