@@ -70,6 +70,7 @@ jobs:
         with:
           repository: sparkfun/SparkFun_BMV080_Arduino_Library
           path: SparkFun_BMV080_Arduino_Library
+          ref: "v1.0.4"
 
       - name: Checkout BMV080 libraries repo
         uses: actions/checkout@v4
