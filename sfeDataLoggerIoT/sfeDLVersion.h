@@ -22,7 +22,7 @@
 #define kDLVersionNumberPoint 0
 
 // Version string description
-#define kDLVersionDescriptor "Version 1.5.0 Development"
+#define kDLVersionDescriptor "Version 1.5.0 Beta"
 
 // app name/class ID string
 #define kDLAppClassNameID "SFE-DATALOGGER-IOT"
@@ -33,4 +33,4 @@
 #define BUILD_NUMBER 0
 #endif
 
-#define kDLVersionBoardDesc "(c) 2023-2025 SparkFun Electronics"
+#define kDLVersionBoardDesc "(c) 2023-2026 SparkFun Electronics"
