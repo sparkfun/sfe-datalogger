@@ -65,7 +65,7 @@ jobs:
         run: ./flux-sdk/install-libs.sh
 
       - name: Install datalogger libraries
-        run: arduino-cli lib install FastLED "ESP Async WebServer" "Async TCP"
+        run: arduino-cli lib install FastLED@3.9.15 "ESP Async WebServer@3.7.7" "Async TCP@3.4.2"
 
       - name: Checkout BMV080 Arduino library repo
         uses: actions/checkout@v4
