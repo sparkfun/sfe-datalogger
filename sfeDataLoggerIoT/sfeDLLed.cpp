@@ -30,7 +30,7 @@ xTimerHandle hTimer;
 const uint16_t kTimerPeriod = 100;
 
 // A task needs a Stack - let's set that size
-#define kStackSize 1600
+#define kStackSize 1800
 #define kActivityDelay 50
 
 #define kLedColorOrder GRB
