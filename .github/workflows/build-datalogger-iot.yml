@@ -47,6 +47,8 @@ jobs:
       # Setup Arduino command line - install esp32 and all the libs flux needs
       - name: Arduino - Install and setup the Arduino CLI
         uses: arduino/setup-arduino-cli@v2
+        with:
+          version: "1.4"
 
       - name: Arduino - Start config file
         run: arduino-cli config init --additional-urls "https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json"
