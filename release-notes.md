@@ -1,6 +1,23 @@
 
 # DataLogger IoT Release Notes
 
+## Version 1.5
+
+January, 2026
+
+* Add support to log input values from an externally connected UART (serial port - (rx,tx))
+* Add support to log the value to log from an Analog Pin
+* Add support for the SparkFun analog Soil Moisture sensor
+* Support for an external interrupt to trigger a logging event
+* Support to trigger a logging event using the PPS output from a connected GNSS sensor
+* Correct and validate the ISO8601 date formatting in the logging system
+* Correct issue with epoch ticks output values
+* Improvded verbose logging now available via the menu system
+* Log event trigger source lable option for logging output
+* Add support for the SparkFun AS7343 Spectral Sensor
+* Add support for the SparkFun BMV080 Air Quality Sensor
+* Moved to latest version of the SparkFun Flux SDK
+
 ## Version 1.1.0
 
 November 15th, 2023
