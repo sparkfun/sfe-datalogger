@@ -22,7 +22,7 @@
 #define kDLVersionNumberPoint 0
 
 // Version string description
-#define kDLVersionDescriptor "Version 1.5.0 Beta"
+#define kDLVersionDescriptor "Version 1.5.0 Beta 1"
 
 // app name/class ID string
 #define kDLAppClassNameID "SFE-DATALOGGER-IOT"
