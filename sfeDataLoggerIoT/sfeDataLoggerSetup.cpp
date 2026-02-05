@@ -134,7 +134,7 @@ bool sfeDataLogger::setupIoTClients()
     // Add the Arduino IoT driver to the flux system
     _iotEndpoints.push_back(_iotArduinoIoT);
     // Web server
-    _iotWebServer.setTitle("Preview");
+    // _iotWebServer.setTitle("Preview");
     _iotWebServer.setNetwork(&_wifiConnection);
     _iotWebServer.setFileSystem(&_theSDCard);
 
