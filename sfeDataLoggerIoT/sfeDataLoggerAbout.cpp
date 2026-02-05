@@ -240,11 +240,11 @@ void sfeDataLogger::displayAppStatus(bool useInfo)
     if (!useInfo)
     {
         flxSerial.textToWhite();
-        flxLog_N("    Preview:");
+        flxLog_N("    Services:");
         flxSerial.textToNormal();
     }
     else
-        flxLog__(logLevel, "%cPreview:", pre_ch);
+        flxLog__(logLevel, "%cServices:", pre_ch);
     _displayAboutObjHelper(pre_ch, _iotWebServer.name(), _iotWebServer.enabled());
     snprintf(szBuffer, sizeof(szBuffer), "mDNS: http://%s.local", _iotWebServer.mDNSName().c_str());
     _displayAboutObjHelper(pre_ch, szBuffer, _iotWebServer.mDNSEnabled());
