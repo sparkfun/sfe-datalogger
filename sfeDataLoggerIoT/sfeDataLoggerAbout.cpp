@@ -288,6 +288,7 @@ void sfeDataLogger::displayAppAbout()
     flxSerial.textToWhite();
     flxLog_N("\n\r\t%s   %s", flux.name(), flux.description());
     flxLog_N("\tVersion: %s\n\r", szBuffer);
+    flxLog_N("\tBuild Date: %s\n\r", getBuildDate());
     flxSerial.textToNormal();
 
     displayAppStatus(false);

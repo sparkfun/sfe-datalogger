@@ -905,6 +905,11 @@ void sfeDataLogger::checkBatteryLevels(void)
 
     sfeLED.flash(color);
 }
+// simple helper to get the build time of the firmware
+const char * sfeDataLogger::getBuildDate(void)
+{
+    return __TIMESTAMP__;
+}
 
 //---------------------------------------------------------------------------
 // Device bookkeeping

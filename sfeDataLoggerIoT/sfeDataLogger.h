@@ -386,6 +386,8 @@ class sfeDataLogger : public flxApplication
     void onDeviceAdded(uint32_t);
     void onDeviceRemoved(uint32_t);
 
+    // helpful method to get the build time of the firmware - used in the about and status displays
+    const char * getBuildDate(void);
     // Class members -- that make up the application structure
 
     // WiFi and NTP

@@ -444,7 +444,20 @@ class sfeDLCommands
 
         return true;
     }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief output the build date of the firmware
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool printBuildDate(sfeDataLogger *dlApp)
+    {
 
+        flxLog_I("Build Date: %s", dlApp->getBuildDate());
+
+        return true;
+    }
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
@@ -469,6 +482,7 @@ class sfeDLCommands
         {"uptime", &sfeDLCommands::outputUpTime},
         {"device-id", &sfeDLCommands::printDeviceID},
         {"version", &sfeDLCommands::printVersion},
+        {"build-date", &sfeDLCommands::printBuildDate},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
     };
