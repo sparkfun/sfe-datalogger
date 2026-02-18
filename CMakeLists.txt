@@ -24,6 +24,9 @@ flux_sdk_set_platform(platform_esp32)
 # Currently we are using all modules of the SDK
 flux_sdk_add_module(flux_all_modules)
 
+# No add modules we want to excluded from this project
+flux_sdk_skip_module(flux_sdcard device_bmv080)
+
 # now call the init function/macro - this will build the Arduino Library SparkFun_Flux under this
 # main directory
 flux_sdk_init()
