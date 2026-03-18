@@ -660,18 +660,23 @@ void sfeDataLogger::checkOpMode()
     // DO we need to nag? If so, add nag job to the loop
     if (!_isValidMode)
     {
+        _isValidMode = true;
+        setName("Unknown Board");
+
+        // 2026 - don't care  about this any more ..
         // Create a timed job that will trigger a nag message at a regular interval
-        flxJob *pJob = new flxJob;
-        if (pJob != nullptr)
-        {
-            pJob->setup("!SparkFun", kLNagTimesMSecs, this, &sfeDataLogger::outputVMessage);
-            flxAddJobToQueue(*pJob);
-        }
-        else
-            flxLog_W(kLNagMessage);
+        // flxJob *pJob = new flxJob;
+        // if (pJob != nullptr)
+        // {
+        //     pJob->setup("!SparkFun", kLNagTimesMSecs, this, &sfeDataLogger::outputVMessage);
+        //     flxAddJobToQueue(*pJob);
+        // }
+        // else
+        //     flxLog_W(kLNagMessage);
     }
-    // at this point we know the board we're running on. Set the name...
-    setName(dlModeCheckName(_modeFlags));
+    else
+        // at this point we know the board we're running on. Set the name...
+        setName(dlModeCheckName(_modeFlags));
 }
 
 //---------------------------------------------------------------------------
@@ -906,7 +911,7 @@ void sfeDataLogger::checkBatteryLevels(void)
     sfeLED.flash(color);
 }
 // simple helper to get the build time of the firmware
-const char * sfeDataLogger::getBuildDate(void)
+const char *sfeDataLogger::getBuildDate(void)
 {
     return __TIMESTAMP__;
 }
