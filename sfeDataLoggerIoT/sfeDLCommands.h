@@ -193,32 +193,6 @@ class sfeDLCommands
     }
     //---------------------------------------------------------------------
     ///
-    /// @brief Enables *normal* log level output
-    ///
-    /// @param dlApp Pointer to the DataLogger App
-    /// @retval bool indicates success (true) or failure (!true)
-    ///
-    bool logLevelNormal(sfeDataLogger *dlApp)
-    {
-        flxLog.setLogLevel(flxLogInfo);
-        flxLog_I(F("Output level set to Normal"));
-        return true;
-    }
-    //---------------------------------------------------------------------
-    ///
-    /// @brief Enables debug log level output
-    ///
-    /// @param dlApp Pointer to the DataLogger App
-    /// @retval bool indicates success (true) or failure (!true)
-    ///
-    bool logLevelDebug(sfeDataLogger *dlApp)
-    {
-        flxLog.setLogLevel(flxLogDebug);
-        flxLog_D(F("Output level set to Debug"));
-        return true;
-    }
-    //---------------------------------------------------------------------
-    ///
     /// @brief Enables verbose log level output
     ///
     /// @param dlApp Pointer to the DataLogger App
@@ -228,6 +202,22 @@ class sfeDLCommands
     {
         flxLog.setLogLevel(flxLogVerbose);
         flxLog_V(F("Output level set to Verbose"));
+        return true;
+    }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Toggle verbose output
+    ///
+    /// @param theApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool toggleVerboseOutput(sfeDataLogger *theApp)
+    {
+
+        if (theApp)
+            theApp->set_verbose(!theApp->get_verbose());
+        flxLog_I("Verbose Output %s", theApp->get_verbose() ? "Enabled" : "Disabled");
+
         return true;
     }
     //---------------------------------------------------------------------
@@ -416,7 +406,7 @@ class sfeDLCommands
         if (!dlApp)
             return false;
 
-        dlApp->_logger.logObservation();
+        flxSendEvent(flxEvent::kOnLogObservationWithSource, "CLI");
 
         return true;
     }
@@ -454,7 +444,20 @@ class sfeDLCommands
 
         return true;
     }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief output the build date of the firmware
+    ///
+    /// @param dlApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool printBuildDate(sfeDataLogger *dlApp)
+    {
 
+        flxLog_I("Build Date: %s", dlApp->getBuildDate());
+
+        return true;
+    }
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
@@ -474,13 +477,12 @@ class sfeDLCommands
         {"devices", &sfeDLCommands::listLoadedDevices},
         {"save-settings", &sfeDLCommands::saveSettings},
         {"heap", &sfeDLCommands::heapStatus},
-        {"normal-output", &sfeDLCommands::logLevelNormal},
-        {"debug-output", &sfeDLCommands::logLevelDebug},
-        {"verbose-output", &sfeDLCommands::logLevelVerbose},
+        {"verbose", &sfeDLCommands::toggleVerboseOutput},
         {"systime", &sfeDLCommands::outputSystemTime},
         {"uptime", &sfeDLCommands::outputUpTime},
         {"device-id", &sfeDLCommands::printDeviceID},
         {"version", &sfeDLCommands::printVersion},
+        {"build-date", &sfeDLCommands::printBuildDate},
         {"about", &sfeDLCommands::aboutDevice},
         {"help", &sfeDLCommands::helpDevice},
     };

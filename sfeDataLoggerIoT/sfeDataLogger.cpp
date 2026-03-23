@@ -145,6 +145,7 @@ sfeDataLogger::sfeDataLogger()
     flxRegister(startupOutputMode, "Startup Messages", "Level of message output at startup");
     flxRegister(startupDelaySecs, "Startup Delay", "Startup Menu Delay in Seconds");
     flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
+    flxRegister(verboseEnabled, "Verbose Messages", "Enable verbose messages");
 
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
@@ -167,6 +168,9 @@ sfeDataLogger::sfeDataLogger()
 
     // app key
     flux.setAppToken(_app_jump, sizeof(_app_jump));
+
+    // do not want the wifi connect() call made until after initialize
+    _wifiConnection.setDelayedStartup(true);
 }
 
 //---------------------------------------------------------------------------
@@ -242,7 +246,7 @@ void sfeDataLogger::onSystemActivityLow(void)
 //---------------------------------------------------------------------------
 //
 // CAlled when the button is pressed and an increment time passed
-void sfeDataLogger::onButtonPressed(uint increment)
+void sfeDataLogger::onButtonPressed(uint32_t increment)
 {
 
     // we need LED on for visual feedback...
@@ -270,7 +274,7 @@ void sfeDataLogger::onButtonPressed(uint increment)
     }
 }
 //---------------------------------------------------------------------------
-void sfeDataLogger::onButtonReleased(uint increment)
+void sfeDataLogger::onButtonReleased(uint32_t increment)
 {
     if (increment > 0)
         sfeLED.off();
@@ -474,6 +478,16 @@ void sfeDataLogger::onDeviceLoad()
         for (auto tw : *twists)
             _logger.listen(tw->on_clicked); // Connect logger to the clicked event
     }
+
+    // setup the GNSS device - will create some properties that should be visible
+    // after the device is loaded and before restore (if the settings are saved)
+    setupGNSS();
+
+    // setup the external serial device manager
+    setupExtSerial();
+
+    // setup interrupt event
+    setInterruptEvent();
 }
 //---------------------------------------------------------------------
 // onRestore()
@@ -525,11 +539,14 @@ void sfeDataLogger::onInitStartupCommands(uint delaySecs)
         uint16_t mode;
         const char *name;
     } startupCommand_t;
-    startupCommand_t commands[] = {{'n', kDataLoggerOpNone, "normal-startup"},
-                                   {'a', kDataLoggerOpStartNoAutoload, "device-auto-load-disabled"},
-                                   {'l', kDataLoggerOpStartListDevices, "i2c-driver-listing-enabled"},
-                                   {'w', kDataLoggerOpStartNoWiFi, "wifi-disabled"},
-                                   {'s', kDataLoggerOpStartNoSettings, "settings-restore-disabled"}};
+    startupCommand_t commands[] = {
+        {'n', kDataLoggerOpNone, "normal-startup"},
+        {'v', kAppOpStartVerboseOutput, "verbose-output-enabled"},
+        {'a', kDataLoggerOpStartNoAutoload, "device-auto-load-disabled"},
+        {'l', kDataLoggerOpStartListDevices, "i2c-driver-listing-enabled"},
+        {'w', kDataLoggerOpStartNoWiFi, "wifi-disabled"},
+        {'s', kDataLoggerOpStartNoSettings, "settings-restore-disabled"},
+    };
 
     // Default
     int iCommand = 0;
@@ -599,8 +616,8 @@ void sfeDataLogger::onInitStartupCommands(uint delaySecs)
 void sfeDataLogger::onInit(void)
 {
     // Did the user set a serial value?
-    uint theRate;
-    uint theDelay;
+    uint32_t theRate;
+    uint32_t theDelay;
     getStartupProperties(theRate, theDelay);
 
     // just to be safe...
@@ -619,6 +636,20 @@ void sfeDataLogger::onInit(void)
 
     startupDelaySecs = theDelay;
     onInitStartupCommands(theDelay);
+
+    // change the order of the system settings
+    flux.insert_after(&flxSettings, &flxClock);
+
+    // set interrupt event after the output file
+    flux.insert_after(&_extIntrEvent, &_theOutputFile);
+
+    // GPIO devices in the menu
+    _extSerial.setTitle("GPIO Devices");
+    flux.insert_after(&_extSerial, &_extIntrEvent);
+    flux.insert_after(&_soilMoistureEnable, &_extSerial);
+    flux.insert_after(&_analogPinEnable, &_soilMoistureEnable);
+
+    flux.insert_after(&_iotEndpoints, &_analogPinEnable);
 }
 //---------------------------------------------------------------------------
 // Check our platform status
@@ -629,18 +660,23 @@ void sfeDataLogger::checkOpMode()
     // DO we need to nag? If so, add nag job to the loop
     if (!_isValidMode)
     {
+        _isValidMode = true;
+        setName("Unknown Board");
+
+        // 2026 - don't care  about this any more ..
         // Create a timed job that will trigger a nag message at a regular interval
-        flxJob *pJob = new flxJob;
-        if (pJob != nullptr)
-        {
-            pJob->setup("!SparkFun", kLNagTimesMSecs, this, &sfeDataLogger::outputVMessage);
-            flxAddJobToQueue(*pJob);
-        }
-        else
-            flxLog_W(kLNagMessage);
+        // flxJob *pJob = new flxJob;
+        // if (pJob != nullptr)
+        // {
+        //     pJob->setup("!SparkFun", kLNagTimesMSecs, this, &sfeDataLogger::outputVMessage);
+        //     flxAddJobToQueue(*pJob);
+        // }
+        // else
+        //     flxLog_W(kLNagMessage);
     }
-    // at this point we know the board we're running on. Set the name...
-    setName(dlModeCheckName(_modeFlags));
+    else
+        // at this point we know the board we're running on. Set the name...
+        setName(dlModeCheckName(_modeFlags));
 }
 
 //---------------------------------------------------------------------------
@@ -689,9 +725,11 @@ bool sfeDataLogger::onStart()
 
     boot_count++;
 
+    // init wifi
+    _wifiConnection.connect();
     // Logging is done at an interval - using an interval timer.
     // Connect logger to the timer event
-    _logger.listen(_timer.on_interval);
+    _logger.listen(_timer.on_interval_with_name);
 
     //  - Add the JSON and CVS format to the logger
     _logger.add(_fmtJSON);
@@ -706,6 +744,15 @@ bool sfeDataLogger::onStart()
 
     // setup NFC - it provides another means to load WiFi credentials
     setupNFDevice();
+
+    // now lets rock on the external serilal device
+    if (_extSerial.begin())
+        flxLog_I(F("External Serial Device started: RX %u, TX %u, Baud: %u"), _extSerial.rxPin(), _extSerial.txPin(),
+                 _extSerial.serialBaudRate());
+    else
+        flxLog_I(F("External Serial Device not started"));
+
+    flxLog_N("");
 
     // check our I2C devices
     // Loop over the device list - note that it is iterable.
@@ -723,8 +770,10 @@ bool sfeDataLogger::onStart()
             flxLog_N_(F("    %-20s  - %-40s  {"), device->name(), device->description());
             if (device->getKind() == flxDeviceKindI2C)
                 flxLog_N("%s x%x}", "qwiic", device->address());
-            else
+            else if (device->getKind() == flxDeviceKindSPI)
                 flxLog_N("%s p%u}", "SPI", device->address());
+            else if (device->getKind() == flxDeviceKindGPIO)
+                flxLog_N("%s p%u}", "GPIO", device->address());
 
             if (device->nOutputParameters() > 0)
                 _logger.add(device);
@@ -768,6 +817,10 @@ bool sfeDataLogger::onStart()
     // for our web server file search
     _iotWebServer.setFilePrefix(_theOutputFile.filePrefix());
 
+    // Register our device management event handlers
+    flxRegisterEventCB(flxEvent::kOnFluxAddDevice, this, &sfeDataLogger::onDeviceAdded);
+    flxRegisterEventCB(flxEvent::kOnFluxRemoveDevice, this, &sfeDataLogger::onDeviceRemoved);
+
     // clear startup flags/mode
     clearOpMode(kDataLoggerOpStartup);
     clearOpMode(kDataLoggerOpStartAllFlags);
@@ -776,14 +829,15 @@ bool sfeDataLogger::onStart()
     if (_pDisplay)
         _pDisplay->update();
 #endif
+
     sfeLED.off();
 
     // we are done with startup - reset output mode
     if (startupOutputMode() != kAppStartupMsgNormal)
         flxLog.setLogLevel(flxLogInfo);
 
-    // flxLog_I("DEBUG: onStart() - exit -  Free Heap: %d", ESP.getFreeHeap());
-
+    // log now!
+    _timer.trigger();
     return true;
 }
 
@@ -856,7 +910,41 @@ void sfeDataLogger::checkBatteryLevels(void)
 
     sfeLED.flash(color);
 }
+// simple helper to get the build time of the firmware
+const char *sfeDataLogger::getBuildDate(void)
+{
+    return __TIMESTAMP__;
+}
 
+//---------------------------------------------------------------------------
+// Device bookkeeping
+//---------------------------------------------------------------------------
+void sfeDataLogger::onDeviceAdded(uint32_t uiDevice)
+{
+    // if in startup skip
+    if (inOpMode(kDataLoggerOpStartup))
+        return;
+
+    flxDevice *pDevice = (flxDevice *)uiDevice;
+    if (pDevice == nullptr)
+        return;
+
+    // add this device to the logger
+    _logger.add(pDevice);
+}
+void sfeDataLogger::onDeviceRemoved(uint32_t uiDevice)
+{
+    // if in startup skip
+    if (inOpMode(kDataLoggerOpStartup))
+        return;
+
+    flxDevice *pDevice = (flxDevice *)uiDevice;
+    if (pDevice == nullptr)
+        return;
+
+    // remove this device from the logger
+    _logger.remove(pDevice);
+}
 //---------------------------------------------------------------------------
 // loop()
 //
@@ -871,7 +959,11 @@ bool sfeDataLogger::loop()
         uint8_t chIn = Serial.read();
         if (chIn == '!')
         {
+            flxSerial.textToWhite();
+            Serial.write('>');
+            flxSerial.textToNormal();
             Serial.write('!');
+            Serial.flush();
             sfeDLCommands cmdProcessor;
             bool status = cmdProcessor.processCommand(this);
         }

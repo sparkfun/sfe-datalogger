@@ -167,7 +167,7 @@ void sfeDataLogger::set_termBaudRate(uint32_t newRate)
     }
 }
 //---------------------------------------------------------------------------
-void sfeDataLogger::getStartupProperties(uint &baudRate, uint &startupDelay)
+void sfeDataLogger::getStartupProperties(uint32_t &baudRate, uint32_t &startupDelay)
 {
     // Do we have this block in storage? And yes, a little hacky with name :)
     flxStorageBlock *stBlk = _sysStorage.getBlock(((flxObject *)this)->name());
@@ -248,4 +248,30 @@ void sfeDataLogger::set_logsysinfo(bool bEnableSysLog)
         _logger.add(_pSystemInfo);
     else
         _logger.remove(_pSystemInfo);
+}
+//---------------------------------------------------------------------------
+// verbose messages
+//---------------------------------------------------------------------------
+void sfeDataLogger::set_verbose(bool enable)
+{
+
+    // If disable, but we are in startup mode that enables verbose, don't set disable
+    if (enable)
+    {
+
+        flxSetLoggingVerbose();
+
+        // if in startup, the verbose mode is being set via pref restore. Note the change to user
+        if (inOpMode(kDataLoggerOpStartup))
+        {
+            flxLog_N("");
+            flxLog_V(F("Verbose output enabled"));
+        }
+    }
+    else if (!inOpMode(kAppOpStartVerboseOutput))
+        flxSetLoggingInfo();
+}
+bool sfeDataLogger::get_verbose(void)
+{
+    return flxIsLoggingVerbose();
 }

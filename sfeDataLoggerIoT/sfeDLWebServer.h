@@ -20,7 +20,9 @@
 #include <ArduinoJson.h>
 
 // Testing
-#include <ESPAsyncWebSrv.h>
+// Used a different version for v1.0*
+// #include <ESPAsyncWebSrv.h>
+#include <ESPAsyncWebServer.h>
 
 class sfeDLWebServer : public flxActionType<sfeDLWebServer>
 {

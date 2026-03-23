@@ -30,7 +30,7 @@ xTimerHandle hTimer;
 const uint16_t kTimerPeriod = 100;
 
 // A task needs a Stack - let's set that size
-#define kStackSize 1600
+#define kStackSize 1800
 #define kActivityDelay 50
 
 #define kLedColorOrder GRB
@@ -123,7 +123,7 @@ bool _sfeLED::initialize(void)
 
     // Event processing task
     BaseType_t xReturnValue = xTaskCreate(_sfeLED_TaskProcessing, // Event processing task function
-                                          "eventProc",            // String with name of task.
+                                          "LEDEventProc",         // String with name of task.
                                           kStackSize,             // Stack size in 32 bit words.
                                           NULL,                   // Parameter passed as input of the task
                                           1,                      // Priority of the task.
@@ -319,7 +319,7 @@ void _sfeLED::blink(uint32_t timeout)
 //---------------------------------------------------------
 // Blink - change state, start blinking
 
-void _sfeLED::blink(sfeLEDColor_t color, uint timeout)
+void _sfeLED::blink(sfeLEDColor_t color, uint32_t timeout)
 {
     if (_disabled)
         return;
