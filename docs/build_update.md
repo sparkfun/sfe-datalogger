@@ -26,7 +26,7 @@ arduino-cli core install esp32:esp32
 
 ### Install the *flux sdk*
 
-The flux sdk is used to create a custom Arduino Library called ```SparkFun_Flux``` that is made available for use by the Arduino build environment. This allows tailoring which components are needed for the specific application - in this case the datalogger.
+The flux sdk is used to create a custom Arduino Library called ```SparkFun_DataLoggerIoT``` that is made available for use by the Arduino build environment. This allows tailoring which components are needed for the specific application - in this case the datalogger.
 
 First steps is to download the flux-sdk on your machine - which is cloned from github.
 
@@ -65,7 +65,7 @@ Now run CMake with the following command:
 cmake ..
 ```
 
-This will create an Arduino library called ```SparkFun_Flux``` in the root directory of the sfe-datalogger repository. Once completed, you can delete the build directory, and build the datalogger firmware.
+This will create an Arduino library called ```SparkFun_DataLoggerIoT``` in the root directory of the sfe-datalogger repository. Once completed, you can delete the build directory, and build the datalogger firmware.
 
 ### Build the Firmware
 
@@ -75,12 +75,12 @@ The following command will build the DataLogger firmware. This command is run fr
 
 arduino-cli compile --fqbn esp32:esp32:esp32 \
             ./sfeDataLoggerIoT/sfeDataLoggerIoT.ino \
-            --build-property upload.maximum_size=3145728 \
+            --build-property upload.maximum_size=4980736 \
             --build-property build.flash_size=16MB \
             --build-property build.partitions=partitions \
             --build-property build.flash_mode=dio \
             --build-property build.flash_freq=80m \
-            --export-binaries --clean --library `pwd`/SparkFun_Flux 
+            --export-binaries --clean --library `pwd`/SparkFun_DataLoggerIoT 
 ```
 
 Note:

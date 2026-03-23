@@ -63,6 +63,19 @@
 #include <Flux/flxIoTThingSpeak.h>
 #include <Flux/flxMQTTESP32.h>
 
+// External Serial Device connection and use
+#include <Flux/flxOptExtSerial.h>
+
+// Interrupt event to drive logging
+#include <Flux/flxOptInterruptEvent.h>
+
+// Soil moisture sensor enable
+#include <Flux/flxDevSoilMoisture.h>
+#include <Flux/flxOptEnableDevice.h>
+
+// analog pin
+#include <Flux/flxDevAnalogPin.h>
+
 // System Firmware update/reset
 #include <Flux/flxSysFirmware.h>
 
@@ -112,10 +125,11 @@ const uint32_t kStartupMenuDefaultDelaySecs = 2;
 #define kDataLoggerOpStartListDevices (1 << 4)
 #define kDataLoggerOpStartNoSettings (1 << 5)
 #define kDataLoggerOpStartNoWiFi (1 << 6)
+#define kAppOpStartVerboseOutput (1 << 7)
 
 #define kDataLoggerOpStartAllFlags                                                                                     \
     (kDataLoggerOpStartNoAutoload | kDataLoggerOpStartListDevices | kDataLoggerOpStartNoSettings |                     \
-     kDataLoggerOpStartNoWiFi)
+     kDataLoggerOpStartNoWiFi | kAppOpStartVerboseOutput)
 
 #define inOpMode(__mode__) ((_opFlags & __mode__) == __mode__)
 #define setOpMode(__mode__) _opFlags |= __mode__
@@ -184,6 +198,17 @@ class sfeDataLogger : public flxApplication
     //---------------------------------------------------------------------
     void setupENS160(void);
 
+    //---------------------------------------------------------------------
+    void setupGNSS(void);
+    // void gnssPPSEventCB(void);
+
+    //---------------------------------------------------------------------------
+    // serial input device setup and event methods ...
+    // void extSerialDataEventCB(void);
+    void setupExtSerial(void);
+
+    void setInterruptEvent(void);
+
     //------------------------------------------
     // For controlling the log output types
 
@@ -241,6 +266,9 @@ class sfeDataLogger : public flxApplication
 
     std::string get_local_name(void);
     void set_local_name(std::string name);
+
+    bool get_verbose(void);
+    void set_verbose(bool enable);
 
     // color text
     bool get_color_text(void);
@@ -320,6 +348,9 @@ class sfeDataLogger : public flxApplication
         kAppStartupMsgNormal,
         {{"Normal", kAppStartupMsgNormal}, {"Compact", kAppStartupMsgCompact}, {"Disabled", kAppStartupMsgNone}}};
 
+    // Verbose messages enabled?
+    flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_verbose, &sfeDataLogger::set_verbose> verboseEnabled = {false};
+
     // log system info
     // Enabled/Disabled
     flxPropertyRWBool<sfeDataLogger, &sfeDataLogger::get_logsysinfo, &sfeDataLogger::set_logsysinfo> logSysInfo;
@@ -351,6 +382,12 @@ class sfeDataLogger : public flxApplication
     // battery level checks
     void checkBatteryLevels(void);
 
+    // system device add/remove events -- when this happens, bookkeeping is requires
+    void onDeviceAdded(uint32_t);
+    void onDeviceRemoved(uint32_t);
+
+    // helpful method to get the build time of the firmware - used in the about and status displays
+    const char * getBuildDate(void);
     // Class members -- that make up the application structure
 
     // WiFi and NTP
@@ -386,6 +423,31 @@ class sfeDataLogger : public flxApplication
     // a biometric sensor hub
     flxDevBioHub _bioHub;
 
+    // the external serial connection manager
+    flxOptExtSerial _extSerial;
+
+    // interrupt event to drive logging
+    flxOptInterruptEvent _extIntrEvent;
+
+    // Soil moisture sensor Enable manager. We use the flxOptEnableDevice template to manage the device
+    // This allows us to enable/disable the device and manage its lifecycle.
+    // We pass in an initialiser list that contains:
+    // - The name  and description of the device.
+    //  - The default pins for the soil sensor - VCC and Sensor pin.
+    flxOptEnableDevice<flxDevSoilMoisture> _soilMoistureEnable = {
+        "Soil Moisture Sensor", "Enable GPIO attached Soil Moisture Sensor", (uint8_t)33, (uint8_t)2};
+
+    // Analog pin device
+    // This allows us to enable/disable the device and manage its lifecycle.
+    // We pass in an initialiser list that contains:
+    // - The name  and description of the device.
+    // - Available pins
+    // - The pin names for the analog pins.
+    flxOptEnableDevice<flxDevAnalogPin> _analogPinEnable = {
+        "Analog Pin Sensor", "Read analog values from a pin", {{"A0", 36}, {"A3", 39}, {"A7", 35}}};
+
+    // Container for IoT endpoint drivers
+    flxActionContainer _iotEndpoints;
     // IoT endpoints
     // An generic MQTT client
     flxMQTTESP32 _mqttClient;
