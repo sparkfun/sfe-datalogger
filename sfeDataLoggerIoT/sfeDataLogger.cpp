@@ -745,7 +745,7 @@ bool sfeDataLogger::onStart()
     // setup NFC - it provides another means to load WiFi credentials
     setupNFDevice();
 
-    // now lets rock on the external serilal device
+    // now lets rock on the external serial device
     if (_extSerial.begin())
         flxLog_I(F("External Serial Device started: RX %u, TX %u, Baud: %u"), _extSerial.rxPin(), _extSerial.txPin(),
                  _extSerial.serialBaudRate());
