@@ -22,16 +22,16 @@ jobs:
 
       # setup the ssh key used to pull in the Flux SDK source. This was the
       # only way found to make this work when using private models (ssh private key here, public on Flux deploy keys
-      - name: Et Tu Submodule
-        uses: webfactory/ssh-agent@master
-        with:
-          ssh-private-key: |
-            ${{ secrets.FLUX_PULL_KEY_2 }}
+      # - name: Et Tu Submodule
+      #   uses: webfactory/ssh-agent@master
+      #   with:
+      #     ssh-private-key: |
+      #       ${{ secrets.FLUX_PULL_KEY_2 }}
 
       # checkout flux-sdk
       - name: Checkout the flux-sdk
         run: |
-          git clone --branch release/v01.05.1 git@github.com:sparkfun/flux-sdk.git
+          git clone --branch release/v01.05.1 https://github.com/sparkfun/flux-sdk.git
           echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
 
       # Run cmake - this will build a custom SparkFun_Flux library we can use with
