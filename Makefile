@@ -54,13 +54,16 @@ ARDUINO_CMD := arduino-cli compile \
 			$(ARDUINO_CLEAN) \
 			--library $(shell pwd)/SparkFun_DataLoggerIoT
 
+# upload erase flag
+UPLOAD_ERASE_FLASH := 
+
 # esptool.py flash command. PORT must be supplied by the caller.
 UPLOAD_CMD := esptool.py \
 	--chip esp32 \
 	--port $(PORT) \
 	--baud $(UPLOAD_BAUD) \
     --before default_reset \
-	--after hard_reset write_flash  -z \
+	--after hard_reset write_flash  -z $(UPLOAD_ERASE_FLASH) \
     --flash_mode dio \
 	--flash_freq 80m \
 	--flash_size 16MB \
@@ -122,6 +125,10 @@ upload:
 	echo "Uploading to $(PORT) at $(UPLOAD_BAUD) baud..."; \
 	echo "$(UPLOAD_CMD)"; \
 	$(UPLOAD_CMD)
+
+# upload and erase board flash
+upload-erase:
+	$(MAKE) upload UPLOAD_ERASE_FLASH=-e
 
 # Remove all build artifacts listed in CLEAN_DIRS, if they exist
 clean:
